@@ -1,0 +1,573 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.mw.monitor.screen.dao.MWLagerScreenMapDao">
+
+    <resultMap id="assetsMap" type="cn.mw.monitor.screen.dto.LargeScreenAssetsInterfaceDto">
+        <id column="id" property="id"/>
+        <result column="assets_id" property="assetsId"/>
+        <result column="assets_name" property="name"/>
+        <result column="in_band_ip" property="assetsIp"/>
+        <result column="monitor_server_id" property="assetsServerId"/>
+
+        <collection property="interFaceNames" ofType="java.util.List" select="selectInterface" column="id">
+        </collection>
+    </resultMap>
+
+    <resultMap id="BaseResultMap" type="cn.mw.monitor.assets.dto.AssetsTreeDTO">
+        <id column="typeId" jdbcType="INTEGER" property="typeId"/>
+        <result column="typeName" jdbcType="VARCHAR" property="typeName"/>
+        <result column="inputFormat" jdbcType="INTEGER" property="inputFormat"/>
+        <result column="url" jdbcType="VARCHAR" property="url"/>
+        <result column="url_type" jdbcType="INTEGER" property="url_type"/>
+        <result column="vendorCustomFlag" jdbcType="INTEGER" property="vendorCustomFlag"/>
+        <collection property="assetsList" resultMap="StringResultMap"/>
+        <collection property="children" resultMap="SecondResultMap"/>
+    </resultMap>
+    <resultMap id="StringResultMap" type="cn.mw.monitor.assets.dto.AssetsDTO">
+        <id column="assetsId" jdbcType="VARCHAR" property="id"/>
+        <result column="assetsName" jdbcType="VARCHAR" property="assetsName"/>
+        <result column="hostId" jdbcType="VARCHAR" property="assetsId"/>
+        <result column="monitorServerId" jdbcType="VARCHAR" property="monitorServerId"/>
+    </resultMap>
+    <resultMap id="SecondResultMap" type="cn.mw.monitor.assets.dto.AssetsTreeDTO">
+        <id column="s_typeName" jdbcType="VARCHAR" property="typeName"/>
+        <result column="s_typeId" jdbcType="INTEGER" property="typeId"/>
+        <result column="s_url" jdbcType="VARCHAR" property="url"/>
+        <result column="s_url_type" jdbcType="INTEGER" property="url_type"/>
+        <collection property="assetsList" resultMap="StringResultMap"/>
+    </resultMap>
+    <delete id="deleteScreenMapShowInformation">
+        delete from mw_large_screen_mapnews where org_id = #{id}
+    </delete>
+
+    <select id="selectAseetsAndInterface" resultMap="assetsMap">
+        select id,assets_id,assets_name,in_band_ip,monitor_server_id from mw_tangibleassets_table where delete_flag = false
+    </select>
+
+    <select id="selectInterface" parameterType="java.lang.String" resultType="java.lang.String">
+        select name from mw_cmdbmd_assets_interface where assets_id = #{id,jdbcType=VARCHAR}
+     </select>
+    
+    <select id="selectScreenMapShowInformation" resultType="cn.mw.monitor.screen.dto.LargeScreenMapDto">
+        select
+           id,
+           org_id as orgId,
+           assets_id as assetsId,
+           assets_ip as assetsIp,
+           assets_name as assetsName,
+           interface_name as interfaceName,
+           show_information as showInformation,
+           monitor_server_id as monitorServerId,
+           user_id as userId,
+           show_data as showData
+        from
+            mw_large_screen_mapnews
+        <if test="orgId != null">
+            where org_id = #{orgId}
+        </if>
+    </select>
+
+    <insert id="insertScreenMapShowInformation">
+        INSERT INTO mw_large_screen_mapnews
+        (org_id, assets_id, assets_ip, assets_name, interface_name, show_information, monitor_server_id,user_id,show_data)
+        VALUES (#{orgId}, #{assetsId}, #{assetsIp}, #{assetsName}, #{interfaceName}, #{showInformation}, #{monitorServerId},#{userId},#{showData});
+    </insert>
+
+    <select id="selectAssetsVendorList" resultMap="BaseResultMap" parameterType="java.util.Map">
+        SELECT
+        t1.vendorId typeId,
+        if(t1.vendor ='', 'unknown',t1.vendor) typeName,
+        t1.assetsId,
+        t1.assetsName,
+        t1.hostId,
+        t1.monitorServerId,
+        t1.url,
+        t1.url_type,
+        t1.specificationsId s_typeId,
+        t1.specifications s_typeName,
+        t1.custom_flag vendorCustomFlag
+        FROM
+        (
+        SELECT
+        a1.id assetsId,
+        a1.assets_name assetsName,
+        a1.assets_id hostId,
+        a1.monitor_server_id monitorServerId,
+        a1.manufacturer vendor,
+        a2.id vendorId,
+        a1.specifications specifications,
+        a3.id specificationsId,
+        a2.vendor_small_icon url,
+        a2.custom_flag url_type,
+        a2.custom_flag
+        FROM
+        ( SELECT
+        t1.id,
+        t1.assets_name,
+        t1.manufacturer,
+        t1.monitor_server_id,
+        t1.assets_id,
+        t1.specifications
+        FROM ${tableName} t1
+        <choose>
+            <when test="isAdmin == false">
+                <choose>
+                    <when test="perm == 'PRIVATE'">
+                        LEFT JOIN mw_datapermission t2 ON t1.id = t2.type_id
+                        LEFT JOIN mw_user_mapper t3 ON t1.id = t3.type_id
+                        AND t3.type = #{moduleType}
+                        WHERE
+                        t1.delete_flag = FALSE
+                        AND t2.is_user = 1
+                        AND t3.user_id = #{userId}
+                    </when>
+                    <otherwise>
+                        LEFT JOIN mw_org_mapper t2 ON t1.id = t2.type_id
+                        AND t2.type = #{moduleType}
+                        WHERE
+                        t1.delete_flag = FALSE
+                        AND t2.org_id IN
+                        <foreach collection="orgIds" item="item" index="index" open="(" separator="," close=")">
+                            #{item.value,jdbcType=INTEGER}
+                        </foreach>
+                    </otherwise>
+                </choose>
+                <if test="settingEnable != null and settingEnable == 1">
+                    and t1.setting_flag = TRUE
+                </if>
+                <if test="groupIds != null and groupIds.size()>0">
+                    union
+                    SELECT
+                    t1.id,
+                    t1.assets_name,
+                    t1.manufacturer,
+                    t1.monitor_server_id,
+                    t1.assets_id,
+                    t1.specifications
+                    FROM
+                    ${tableName} t1
+                    LEFT JOIN mw_datapermission t2 ON t1.id = t2.type_id
+                    LEFT JOIN mw_group_mapper t3 ON t1.id = t3.type_id
+                    AND t3.type = #{moduleType}
+                    WHERE
+                    t1.delete_flag = FALSE
+                    AND t2.is_group = 1
+                    <if test="settingEnable != null and settingEnable == 1">
+                        and t1.setting_flag = TRUE
+                    </if>
+                    AND t3.group_id IN
+                    <foreach collection="groupIds" item="item" index="index" open="(" separator="," close=")">
+                        #{item.value,jdbcType=INTEGER}
+                    </foreach>
+                </if>
+            </when>
+            <otherwise>
+                WHERE
+                t1.delete_flag = FALSE
+                <if test="settingEnable != null and settingEnable == 1">
+                    and t1.setting_flag = TRUE
+                </if>
+            </otherwise>
+        </choose>
+        ) a1
+        LEFT JOIN mw_base_vendor_icon a2 ON a2.vendor = a1.manufacturer
+        LEFT JOIN mw_ncm_vendor_table a3 ON a3.specification = a1.specifications and a3.brand = a1.manufacturer
+        ) t1
+    </select>
+
+
+
+    <select id="selectAssetsTypeList" resultMap="BaseResultMap" parameterType="java.util.Map">
+        SELECT
+        t1.assetsTypeId typeId,
+        if(t1.assetsTypeName ='' or t1.assetsTypeName is null, 'unknown',t1.assetsTypeName) typeName,
+        t1.assetsId,
+        t1.assetsName,
+        t1.url,
+        1 url_type,
+        <if test="moduleType == 'ASSETS' or moduleType == 'OUTBANDASSETS'">
+            t1.hostId,
+            t1.monitorServerId,
+        </if>
+        if(t1.assetsSubTypeId is null, 0,t1.assetsSubTypeId) s_typeId,
+        if(t1.s_url ='' or t1.s_url is null, '',t1.s_url) s_url,
+        1 s_url_type,
+        if(t1.assetsSubTypeName ='' or t1.assetsSubTypeName is null, 'unknown',t1.assetsSubTypeName) s_typeName
+        FROM
+        (
+        SELECT
+        a1.id assetsId,
+        a1.assets_name assetsName,
+        a1.assets_type_id assetsTypeId,
+        <if test="moduleType == 'ASSETS' or moduleType == 'OUTBANDASSETS'">
+            a1.assets_id hostId,
+            a1.monitor_server_id monitorServerId,
+        </if>
+        a2.type_name assetsTypeName,
+        a2.type_icon url,
+        a1.assets_type_sub_id assetsSubTypeId,
+        a3.type_icon s_url,
+        a3.type_name assetsSubTypeName
+        FROM
+        ( SELECT
+        t1.id,
+        assets_name,
+        ${assetsSubTypeId} assets_type_sub_id,
+        <if test="moduleType == 'ASSETS' or moduleType == 'OUTBANDASSETS'">
+            monitor_server_id,
+            assets_id,
+        </if>
+        assets_type_id
+        FROM ${tableName} t1
+        <choose>
+            <when test="isAdmin == false">
+                <choose>
+                    <when test="perm == 'PRIVATE'">
+                        LEFT JOIN mw_datapermission t2 ON t1.id = t2.type_id
+                        LEFT JOIN mw_user_mapper t3 ON t1.id = t3.type_id
+                        AND t3.type = #{moduleType}
+                        WHERE
+                        t1.delete_flag = FALSE
+                        AND t2.is_user = 1
+                        AND t3.user_id = #{userId}
+                    </when>
+                    <otherwise>
+                        LEFT JOIN mw_org_mapper t2 ON t1.id = t2.type_id
+                        AND t2.type = #{moduleType}
+                        WHERE
+                        t1.delete_flag = FALSE
+                        AND t2.org_id IN
+                        <foreach collection="orgIds" item="item" index="index" open="(" separator="," close=")">
+                            #{item.value,jdbcType=INTEGER}
+                        </foreach>
+                    </otherwise>
+                </choose>
+                <if test="settingEnable != null and settingEnable == 1">
+                    and t1.setting_flag = TRUE
+                </if>
+                <if test="groupIds != null and groupIds.size()>0">
+                    union
+                    SELECT
+                    t1.id,
+                    t1.assets_name,
+                    t1.${assetsSubTypeId} assets_type_sub_id,
+                    <if test="moduleType == 'ASSETS' or moduleType == 'OUTBANDASSETS'">
+                        t1.monitor_server_id,
+                        t1.assets_id,
+                    </if>
+                    t1.assets_type_id
+                    FROM
+                    ${tableName} t1
+                    LEFT JOIN mw_datapermission t2 ON t1.id = t2.type_id
+                    LEFT JOIN mw_group_mapper t3 ON t1.id = t3.type_id
+                    AND t3.type = #{moduleType}
+                    WHERE
+                    t1.delete_flag = FALSE
+                    AND t2.is_group = 1
+                    <if test="settingEnable != null and settingEnable == 1">
+                        and t1.setting_flag = TRUE
+                    </if>
+                    AND t3.group_id IN
+                    <foreach collection="groupIds" item="item" index="index" open="(" separator="," close=")">
+                        #{item.value,jdbcType=INTEGER}
+                    </foreach>
+                </if>
+            </when>
+            <otherwise>
+                WHERE
+                t1.delete_flag = FALSE
+                <if test="settingEnable != null and settingEnable == 1">
+                    and t1.setting_flag = TRUE
+                </if>
+            </otherwise>
+        </choose>
+        ) a1
+        LEFT JOIN mw_assetssubtype_table a2 ON a2.id = a1.assets_type_id
+        LEFT JOIN mw_assetssubtype_table a3 ON a3.id = a1.assets_type_sub_id
+        ) t1
+    </select>
+
+
+    <select id="selectAssetsLabelList" resultMap="BaseResultMap" parameterType="java.util.Map">
+        SELECT
+        t1.typeId,
+        t1.typeName,
+        t1.assetsId,
+        t1.assetsName,
+        <if test="moduleType == 'ASSETS' or moduleType == 'OUTBANDASSETS'">
+            t1.hostId,
+            t1.monitorServerId,
+        </if>
+        t1.s_typeId,
+        t1.s_typeName,
+        t1.inputFormat
+        FROM
+        (
+        SELECT
+        a1.label_id typeId,
+        a2.label_name typeName,
+        a2.input_format inputFormat,
+        a1.type_id assetsId,
+        a3.assets_name assetsName,
+        <if test="moduleType == 'ASSETS' or moduleType == 'OUTBANDASSETS'">
+            a3.assets_id hostId,
+            a3.monitor_server_id monitorServerId,
+        </if>
+        a1.id s_typeId,
+        a1.tagboard s_typeName,
+        a2.delete_flag
+        FROM
+        (
+        SELECT
+        id,
+        type_id,
+        label_id,
+        tagboard
+        FROM
+        mw_label_mapper
+        WHERE
+        module_type = #{moduleType,jdbcType=VARCHAR} UNION ALL
+        SELECT
+        id,
+        type_id,
+        label_id,
+        drop_tagboard tagboard
+        FROM
+        (
+        SELECT
+        d1.id,
+        d1.type_id,
+        d1.label_id,
+        d2.drop_value drop_tagboard,
+        d2.delete_flag
+        FROM
+        ( SELECT id, type_id, label_id, module_type, drop_tagboard FROM mw_label_drop_mapper WHERE module_type = #{moduleType,jdbcType=VARCHAR}) d1
+        LEFT JOIN mw_dropdown_table d2 ON d1.drop_tagboard = d2.drop_id
+        ) drop1
+        WHERE
+        drop1.delete_flag = FALSE UNION ALL
+        SELECT
+        id,
+        type_id,
+        label_id,
+        date_tagboard tagboard
+        FROM
+        mw_label_date_mapper
+        WHERE
+        module_type = #{moduleType,jdbcType=VARCHAR}
+        ) a1
+        LEFT JOIN mw_labelmanage_table a2 ON a2.label_id = a1.label_id
+        left join (
+        SELECT
+        t1.assets_name ,
+        <if test="moduleType == 'ASSETS' or moduleType == 'OUTBANDASSETS'">
+            t1.assets_id ,
+            t1.monitor_server_id ,
+        </if>
+        t1.id,
+        t1.delete_flag
+        FROM
+        ${tableName} t1
+        <choose>
+            <when test="isAdmin == false">
+                <choose>
+                    <when test="perm == 'PRIVATE'">
+                        LEFT JOIN mw_datapermission t2 ON t1.id = t2.type_id
+                        LEFT JOIN mw_user_mapper t3 ON t1.id = t3.type_id
+                        AND t3.type = #{moduleType}
+                        WHERE
+                        t1.delete_flag = FALSE
+                        AND t2.is_user = 1
+                        AND t3.user_id = #{userId}
+                    </when>
+                    <otherwise>
+                        LEFT JOIN mw_org_mapper t2 ON t1.id = t2.type_id
+                        AND t2.type = #{moduleType}
+                        WHERE
+                        t1.delete_flag = FALSE
+                        AND t2.org_id IN
+                        <foreach collection="orgIds" item="item" index="index" open="(" separator="," close=")">
+                            #{item.value,jdbcType=INTEGER}
+                        </foreach>
+                    </otherwise>
+                </choose>
+                <if test="settingEnable != null and settingEnable == 1">
+                    and t1.setting_flag = TRUE
+                </if>
+                <if test="groupIds != null and groupIds.size()>0">
+                    union
+                    SELECT
+                    t1.assets_name ,
+                    <if test="moduleType == 'ASSETS' or moduleType == 'OUTBANDASSETS'">
+                        t1.assets_id ,
+                        t1.monitor_server_id ,
+                    </if>
+                    t1.id,
+                    t1.delete_flag
+                    FROM
+                    ${tableName} t1
+                    LEFT JOIN mw_datapermission t2 ON t1.id = t2.type_id
+                    LEFT JOIN mw_group_mapper t3 ON t1.id = t3.type_id
+                    AND t3.type = #{moduleType}
+                    WHERE
+                    t1.delete_flag = FALSE
+                    AND t2.is_group = 1
+                    <if test="settingEnable != null and settingEnable == 1">
+                        and t1.setting_flag = TRUE
+                    </if>
+                    AND t3.group_id IN
+                    <foreach collection="groupIds" item="item" index="index" open="(" separator="," close=")">
+                        #{item.value,jdbcType=INTEGER}
+                    </foreach>
+                </if>
+            </when>
+            <otherwise>
+                WHERE
+                t1.delete_flag = FALSE
+                <if test="settingEnable != null and settingEnable == 1">
+                    and t1.setting_flag = TRUE
+                </if>
+            </otherwise>
+        </choose>
+        ) a3 ON a3.id = a1.type_id
+        where a3.delete_flag = FALSE
+        ) t1 where t1.delete_flag = false
+    </select>
+
+    <select id="selectAssetsOrgList" resultType="cn.mw.monitor.assets.dto.AssetsDTO" parameterType="java.util.Map">
+        SELECT
+        a2.id id,
+        <if test="moduleType == 'ASSETS' or moduleType == 'OUTBANDASSETS'">
+            a2.assets_id assetsId,
+            a2.monitor_server_id monitorServerId,
+
+        </if>
+        a2.assets_name assetsName
+        FROM
+        ( SELECT type_id, org_id FROM mw_org_mapper WHERE `type` = #{moduleType,jdbcType=VARCHAR} AND org_id = #{orgId,jdbcType=INTEGER} ) a1
+        LEFT JOIN ( SELECT
+        t1.id,
+        t1.assets_name,
+        <if test="moduleType == 'ASSETS' or moduleType == 'OUTBANDASSETS'">
+            t1.monitor_server_id,
+            t1.assets_id,
+        </if>
+        t1.creator,
+        t1.delete_flag
+        FROM ${tableName} t1
+        <choose>
+            <when test="isAdmin == false">
+                <choose>
+                    <when test="perm == 'PRIVATE'">
+                        LEFT JOIN mw_datapermission t2 ON t1.id = t2.type_id
+                        LEFT JOIN mw_user_mapper t3 ON t1.id = t3.type_id
+                        AND t3.type = #{moduleType}
+                        WHERE
+                        t1.delete_flag = FALSE
+                        AND t2.is_user = 1
+                        AND t3.user_id = #{userId}
+                    </when>
+                    <otherwise>
+                        WHERE 1=1
+                    </otherwise>
+                </choose>
+                <if test="settingEnable != null and settingEnable == 1">
+                    and t1.setting_flag = TRUE
+                </if>
+            </when>
+            <otherwise>
+                WHERE
+                t1.delete_flag = FALSE
+                <if test="settingEnable != null and settingEnable == 1">
+                    and t1.setting_flag = TRUE
+                </if>
+            </otherwise>
+        </choose>
+        ) a2 ON a1.type_id = a2.id
+        where a2.delete_flag = FALSE
+    </select>
+
+    <select id="selectAllAssets" resultMap="StringResultMap" parameterType="java.util.Map">
+        SELECT
+        distinct t1.id assetsId,
+        <if test="moduleType == 'ASSETS' or moduleType == 'OUTBANDASSETS'">
+            t1.assets_id hostId,
+            t1.monitor_server_id monitorServerId,
+        </if>
+        t1.assets_name assetsName
+        FROM
+        ${tableName} t1
+        <choose>
+            <when test="isAdmin == false">
+                <choose>
+                    <when test="perm == 'PRIVATE'">
+                        LEFT JOIN mw_datapermission t2 ON t1.id = t2.type_id
+                        LEFT JOIN mw_user_mapper t3 ON t1.id = t3.type_id
+                        AND t3.type = #{moduleType}
+                        WHERE
+                        t1.delete_flag = FALSE
+                        AND t2.is_user = 1
+                        AND t3.user_id = #{userId}
+                    </when>
+                    <otherwise>
+                        LEFT JOIN mw_org_mapper t2 ON t1.id = t2.type_id
+                        AND t2.type = #{moduleType}
+                        WHERE
+                        t1.delete_flag = FALSE
+                        AND t2.org_id IN
+                        <foreach collection="orgIds" item="item" index="index" open="(" separator="," close=")">
+                            #{item.value,jdbcType=INTEGER}
+                        </foreach>
+                    </otherwise>
+                </choose>
+                <if test="settingEnable != null and settingEnable == 1">
+                    and t1.setting_flag = TRUE
+                </if>
+                <if test="groupIds != null and groupIds.size()>0">
+                    union
+                    SELECT
+                    distinct t1.id assetsId,
+                    <if test="moduleType == 'ASSETS' or moduleType == 'OUTBANDASSETS'">
+                        t1.assets_id hostId,
+                        t1.monitor_server_id monitorServerId,
+                    </if>
+                    t1.assets_name assetsName
+                    FROM
+                    ${tableName} t1
+                    LEFT JOIN mw_datapermission t2 ON t1.id = t2.type_id
+                    LEFT JOIN mw_group_mapper t3 ON t1.id = t3.type_id
+                    AND t3.type = #{moduleType}
+                    WHERE
+                    t1.delete_flag = FALSE
+                    AND t2.is_group = 1
+                    <if test="settingEnable != null and settingEnable == 1">
+                        and t1.setting_flag = TRUE
+                    </if>
+                    AND t3.group_id IN
+                    <foreach collection="groupIds" item="item" index="index" open="(" separator="," close=")">
+                        #{item.value,jdbcType=INTEGER}
+                    </foreach>
+                </if>
+            </when>
+            <otherwise>
+                WHERE
+                t1.delete_flag = FALSE
+                <if test="settingEnable != null and settingEnable == 1">
+                    and t1.setting_flag = TRUE
+                </if>
+            </otherwise>
+        </choose>
+    </select>
+    <select id="getItemNameByName" resultType="java.util.Map">
+        select item_name itemName,descr from mw_item_name_mapper where item_name in
+        <foreach collection="itemNames" item="item" index="index" open="(" separator="," close=")">
+            #{item}
+        </foreach>
+
+    </select>
+
+    <select id="selectScreenAllMonitorItem" resultType="java.util.Map">
+       select id,descr name,item_name itemName from mw_item_name_mapper
+    </select>
+
+</mapper>

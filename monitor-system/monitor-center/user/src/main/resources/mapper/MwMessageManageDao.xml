@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.mw.monitor.user.dao.MwMessageManageDao">
+
+    <insert id="insert" parameterType="cn.mw.monitor.websocket.Message" useGeneratedKeys="true"
+            keyProperty="id">
+    INSERT INTO `monitor`.`mw_system_message`( `message_text`, `create_date`, `own_user`, `module`,user_id,node,isRedirect) VALUES (
+            #{messageText,jdbcType=VARCHAR},
+            #{createDate,jdbcType=TIMESTAMP},
+            #{ownUser,jdbcType=VARCHAR},
+             #{module,jdbcType=VARCHAR},
+             #{userId,jdbcType=INTEGER},
+             #{node},
+             #{isRedirect,jdbcType=BIT}
+        )
+    </insert>
+
+    <!-- 根据机构id查询机构和引擎关联关系 -->
+    <select id="selectByreadUserLoginName" resultType="cn.mw.monitor.websocket.Message">
+      SELECT * FROM `mw_system_message` where own_user = #{loginName} and read_status = #{type} order by create_date desc
+    </select>
+
+    <!-- 根据机构id查询机构和引擎关联关系 -->
+    <select id="selectUnfinishActivitiByreadUserLoginName" resultType="java.lang.Integer">
+      SELECT un_finish_process FROM `my_unfinish_process` where login_name = #{loginName}
+    </select>
+
+
+    <update id="chageEditor">
+   UPDATE `monitor`.`mw_system_message` SET `read_status` = 1 WHERE `own_user` =#{loginName}  and
+    <if test="param>0">
+        id = #{param}
+    </if>
+    <if test="param==0">
+        1=1
+    </if>
+    </update>
+
+    <delete id="delete">
+      DELETE FROM `monitor`.`mw_system_message` WHERE `own_user` =#{loginName} and read_status =1
+    </delete>
+</mapper>

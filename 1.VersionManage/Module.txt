@@ -1,0 +1,36 @@
+log_security 日志管理
+assets_manage 资产管理
+model_manage 模型管理
+polling_manage 引擎管理
+mw_monitor 我的监控
+prop_manage 配置管理
+ip_manage IP管理
+knowledge_base 知识库
+monitor_screen 大屏
+assets_manage_web WEB监控
+assets_manage_net 网络性能
+assets_manage_server 服务器&应用
+assets_manage_storage 存储监控
+sys_manage
+auto-manage 自动化
+home_manage 首页
+topo_manage 拓扑
+report_manage 报表
+netflow_manage 流量管理
+
+网络性能模块{
+    assets_manage : 网络性能模块有调资产那边的接口
+    assets_manage_net
+}
+
+网络配置{
+    prop_manage
+}
+
+IP地址管理{
+    ip_manage
+}
+
+运维自动化{
+    auto-manage
+}

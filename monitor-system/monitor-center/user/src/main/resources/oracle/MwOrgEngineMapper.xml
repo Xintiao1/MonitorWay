@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.mw.monitor.user.dao.MwOrgEngineMapperDao">
+
+    <!-- 根据机构id查询机构和引擎关联关系 -->
+    <select id="countEngineByOrgId" resultType="java.lang.Integer">
+        SELECT
+            COUNT(1)
+        FROM ${TBSNAME}."mw_engine_org_mapper"
+        WHERE "org_id" = #{orgId,jdbcType=INTEGER}
+    </select>
+
+</mapper>

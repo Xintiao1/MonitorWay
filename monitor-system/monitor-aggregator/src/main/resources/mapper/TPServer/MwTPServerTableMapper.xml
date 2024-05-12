@@ -1,0 +1,366 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.mw.monitor.TPServer.dao.MwTPServerTableDao">
+    <resultMap id="ParentMap" type="cn.mw.monitor.TPServer.model.MwTPServerTable">
+        <id column="id" jdbcType="INTEGER" property="id" />
+        <result column="monitoring_server_name" jdbcType="VARCHAR" property="monitoringServerName" />
+        <result column="monitoring_server_ip" jdbcType="VARCHAR" property="monitoringServerIp" />
+        <result column="monitoring_server_url" jdbcType="VARCHAR" property="monitoringServerUrl" />
+        <result column="monitoring_server_user" jdbcType="VARCHAR" property="monitoringServerUser" />
+        <result column="monitoring_server_password" jdbcType="VARCHAR" property="monitoringServerPassword" />
+        <result column="monitoring_server_version" jdbcType="VARCHAR" property="monitoringServerVersion" />
+        <result column="monitoring_server_type" jdbcType="VARCHAR" property="monitoringServerType" />
+        <result column="main_server" jdbcType="BIT" property="mainServer"/>
+        <result column="creator" jdbcType="VARCHAR" property="creator" />
+        <result column="create_date" jdbcType="TIMESTAMP" property="createDate" />
+        <result column="modifier" jdbcType="VARCHAR" property="modifier" />
+        <result column="modification_date" jdbcType="TIMESTAMP" property="modificationDate" />
+        <result column="delete_flag" jdbcType="BIT" property="deleteFlag"/>
+        <result column="encrypted_flag" jdbcType="BIT" property="encryptedFlag"/>
+    </resultMap>
+
+    <resultMap id="BaseResultMap" type="cn.mw.monitor.TPServer.dto.MwTPServerDTO" extends="ParentMap">
+    </resultMap>
+
+
+    <sql id="Select_Column_List">
+    id, monitoring_server_name, monitoring_server_ip, monitoring_server_url, monitoring_server_user, monitoring_server_password, monitoring_server_version,
+        monitoring_server_type, main_server, creator, create_date, modifier, modification_date, delete_flag, encrypted_flag
+  </sql>
+
+    <sql id="Base_Column_List">
+    monitoring_server_name, monitoring_server_ip, monitoring_server_url, monitoring_server_user, monitoring_server_password, monitoring_server_version,
+        monitoring_server_type, main_server, creator, create_date, modifier, modification_date, delete_flag, encrypted_flag
+  </sql>
+
+    <sql id="tb">
+    mw_thirdparty_server_table
+  </sql>
+
+    <sql id="criteria">
+        <if test="monitoringServerName != null and monitoringServerName != ''">
+            and monitoring_server_name like CONCAT('%',#{monitoringServerName,jdbcType=VARCHAR},'%')
+        </if>
+        <if test="monitoringServerIp != null and monitoringServerIp !=''">
+            and monitoring_server_ip = #{monitoringServerIp,jdbcType=VARCHAR}
+        </if>
+        <if test="monitoringServerUrl != null and monitoringServerUrl !=''">
+            and monitoring_server_url like CONCAT('%',#{monitoringServerUrl,jdbcType=VARCHAR},'%')
+        </if>
+        <if test="monitoringServerUser != null and monitoringServerUser !=''">
+            and monitoring_server_user = #{monitoringServerUser,jdbcType=VARCHAR}
+        </if>
+        <if test="monitoringServerPassword != null and monitoringServerPassword !=''">
+            and monitoring_server_password = #{monitoringServerPassword,jdbcType=VARCHAR}
+        </if>
+        <if test="monitoringServerVersion != null and monitoringServerVersion !=''">
+            and monitoring_server_version = #{monitoringServerVersion,jdbcType=VARCHAR}
+        </if>
+        <if test="monitoringServerType != null and monitoringServerType !=''">
+            and monitoring_server_type = #{monitoringServerType,jdbcType=VARCHAR}
+        </if>
+        <if test="mainServer != null">
+            and main_server = #{mainServer,jdbcType=BIT}
+        </if>
+        <if test="creator != null and creator != ''">
+            and creator = #{creator,jdbcType=VARCHAR}
+        </if>
+        <if test="createDateStart != null">
+            AND  <![CDATA[#{createDateStart,jdbcType=TIMESTAMP} <= create_date ]]>
+        </if>
+        <if test="createDateEnd != null">
+            AND <![CDATA[#{createDateEnd,jdbcType=TIMESTAMP} >= create_date ]]>
+        </if>
+        <if test="modifier != null and modifier != ''">
+            AND modifier LIKE CONCAT('%',#{modifier,jdbcType=VARCHAR},'%')
+        </if>
+        <if test="modificationDateStart != null">
+            AND  <![CDATA[#{modificationDateStart,jdbcType=TIMESTAMP} <= modification_date ]]>
+        </if>
+        <if test="modificationDateEnd != null">
+            AND <![CDATA[#{modificationDateEnd,jdbcType=TIMESTAMP} >= modification_date ]]>
+        </if>
+        <if test="fuzzyQuery!= null and fuzzyQuery !='' ">
+            and CONCAT(
+            IFNULL( monitoring_server_name, '' ),
+            IFNULL( monitoring_server_ip, '' ),
+            IFNULL( monitoring_server_url, '' ),
+            IFNULL( monitoring_server_type, '' ),
+            IFNULL( monitoring_server_version, '' ),
+            IFNULL( creator, '' ),
+            IFNULL( modifier, '' )
+            ) LIKE CONCAT('%',#{fuzzyQuery,jdbcType=VARCHAR},'%')
+            ORDER BY
+            ( CASE WHEN INSTR( monitoring_server_name, #{fuzzyQuery}) > 0 THEN 0 ELSE 1 END ),
+            ( CASE WHEN INSTR( monitoring_server_ip, #{fuzzyQuery}) > 0 THEN 0 ELSE 1 END ),
+            ( CASE WHEN INSTR( monitoring_server_type, #{fuzzyQuery}) > 0 THEN 0 ELSE 1 END ),
+            ( CASE WHEN INSTR( monitoring_server_version, #{fuzzyQuery}) > 0 THEN 0 ELSE 1 END ),
+            ( CASE WHEN INSTR( modifier, #{fuzzyQuery}) > 0 THEN 0 ELSE 1 END ),
+            ( CASE WHEN INSTR( creator, #{fuzzyQuery} ) > 0 THEN 0 ELSE 1 END )
+        </if>
+        <if test="systemUser == false">
+            and FIND_IN_SET("id",#{list})
+        </if>
+    </sql>
+
+    <select id="selectById" parameterType="int" resultMap="BaseResultMap">
+        select
+        <include refid="Select_Column_List" />
+        from
+        <include refid="tb" /> t1
+        where t1.id = #{id,jdbcType=INTEGER}
+    </select>
+
+    <update id="delete" parameterType="java.util.List">
+        update
+        <include refid="tb" />
+        set delete_flag = true
+        where id in (
+        <foreach collection="list" item="id" separator=",">
+            #{id,jdbcType=INTEGER}
+        </foreach>
+        )
+    </update>
+
+    <insert id="insert" parameterType="cn.mw.monitor.TPServer.dto.AddOrUpdateTPServerParam" useGeneratedKeys="true" keyProperty="id" keyColumn="id">
+        insert into
+        <include refid="tb"/>
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="monitoringServerName != null">
+                monitoring_server_name,
+            </if>
+            <if test="monitoringServerIp != null">
+                monitoring_server_ip,
+            </if>
+            <if test="monitoringServerUrl != null">
+                monitoring_server_url,
+            </if>
+            <if test="monitoringServerUser != null">
+                monitoring_server_user,
+            </if>
+            <if test="monitoringServerPassword != null">
+                monitoring_server_password,
+            </if>
+            <if test="monitoringServerVersion != null">
+                monitoring_server_version,
+            </if>
+            <if test="monitoringServerType != null">
+                monitoring_server_type,
+            </if>
+            <if test="mainServer != null">
+                main_server,
+            </if>
+            <if test="creator != null">
+                creator,
+            </if>
+            create_date,
+            <if test="modifier != null">
+                modifier,
+            </if>
+            modification_date,
+            <if test="deleteFlag != null">
+                delete_flag
+            </if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="monitoringServerName != null">
+                #{monitoringServerName,jdbcType=VARCHAR},
+            </if>
+            <if test="monitoringServerIp != null">
+                #{monitoringServerIp,jdbcType=VARCHAR},
+            </if>
+            <if test="monitoringServerUrl != null">
+                #{monitoringServerUrl,jdbcType=VARCHAR},
+            </if>
+            <if test="monitoringServerUser != null">
+                #{monitoringServerUser,jdbcType=VARCHAR},
+            </if>
+            <if test="monitoringServerPassword != null">
+                #{monitoringServerPassword,jdbcType=VARCHAR},
+            </if>
+            <if test="monitoringServerVersion != null">
+                #{monitoringServerVersion,jdbcType=VARCHAR},
+            </if>
+            <if test="monitoringServerType != null">
+                #{monitoringServerType,jdbcType=VARCHAR},
+            </if>
+            <if test="mainServer != null">
+                #{mainServer,jdbcType=BIT},
+            </if>
+            <if test="creator != null">
+                #{creator,jdbcType=VARCHAR},
+            </if>
+            now(),
+            <if test="modifier != null">
+                #{modifier,jdbcType=VARCHAR},
+            </if>
+            now(),
+            <if test="deleteFlag != null">
+                #{deleteFlag,jdbcType=BIT}
+            </if>
+        </trim>
+    </insert>
+
+    <update id="update" parameterType="cn.mw.monitor.TPServer.dto.AddOrUpdateTPServerParam">
+        update
+        <include refid="tb"/>
+        <set>
+            <if test="monitoringServerName != null">
+                monitoring_server_name = #{monitoringServerName,jdbcType=VARCHAR},
+            </if>
+            <if test="monitoringServerIp != null">
+                monitoring_server_ip = #{monitoringServerIp,jdbcType=VARCHAR},
+            </if>
+            <if test="monitoringServerUrl != null">
+                monitoring_server_url = #{monitoringServerUrl,jdbcType=VARCHAR},
+            </if>
+            <if test="monitoringServerUser != null">
+                monitoring_server_user = #{monitoringServerUser,jdbcType=VARCHAR},
+            </if>
+            <if test="monitoringServerPassword != null">
+                monitoring_server_password = #{monitoringServerPassword,jdbcType=VARCHAR},
+            </if>
+            <if test="monitoringServerVersion != null">
+                monitoring_server_version = #{monitoringServerVersion,jdbcType=VARCHAR},
+            </if>
+            <if test="monitoringServerType != null">
+                monitoring_server_type = #{monitoringServerType,jdbcType=VARCHAR},
+            </if>
+            <if test="mainServer != null">
+                main_server = #{mainServer,jdbcType=BIT},
+            </if>
+            <if test="modifier != null">
+                modifier = #{modifier,jdbcType=VARCHAR},
+            </if>
+            <if test="modificationDate != null">
+                modification_date = now(),
+            </if>
+            <if test="deleteFlag != null">
+                delete_flag = #{deleteFlag,jdbcType=BIT}
+            </if>
+        </set>
+        where id = #{id,jdbcType=INTEGER}
+    </update>
+
+    <sql id="union_group">
+        <if test="groupIds!=null">
+            UNION
+            SELECT
+            <include refid="Select_Column_List"></include>
+            FROM (SELECT
+            t1.id,<include refid="Base_Column_List"></include>
+            FROM mw_thirdparty_server_table t1
+            LEFT JOIN mw_datapermission t2 ON t1.id = t2.type_id
+            WHERE
+            t2.is_group =1 AND t1.delete_flag = FALSE ) t1
+            LEFT JOIN
+            (SELECT type_id,group_id FROM mw_group_mapper where type='MONITORING_SERVER') t2 ON t1.id = t2.type_id
+            where group_id IN
+            <foreach collection="groupIds" item="item" index="index" open="(" separator="," close=")">
+                #{item.value,jdbcType=INTEGER}
+            </foreach>
+            <include refid="criteria"></include>
+        </if>
+    </sql>
+
+
+    <select id="selectPubList" parameterType="cn.mw.monitor.TPServer.dto.QueryTPServerParam"
+            resultMap="BaseResultMap">
+        select
+        <include refid="Select_Column_List"></include>
+        from  mw_thirdparty_server_table
+        where delete_flag = FALSE
+        <include refid="criteria"></include>
+    </select>
+
+    <select id="selectDropdownListByType" resultType="cn.mw.monitor.TPServer.dto.TPServerDropdownDTO">
+        select id,monitoring_server_name as monitoringServerName
+        from
+        <include refid="tb"></include>
+        where delete_flag = FALSE
+    </select>
+
+    <select id="selectDropdownList" resultType="cn.mw.monitor.service.dropdown.param.DropdownDTO">
+        select id dropKey, monitoring_server_name dropValue
+        from
+        <include refid="tb"></include>
+        where delete_flag = FALSE
+    </select>
+
+    <select id="selectByMainServerIsTrue" resultType="cn.mw.monitor.TPServer.dto.TPServerDropdownDTO">
+        select id,monitoring_server_name as monitoringServerName
+        from
+        <include refid="tb"></include>
+        where delete_flag = FALSE and main_server = true
+    </select>
+
+    <select id="check" resultType="cn.mw.monitor.TPServer.dto.TPServerDropdownDTO" parameterType="java.lang.String">
+        select id,monitoring_server_name as monitoringServerName
+        from
+        <include refid="tb"></include>
+        where delete_flag = FALSE and monitoring_server_ip = #{ip ,jdbcType=VARCHAR}
+    </select>
+
+    <select id="selectAssetsByMonitorServer" resultType="java.lang.String" parameterType="java.util.List">
+        select id from mw_tangibleassets_table where delete_flag = false and monitor_server_id in (
+        <foreach collection="list" item="id" separator=",">
+            #{id ,jdbcType=VARCHAR}
+        </foreach>)
+    </select>
+
+    <select id="selectEngineByMonitorServer" resultType="java.lang.String" parameterType="java.util.List">
+        select id from mw_enginemanage_table where delete_flag = false and monitor_server_id in (
+        <foreach collection="list" item="id" separator=",">
+            #{id ,jdbcType=VARCHAR}
+        </foreach>)
+    </select>
+
+    <select id="fuzzSearchAllFiled" resultType="java.util.Map">
+        SELECT
+            monitoring_server_name,
+            monitoring_server_ip,
+            monitoring_server_type,
+            monitoring_server_version,
+            creator,
+            modifier
+        FROM
+            mw_thirdparty_server_table
+        WHERE
+        delete_flag = false
+        and CONCAT(
+            IFNULL( monitoring_server_name, '' ),
+            IFNULL( monitoring_server_ip, '' ),
+            IFNULL( monitoring_server_url, '' ),
+            IFNULL( monitoring_server_type, '' ),
+            IFNULL( monitoring_server_version, '' ),
+            IFNULL( creator, '' ),
+            IFNULL( modifier, '' )
+            ) LIKE CONCAT('%',#{fuzzyQuery,jdbcType=VARCHAR},'%')
+            ORDER BY
+            ( CASE WHEN INSTR( monitoring_server_name, #{fuzzyQuery}) > 0 THEN 0 ELSE 1 END ),
+            ( CASE WHEN INSTR( monitoring_server_ip, #{fuzzyQuery}) > 0 THEN 0 ELSE 1 END ),
+            ( CASE WHEN INSTR( monitoring_server_type, #{fuzzyQuery}) > 0 THEN 0 ELSE 1 END ),
+            ( CASE WHEN INSTR( monitoring_server_version, #{fuzzyQuery}) > 0 THEN 0 ELSE 1 END ),
+            ( CASE WHEN INSTR( modifier, #{fuzzyQuery}) > 0 THEN 0 ELSE 1 END ),
+            ( CASE WHEN INSTR( creator, #{fuzzyQuery} ) > 0 THEN 0 ELSE 1 END )
+    </select>
+
+    <select id="selectAll" parameterType="int" resultMap="BaseResultMap">
+        select
+        <include refid="Select_Column_List" />
+        from
+        <include refid="tb" /> t1
+        where t1.delete_flag = false
+    </select>
+
+    <select id="selectTpServerByIps" resultType="cn.mw.monitor.service.tpserver.dto.MwTpServerCommonsDto" parameterType="java.lang.String">
+        select id as serverId,monitoring_server_name as monitoringServerName
+        from
+        <include refid="tb"></include>
+        where delete_flag = FALSE and monitoring_server_ip in (
+        <foreach collection="ips" item="id" separator=",">
+            #{id ,jdbcType=INTEGER}
+        </foreach>)
+    </select>
+
+</mapper>

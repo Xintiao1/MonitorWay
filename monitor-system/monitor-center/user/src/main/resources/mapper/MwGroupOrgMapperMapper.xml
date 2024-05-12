@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.mw.monitor.user.dao.MwGroupOrgMapperDao">
+
+    <!-- 新增用户组和机构关联关系 -->
+    <insert id="insertBatch">
+        INSERT INTO mw_group_org_mapper (
+            org_id,
+            group_id,
+            update_time
+        ) VALUES
+        <foreach collection="list" item="list" separator=",">
+        (
+            #{list.orgId,jdbcType=INTEGER},
+            #{list.groupId,jdbcType=INTEGER},
+            now()
+        )
+        </foreach>
+    </insert>
+
+    <!-- 根据用户组id删除用户组和机构关联关系 -->
+    <update id="deleteBatchByGroupId">
+        UPDATE mw_group_org_mapper
+        SET delete_flag = TRUE,
+            update_time = now()
+        WHERE delete_flag = FALSE
+        AND group_id IN (
+        <foreach collection="groudIds" item="list" separator=",">
+            #{list,jdbcType=INTEGER}
+        </foreach>
+        )
+    </update>
+
+    <!-- 根据机构id删除用户组和机构的关联关系 -->
+    <update id="deleteBatchByOrgId">
+        UPDATE mw_group_org_mapper
+        SET delete_flag = TRUE,
+            update_time = now()
+        WHERE delete_flag = FALSE
+        AND org_id IN (
+        <foreach collection="orgIds" item="list" separator=",">
+            #{list,jdbcType=INTEGER}
+        </foreach>
+        )
+    </update>
+
+    <!-- 根据机构id查询用户组和机构的关联关系数量 -->
+    <select id="countByOrgId" resultType="java.lang.Integer">
+        SELECT
+            COUNT(1)
+        FROM mw_group_org_mapper
+        WHERE delete_flag = FALSE
+        AND org_id = #{orgIds,jdbcType=INTEGER}
+    </select>
+
+    <!-- 根据用户组id删除用户组和资产关联关系 -->
+    <delete id="deleteGroupMapper">
+        DELETE FROM mw_group_mapper
+        WHERE group_id IN (
+        <foreach collection="groupIds" item="list" separator=",">
+            #{list,jdbcType=INTEGER}
+        </foreach>
+        )
+    </delete>
+
+</mapper>

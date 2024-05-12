@@ -1,0 +1,627 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.mw.monitor.assets.dao.MwAssetsDataExportDao">
+    <resultMap id="ParentMap" type="cn.mw.monitor.assets.dto.MwAssetsExportTable">
+        <id column="id" jdbcType="VARCHAR" property="id"/>
+        <result column="assets_id" jdbcType="VARCHAR" property="assetsId"/>
+        <result column="assets_name" jdbcType="VARCHAR" property="assetsName"/>
+        <result column="host_name" jdbcType="VARCHAR" property="hostName"/>
+        <result column="in_band_ip" jdbcType="VARCHAR" property="inBandIp"/>
+        <result column="out_band_ip" jdbcType="VARCHAR" property="outBandIp"/>
+        <result column="assets_type_id" jdbcType="INTEGER" property="assetsTypeId"/>
+        <result column="assetsTypeName" jdbcType="VARCHAR" property="assetsTypeName"/>
+        <result column="assets_type_sub_id" jdbcType="INTEGER" property="assetsTypeSubId"/>
+        <result column="assetsTypeSubName" jdbcType="VARCHAR" property="assetsTypeSubName"/>
+        <result column="polling_engine" jdbcType="VARCHAR" property="pollingEngine"/>
+        <result column="monitor_mode" jdbcType="INTEGER" property="monitorMode"/>
+        <result column="monitorModeName" jdbcType="INTEGER" property="monitorModeName"/>
+        <result column="manufacturer" jdbcType="VARCHAR" property="manufacturer"/>
+        <result column="specifications" jdbcType="VARCHAR" property="specifications"/>
+        <result column="description" jdbcType="VARCHAR" property="description"/>
+        <result column="enable" jdbcType="VARCHAR" property="enable"/>
+        <result column="delete_flag" jdbcType="BIT" property="deleteFlag"/>
+        <result column="monitor_flag" jdbcType="BIT" property="monitorFlag"/>
+        <result column="setting_flag" jdbcType="BIT" property="settingFlag"/>
+        <result column="snmp_lev" jdbcType="INTEGER" property="snmpLev"/>
+        <result column="creator" jdbcType="VARCHAR" property="creator"/>
+        <result column="create_date" jdbcType="TIMESTAMP" property="createDate"/>
+        <result column="modifier" jdbcType="VARCHAR" property="modifier"/>
+        <result column="modification_date" jdbcType="TIMESTAMP" property="modificationDate"/>
+        <result column="scan_success_id" jdbcType="INTEGER" property="scanSuccessId"/>
+        <result column="monitor_server_id" jdbcType="INTEGER" property="monitorServerId"/>
+        <result column="vendor_small_icon" jdbcType="VARCHAR" property="vendorSmallIcon"/>
+        <result column="template_id" jdbcType="VARCHAR" property="templateId"/>
+    </resultMap>
+    <sql id="Base_Column_List1">
+     ${alias}assets_id,
+     ${alias}assets_name,
+     ${alias}host_name,
+     ${alias}in_band_ip,
+     ${alias}out_band_ip,
+     ${alias}assets_type_id,
+     ${alias}assets_type_sub_id,
+     ${alias}polling_engine,
+     ${alias}monitor_mode,
+     ${alias}manufacturer,
+     ${alias}specifications,
+     ${alias}description,
+     ${alias}enable,
+     ${alias}delete_flag,
+     ${alias}monitor_flag,
+     ${alias}setting_flag,
+     ${alias}creator,
+     ${alias}create_date,
+     ${alias}modifier,
+     ${alias}modification_date,
+     ${alias}scan_success_id,
+     ${alias}monitor_server_id,
+     ${alias}template_id
+  </sql>
+
+    <sql id="criteria">
+        <if test="monitorServerId != null and monitorServerId !=0 ">
+            and ${alias}monitor_server_id = #{monitorServerId,jdbcType=INTEGER}
+        </if>
+        <if test="zabbixFlag == 1 ">
+            and ${alias}monitor_server_id != 0
+        </if>
+        <if test="assetsId != null and assetsId !='' ">
+            and ${alias}assetsId = #{assetsId,jdbcType=VARCHAR}
+        </if>
+        <if test="id !=null ">
+            and ${alias}id = #{id,jdbcType=VARCHAR}
+        </if>
+        <if test="assetsIds !=null ">
+            and ${alias}id in
+            <foreach collection="assetsIds" item="item" index="index" separator="," open="(" close=")">
+                <!--                <if test="index%1000==999"> or ${alias}id in (</if>-->
+                #{item}
+            </foreach>
+        </if>
+        <if test="hostName != null and hostName !=''">
+            and ${alias}host_name like concat ('%' ,#{hostName,jdbcType=VARCHAR},'%')
+        </if>
+        <if test="assetsName != null and assetsName !=''">
+            and ${alias}assets_name like concat ('%' ,#{assetsName,jdbcType=VARCHAR},'%')
+        </if>
+        <if test="inBandIp != null and inBandIp != '' ">
+            and ${alias}in_band_ip like concat ('%' ,#{inBandIp,jdbcType=VARCHAR},'%')
+        </if>
+        <if test="outBandIp != null and outBandIp != '' ">
+            and ${alias}out_band_ip = #{outBandIp,jdbcType=VARCHAR}
+        </if>
+        <if test="assetsTypeId != null and assetsTypeId != 0">
+            and ${alias}assets_type_id = #{assetsTypeId,jdbcType=INTEGER}
+        </if>
+        <if test="assetsTypeName != null and assetsTypeName != '' ">
+            and ${alias}type_name = #{assetsTypeName,jdbcType=VARCHAR}
+        </if>
+        <if test="assetsTypeSubId != null and assetsTypeSubId != 0">
+            and ${alias}assets_type_sub_id = #{assetsTypeSubId,jdbcType=INTEGER}
+        </if>
+        <if test="assetsTypeSubName != null and assetsTypeSubName != '' ">
+            and ${alias}type_name = #{assetsTypeSubName,jdbcType=VARCHAR}
+        </if>
+        <if test="pollingEngine != null">
+            and ${alias}polling_engine = #{pollingEngine,jdbcType=VARCHAR}
+        </if>
+        <if test="monitorMode != null">
+            and ${alias}monitor_mode = #{monitorMode,jdbcType=INTEGER}
+        </if>
+        <if test="monitorModeName != null and monitorModeName != ''">
+            and ${alias}monitorModeName = #{monitorModeName,jdbcType=VARCHAR}
+        </if>
+        <if test="manufacturer != null and manufacturer != ''">
+            and ${alias}manufacturer = #{manufacturer,jdbcType=VARCHAR}
+        </if>
+        <if test="specifications != null and specifications !=''">
+            and ${alias}specifications = #{specifications,jdbcType=VARCHAR}
+        </if>
+        <if test="description != null and description !=''">
+            and ${alias}description = #{description,jdbcType=VARCHAR}
+        </if>
+        <if test="enable != null and enable !=''">
+            and ${alias}enable = #{enable,jdbcType=VARCHAR}
+        </if>
+        <if test="monitorFlag != null">
+            and ${alias}monitor_flag = #{monitorFlag,jdbcType=BIT}
+        </if>
+        <if test="settingFlag != null">
+            and ${alias}setting_flag = #{settingFlag,jdbcType=BIT}
+        </if>
+        <if test="creator != null and creator != ''">
+            and ${alias}creator = #{creator,jdbcType=VARCHAR}
+        </if>
+        <if test="createDateStart != null">
+            and <![CDATA[#{createDateStart,jdbcType=TIMESTAMP} <= ${alias}create_date ]]>
+        </if>
+        <if test="createDateEnd != null">
+            and <![CDATA[#{createDateEnd,jdbcType=TIMESTAMP} >= ${alias}create_date ]]>
+        </if>
+        <if test="modifier != null and modifier != ''">
+            and ${alias}modifier = #{modifier,jdbcType=VARCHAR}
+        </if>
+        <if test="modificationDateStart != null">
+            and  <![CDATA[#{modificationDateStart,jdbcType=TIMESTAMP} <= ${alias}modification_date ]]>
+        </if>
+        <if test="modificationDateEnd != null">
+            and  <![CDATA[#{modificationDateEnd,jdbcType=TIMESTAMP} >= ${alias}modification_date ]]>
+        </if>
+    </sql>
+
+    <sql id="criteria1">
+        <if test="zabbixFlag == 1 ">
+            and t1.monitor_server_id != 0
+        </if>
+        <if test="monitorServerId != null and monitorServerId !=0 ">
+            and t1.monitor_server_id = #{monitorServerId,jdbcType=INTEGER}
+        </if>
+        <if test="assetsId != null and assetsId !='' ">
+            and t1.assetsId = #{assetsId,jdbcType=VARCHAR}
+        </if>
+        <if test="id !=null ">
+            and t1.id = #{id,jdbcType=VARCHAR}
+        </if>
+        <if test="assetsIds !=null ">
+            and t1.id in
+            <foreach collection="assetsIds" item="item" index="index" separator="," open="(" close=")">
+                <!--                <if test="index%1000==999"> or t1.id in (</if>-->
+                #{item}
+            </foreach>
+        </if>
+        <if test="hostName != null and hostName !=''">
+            and t1.host_name like concat ('%' ,#{hostName,jdbcType=VARCHAR},'%')
+        </if>
+        <if test="assetsName != null and assetsName !=''">
+            and t1.assets_name like concat ('%' ,#{assetsName,jdbcType=VARCHAR},'%')
+        </if>
+        <if test="inBandIp != null and inBandIp != '' ">
+            and t1.in_band_ip like concat ('%' ,#{inBandIp,jdbcType=VARCHAR},'%')
+        </if>
+        <if test="outBandIp != null and outBandIp != '' ">
+            and t1.out_band_ip = #{outBandIp,jdbcType=VARCHAR}
+        </if>
+        <if test="assetsTypeId != null and assetsTypeId != 0">
+            and t1.assets_type_id = #{assetsTypeId,jdbcType=INTEGER}
+        </if>
+        <if test="assetsTypeName != null and assetsTypeName != '' ">
+            and t4.type_name = #{assetsTypeName,jdbcType=VARCHAR}
+        </if>
+        <if test="assetsTypeSubId != null and assetsTypeSubId != 0">
+            and t1.assets_type_sub_id = #{assetsTypeSubId,jdbcType=INTEGER}
+        </if>
+        <if test="assetsTypeSubName != null and assetsTypeSubName != '' ">
+            and t5.type_name = #{assetsTypeSubName,jdbcType=VARCHAR}
+        </if>
+        <if test="pollingEngine != null">
+            and t1.polling_engine = #{pollingEngine,jdbcType=VARCHAR}
+        </if>
+        <if test="monitorMode != null">
+            and t1.monitor_mode = #{monitorMode,jdbcType=INTEGER}
+        </if>
+        <if test="monitorModeName != null and monitorModeName != ''">
+            and d4.drop_value = #{monitorModeName,jdbcType=VARCHAR}
+        </if>
+        <if test="manufacturer != null and manufacturer != ''">
+            and t1.manufacturer = #{manufacturer,jdbcType=VARCHAR}
+        </if>
+        <if test="specifications != null and specifications !=''">
+            and t1.specifications = #{specifications,jdbcType=VARCHAR}
+        </if>
+        <if test="description != null and description !=''">
+            and t1.description = #{description,jdbcType=VARCHAR}
+        </if>
+        <if test="enable != null and enable !=''">
+            and t1.enable = #{enable,jdbcType=VARCHAR}
+        </if>
+        <if test="monitorFlag != null">
+            and t1.monitor_flag = #{monitorFlag,jdbcType=BIT}
+        </if>
+        <if test="settingFlag != null">
+            and t1.setting_flag = #{settingFlag,jdbcType=BIT}
+        </if>
+        <if test="creator != null and creator != ''">
+            and t1.creator = #{creator,jdbcType=VARCHAR}
+        </if>
+        <if test="createDateStart != null">
+            and <![CDATA[#{createDateStart,jdbcType=TIMESTAMP} <= t1.create_date ]]>
+        </if>
+        <if test="createDateEnd != null">
+            and <![CDATA[#{createDateEnd,jdbcType=TIMESTAMP} >= t1.create_date ]]>
+        </if>
+        <if test="modifier != null and modifier != ''">
+            and t1.modifier = #{modifier,jdbcType=VARCHAR}
+        </if>
+        <if test="modificationDateStart != null">
+            and  <![CDATA[#{modificationDateStart,jdbcType=TIMESTAMP} <= t1.modification_date ]]>
+        </if>
+        <if test="modificationDateEnd != null">
+            and  <![CDATA[#{modificationDateEnd,jdbcType=TIMESTAMP} >= t1.modification_date ]]>
+        </if>
+    </sql>
+
+    <sql id="union_group">
+        <if test="groupIds!=null">
+            UNION
+            SELECT
+            t1.monitorModeName,
+            t1.assetsTypeName,
+            t1.monitorServerName,
+            t1.assetsTypeSubName,
+            t1.vendor_small_icon,
+            t1.pollingEngineName,
+            <include refid="Base_Column_List">
+                <property name="alias" value="t1."/>
+            </include>
+            FROM (SELECT
+            a1.id,
+            d3.drop_value as monitorModeName,
+            d4.type_name as assetsTypeName,
+            t8.monitoring_server_name as monitorServerName,
+            d5.type_name as assetsTypeSubName,
+            vendor1.vendor_small_icon,
+            engine1.engine_name as pollingEngineName,
+            <include refid="Base_Column_List1">
+                <property name="alias" value="a1."/>
+            </include>
+            FROM mw_tangibleassets_table a1
+            left join mw_dropdown_table d3 on d3.drop_code = 'monitor_mode' and d3.drop_key = a1.monitor_mode
+            left join mw_assetssubtype_table d4 on a1.assets_type_id = d4.id
+            left join mw_thirdparty_server_table t8 on a1.monitor_server_id = t8.id and t8.delete_flag = FALSE
+            left join mw_assetssubtype_table d5 on a1.assets_type_sub_id = d5.id
+            LEFT JOIN mw_datapermission t2 ON a1.id = t2.type_id
+            left join mw_enginemanage_table engine1 on a1.polling_engine = engine1.id
+            left join mw_base_vendor_icon vendor1 on a1.manufacturer = vendor1.vendor
+            WHERE
+            t2.is_group =1 AND a1.delete_flag = FALSE
+            <if test="isAlert==true">
+                and alert=FALSE
+            </if>) t1
+            LEFT JOIN
+            (SELECT type_id,group_id FROM mw_group_mapper where type='ASSETS') t2 ON t1.id = t2.type_id
+            where group_id IN
+            <foreach collection="groupIds" item="item" index="index" open="(" separator="," close=")">
+                #{item.value,jdbcType=INTEGER}
+            </foreach>
+            <include refid="criteria">
+                <property name="alias" value="t1."/>
+            </include>
+        </if>
+    </sql>
+
+    <sql id="Base_Column_List">
+        ${alias}id,
+        ${alias}assets_id,
+        ${alias}assets_name,
+        ${alias}host_name,
+        ${alias}in_band_ip,
+        ${alias}out_band_ip,
+        ${alias}assets_type_id,
+        ${alias}assets_type_sub_id,
+        ${alias}polling_engine,
+        ${alias}monitor_mode,
+        ${alias}manufacturer,
+        ${alias}specifications,
+        ${alias}description,
+        ${alias}enable,
+        ${alias}delete_flag,
+        ${alias}monitor_flag,
+        ${alias}setting_flag,
+        ${alias}creator,
+        ${alias}create_date,
+        ${alias}modifier,
+        ${alias}modification_date,
+        ${alias}scan_success_id,
+        ${alias}monitor_server_id,
+        ${alias}template_id
+    </sql>
+    <select id="selectAssetsByAssetsTypeId" resultType="cn.mw.monitor.assets.dto.MwAssetsExportTable"
+            parameterType="java.lang.Integer">
+        select
+        <include refid="Base_Column_List">
+            <property name="alias" value="t."/>
+        </include>
+        from mw_tangibleassets_table t
+        where t.delete_flag = false
+        and t.assets_type_id = #{assetsTypeId,jdbcType=INTEGER}
+        and t.assets_type_sub_id = #{assetsTypeSubId,jdbcType=INTEGER}
+    </select>
+
+    <select id="selectPriList" parameterType="java.util.HashMap" resultMap="ParentMap">
+        select
+        t1.monitorModeName,
+        t1.assetsTypeName,
+        t1.monitorServerName,
+        t1.assetsTypeSubName,
+        t1.vendor_small_icon,
+        t1.pollingEngineName,
+        <include refid="Base_Column_List">
+            <property name="alias" value="t1."/>
+        </include>
+        from (
+        select distinct t.id, t3.drop_value as monitorModeName,
+        t4.type_name as assetsTypeName,
+        t8.monitoring_server_name as monitorServerName,
+        t5.type_name as assetsTypeSubName,
+        vendor1.vendor_small_icon,
+        engine1.engine_name as pollingEngineName,
+        <include refid="Base_Column_List1">
+            <property name="alias" value="t."/>
+        </include>
+        from mw_tangibleassets_table t
+        left join mw_datapermission t2 ON t.id = t2.type_id
+        left join mw_dropdown_table t3 on t3.drop_code = 'monitor_mode' and t3.drop_key = t.monitor_mode
+        left join mw_assetssubtype_table t4 on t.assets_type_id = t4.id
+        left join mw_thirdparty_server_table t8 on t.monitor_server_id = t8.id and t8.delete_flag = FALSE
+        left join mw_assetssubtype_table t5 on t.assets_type_sub_id = t5.id
+        left join mw_enginemanage_table engine1 on t.polling_engine = engine1.id
+        left join mw_base_vendor_icon vendor1 on t.manufacturer = vendor1.vendor
+        WHERE t2.is_user = 1 AND t.delete_flag = FALSE
+        ) t1
+        LEFT JOIN
+        (SELECT type_id,user_id FROM mw_user_mapper where type='ASSETS') t2 ON t1.id = t2.type_id
+        WHERE
+        user_id =#{userId,jdbcType=INTEGER}
+        <include refid="criteria">
+            <property name="alias" value="t1."/>
+        </include>
+        <include refid="union_group"></include>
+    </select>
+
+    <select id="selectPubList" parameterType="java.util.HashMap" resultMap="ParentMap">
+        select
+        t3.monitorModeName
+        ,t3.assetsTypeName
+        ,t3.monitorServerName
+        ,t3.assetsTypeSubName,
+        t3.vendor_small_icon,
+        t3.pollingEngineName,
+        <include refid="Base_Column_List">
+            <property name="alias" value="t3."/>
+        </include>
+        from (
+        select distinct t1.id,
+        d4.drop_value as monitorModeName,
+        t4.type_name as assetsTypeName,
+        t8.monitoring_server_name as monitorServerName,
+        t5.type_name as assetsTypeSubName,
+        vendor1.vendor_small_icon,
+        engine1.engine_name as pollingEngineName,
+        <include refid="Base_Column_List1">
+            <property name="alias" value="t1."/>
+        </include>
+        from mw_tangibleassets_table t1
+        left join mw_dropdown_table d4 on d4.drop_code = 'monitor_mode' and d4.drop_key = t1.monitor_mode
+        left join mw_assetssubtype_table t4 on t1.assets_type_id = t4.id
+        left join mw_thirdparty_server_table t8 on t1.monitor_server_id = t8.id and t8.delete_flag = FALSE
+        left join mw_assetssubtype_table t5 on t1.assets_type_sub_id = t5.id
+        left join mw_base_vendor_icon vendor1 on t1.manufacturer = vendor1.vendor
+        left join mw_enginemanage_table engine1 on t1.polling_engine = engine1.id
+        <choose>
+            <when test="isAdmin==false">
+                LEFT JOIN
+                (SELECT type_id,org_id FROM mw_org_mapper where type='ASSETS') t2 ON t1.id = t2.type_id
+                WHERE t1.delete_flag = FALSE
+                AND org_id IN
+                <foreach collection="orgIds" item="item" index="index" open="(" separator="," close=")">
+                    #{item.value,jdbcType=INTEGER}
+                </foreach>) t3 where 1=1
+                <include refid="criteria1"></include>
+                <include refid="union_group"></include>
+            </when>
+            <otherwise>
+                WHERE t1.delete_flag = FALSE
+                <include refid="criteria1"></include>
+                ) t3
+            </otherwise>
+        </choose>
+    </select>
+
+    <select id="exportComponentLayout" resultType="java.util.Map">
+        SELECT DISTINCT
+        a.assets_type_sub_id,
+        a.component_layout,
+        a.default_flag,
+        a.monitor_server_id,
+        a.template_id,
+        a.navigation_bar_id,
+        c.specifications,
+        c.monitor_mode,
+        c.manufacturer,
+        b.navigation_bar_name AS "barName"
+        FROM
+        mw_component_layout_table a
+        LEFT JOIN mw_mymonitor_label b ON a.navigation_bar_id = b.id
+        LEFT JOIN mw_tangibleassets_table c ON a.template_id = c.template_id
+        left join mw_assetssubtype_table d on a.assets_type_sub_id = d.id
+        <where>
+            a.assets_id IS NULL
+            AND c.delete_flag = 0
+            <if test="assetsTypeSubId!=null and assetsTypeSubId!=0">
+                and (d.id = #{assetsTypeSubId} or d.pid = #{assetsTypeSubId})
+            </if>
+        </where>
+    </select>
+
+    <select id="getTemplateIdByAssetsSubId" resultType="cn.mw.monitor.assets.dto.AssetsTemplateIdBySubTypeIdDTO">
+        SELECT DISTINCT
+            a.sub_assets_type_id AS "assetsTypeSubId",
+            a.monitor_mode AS "monitorMode",
+            a.brand AS "manufacturer",
+            b.template_id AS "templateId",
+            b.server_id AS "monitorServerId",
+            a.specification
+        FROM
+            mw_assetstemplate_table a
+        LEFT JOIN mw_assetstemplate_server_mapper b ON a.id = b.assetstemplate_id
+        <where>
+             b.template_id is not null
+            <if test="assetsTypeSubId!=null and assetsTypeSubId!=0">
+                and assets_type_sub_id = #{assetsTypeSubId}
+            </if>
+        </where>
+        order by a.sub_assets_type_id,a.monitor_mode,a.brand
+    </select>
+
+    <update id="updateDataInfo" parameterType="cn.mw.monitor.assets.dto.AssetsComponentLayoutDTO">
+        update mw_component_layout_table set
+        user_id = #{userId},
+        component_layout = #{componentLayout},
+        default_flag = #{defaultFlag},
+        modifier = #{modifier,jdbcType=VARCHAR},
+        modification_date = now()
+        where assets_type_sub_id = #{assetsTypeSubId}
+        and template_id = #{templateId}
+        and monitor_server_id = #{monitorServerId}
+        and navigation_bar_id = #{navigationBarId}
+    </update>
+
+    <insert id="insertDataInfo" parameterType="cn.mw.monitor.assets.dto.AssetsComponentLayoutDTO">
+        INSERT INTO mw_component_layout_table(
+        user_id,
+        assets_type_sub_id,
+        component_layout,
+        default_flag,
+        creator,
+        create_date,
+        modifier,
+        modification_date,
+        monitor_server_id,
+        template_id,
+        navigation_bar_id,
+        assets_id)
+        values
+            (#{userId,jdbcType=INTEGER},
+            #{assetsTypeSubId,jdbcType=INTEGER},
+            #{componentLayout,jdbcType=VARCHAR},
+            #{defaultFlag,jdbcType=BIT},
+            #{creator,jdbcType=VARCHAR},
+            now(),
+            #{modifier,jdbcType=VARCHAR},
+            now(),
+            #{monitorServerId,jdbcType=INTEGER},
+            #{templateId,jdbcType=VARCHAR},
+            #{navigationBarId,jdbcType=INTEGER},
+            #{assetsId,jdbcType=INTEGER})
+    </insert>
+
+    <insert id="batchInsertDataInfo" parameterType="java.util.List">
+        INSERT INTO mw_component_layout_table(
+        user_id,
+        assets_type_sub_id,
+        component_layout,
+        default_flag,
+        creator,
+        create_date,
+        modifier,
+        modification_date,
+        monitor_server_id,
+        template_id,
+        navigation_bar_id,
+        assets_id)
+        values
+        <foreach collection="list" item="insertList" separator=",">
+            (#{insertList.userId,jdbcType=INTEGER},
+            #{insertList.assetsTypeSubId,jdbcType=INTEGER},
+            #{insertList.componentLayout,jdbcType=VARCHAR},
+            #{insertList.defaultFlag,jdbcType=BIT},
+            #{insertList.creator,jdbcType=VARCHAR},
+            now(),
+            #{insertList.modifier,jdbcType=VARCHAR},
+            now(),
+            #{insertList.monitorServerId,jdbcType=INTEGER},
+            #{insertList.templateId,jdbcType=VARCHAR},
+            #{insertList.navigationBarId,jdbcType=INTEGER},
+            #{insertList.assetsId,jdbcType=INTEGER})
+        </foreach>
+
+    </insert>
+
+
+
+
+    <insert id="insertNavigationBar" useGeneratedKeys="true" keyColumn="id" keyProperty="id" parameterType="cn.mw.monitor.assets.dto.AddNavigationBarDTO">
+        INSERT INTO mw_mymonitor_label(
+        navigation_bar_name,
+        template_id)
+        values(
+        #{navigationBarName,jdbcType=VARCHAR},
+        #{templateId,jdbcType=VARCHAR})
+    </insert>
+
+    <insert id="batchInsertNavigationBar" parameterType="java.util.List">
+        INSERT INTO mw_mymonitor_label(
+        navigation_bar_name,
+        template_id)
+        values
+        <foreach collection="list" item="insertList" separator=",">
+            (#{insertList.navigationBarName,jdbcType=VARCHAR},
+            #{insertList.templateId,jdbcType=VARCHAR})
+        </foreach>
+    </insert>
+
+    <select id="queryNavigationBarId" parameterType="cn.mw.monitor.assets.dto.AddNavigationBarDTO" resultType="java.lang.Integer">
+           select id
+            from mw_mymonitor_label
+            where
+            navigation_bar_name = #{navigationBarName}
+            AND template_id = #{templateId}
+    </select>
+
+    <select id="selectNavigationBarInfo" resultType="java.util.Map">
+        select id,concat(navigation_bar_name,"_",template_id) AS "key"
+        from mw_mymonitor_label
+    </select>
+
+    <select id="check" resultType="java.lang.Integer">
+        SELECT
+            count( id )
+        FROM
+            mw_mymonitor_label
+        WHERE
+            navigation_bar_name = #{barName}
+            AND template_id = #{templateId}
+    </select>
+
+    <select id="checkAll" resultType="java.util.Map">
+        SELECT
+            count( id ) AS "num",
+            navigation_bar_name AS "navigationBarName",
+            template_id AS "templateId"
+        FROM
+            mw_mymonitor_label
+        GROUP BY
+            navigation_bar_name,
+            template_id
+    </select>
+
+    <select id="check2" resultType="java.lang.Integer" parameterType="cn.mw.monitor.assets.dto.AssetsComponentLayoutDTO">
+        SELECT
+            count( id )
+        FROM
+            mw_component_layout_table
+        WHERE
+            navigation_bar_id = #{navigationBarId}
+            AND template_id = #{templateId}
+            AND assets_type_sub_id = #{assetsTypeSubId}
+    </select>
+
+    <select id="checkAll2" resultType="java.util.Map">
+        SELECT
+            count( id ) AS "num",
+            navigation_bar_id AS "navigationBarId",
+            template_id AS "templateId",
+            assets_type_sub_id AS "assetsTypeSubId"
+        FROM
+            mw_component_layout_table
+        GROUP BY
+            navigation_bar_id,
+            template_id,
+            assets_type_sub_id
+    </select>
+
+    <select id="getSubTypeNameMap" resultType="java.util.Map">
+        select id,type_name
+        from mw_assetssubtype_table
+    </select>
+</mapper>

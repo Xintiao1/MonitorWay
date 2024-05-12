@@ -1,0 +1,1 @@
+INSERT INTO monitor.mw_netflow_config (name, value) VALUES ('save_days', '31');

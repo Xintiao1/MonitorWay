@@ -1,0 +1,1875 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.mw.monitor.configmanage.dao.MwConfigManageTableDao">
+
+    <resultMap id="ParentMap" type="cn.mw.monitor.configmanage.entity.MwTangibleassetsTable">
+        <id column="id" jdbcType="VARCHAR" property="id" />
+        <result column="assets_id" jdbcType="VARCHAR" property="assetsId" />
+        <result column="assets_name" jdbcType="VARCHAR" property="assetsName" />
+        <result column="host_name" jdbcType="VARCHAR" property="hostName" />
+        <result column="in_band_ip" jdbcType="VARCHAR" property="inBandIp" />
+        <result column="out_band_ip" jdbcType="INTEGER" property="outBandIp" />
+        <result column="assets_type_id" jdbcType="INTEGER" property="assetsTypeId" />
+        <result column="assetsTypeName" jdbcType="VARCHAR" property="assetsTypeName" />
+        <result column="assets_type_sub_id" jdbcType="INTEGER" property="assetsTypeSubId" />
+        <result column="assetsTypeSubName" jdbcType="VARCHAR" property="assetsTypeSubName" />
+        <result column="polling_engine" jdbcType="INTEGER" property="pollingEngine" />
+        <result column="monitor_mode" jdbcType="INTEGER" property="monitorMode" />
+        <result column="monitorModeName" jdbcType="INTEGER" property="monitorModeName" />
+        <result column="manufacturer" jdbcType="VARCHAR" property="manufacturer" />
+        <result column="specifications" jdbcType="VARCHAR" property="specifications" />
+        <result column="brand" jdbcType="VARCHAR" property="brand" />
+        <result column="vendor_small_icon" jdbcType="VARCHAR" property="vendorSmallIcon"/>
+        <result column="vendorCustomFlag" jdbcType="INTEGER" property="vendorCustomFlag"/>
+        <result column="description" jdbcType="VARCHAR" property="description" />
+        <result column="enable" jdbcType="VARCHAR" property="enable" />
+        <result column="delete_flag" jdbcType="BIT" property="deleteFlag" />
+        <result column="monitor_flag" jdbcType="BIT" property="monitorFlag" />
+        <result column="setting_flag" jdbcType="BIT" property="settingFlag" />
+        <result column="snmp_lev" jdbcType="INTEGER" property="snmpLev" />
+        <result column="creator" jdbcType="VARCHAR" property="creator" />
+        <result column="create_date" jdbcType="TIMESTAMP" property="createDate" />
+        <result column="modifier" jdbcType="VARCHAR" property="modifier" />
+        <result column="modification_date" jdbcType="TIMESTAMP" property="modificationDate" />
+        <result column="scan_success_id" jdbcType="INTEGER" property="scanSuccessId" />
+        <result column="timing" jdbcType="VARCHAR" property="timing" />
+    </resultMap>
+
+    <sql id="Base_Column_List">
+    ${alias}"id",
+    ${alias}"id" as "assets_id",
+    ${alias}"assets_name",
+    ${alias}"host_name",
+    ${alias}"in_band_ip",
+    ${alias}"assets_type_id",
+    ${alias}"assets_type_sub_id",
+    ${alias}"monitor_mode",
+    ${alias}"manufacturer",
+    ${alias}"specifications",
+    ${alias}"description",
+    ${alias}"delete_flag",
+    ${alias}"setting_flag",
+    ${alias}"creator",
+    ${alias}"create_date",
+    ${alias}"modifier",
+    ${alias}"modification_date",
+    ${alias}"timing",
+    ${alias}"scan_success_id"
+  </sql>
+
+    <sql id="Base_Column_List1">
+     ${alias}"assets_name",
+     ${alias}"host_name",
+     ${alias}"in_band_ip",
+     ${alias}"assets_type_id",
+     ${alias}"assets_type_sub_id",
+     ${alias}"monitor_mode",
+     ${alias}"manufacturer",
+     ${alias}"specifications",
+     ${alias}"description",
+     ${alias}"delete_flag",
+     ${alias}"setting_flag",
+     ${alias}"creator",
+     ${alias}"create_date",
+     ${alias}"modifier",
+     ${alias}"modification_date",
+     ${alias}"timing",
+     ${alias}"scan_success_id"
+  </sql>
+
+    <sql id ="tb">
+     ${TBSNAME}."mw_tangibleassets_table"
+  </sql>
+
+    <sql id="criteria">
+        <if test="assetsId != null and assetsId !='' " >
+            and assets_id = #{assetsId,jdbcType=VARCHAR}
+        </if>
+        <if test="assetsIds !=null ">
+            and assets_id in
+            <foreach collection="assetsIds" item="item" index="index" open="(" close=")" separator=",">
+                #{item}
+            </foreach>
+        </if>
+        <if test="accountId !=null and accountId !='' ">
+            and   assets_id IN ( SELECT assets_id FROM ${TBSNAME}."mw_tangibleassets_table" WHERE id in (SELECT assets_id FROM ${TBSNAME}."mw_assets_account_mapper" WHERE account_id = #{accountId,jdbcType=VARCHAR} )
+            )
+        </if>
+        <if test="assetsName != null and assetsName !=''">
+            and assets_name like CONCAT('%',#{assetsName,jdbcType=VARCHAR},'%')
+        </if>
+        <if test="hostName != null and hostName != ''">
+            and  host_name like CONCAT('%',#{hostName,jdbcType=VARCHAR},'%')
+        </if>
+        <if test="inBandIp != null and inBandIp != ''">
+            and in_band_ip like CONCAT('%',#{inBandIp,jdbcType=VARCHAR},'%')
+        </if>
+        <if test="assetsTypeId != null">
+            and assets_type_id = #{assetsTypeId,jdbcType=INTEGER}
+        </if>
+        <if test="assetsTypeSubId != null">
+            and assets_type_sub_id = #{assetsTypeSubId,jdbcType=INTEGER}
+        </if>
+        <if test="pollingEngine != null">
+            and polling_engine = #{pollingEngine,jdbcType=VARCHAR}
+        </if>
+        <if test="monitorMode != null">
+            and monitor_mode = #{monitorMode,jdbcType=INTEGER}
+        </if>
+        <if test="manufacturer != null and manufacturer != ''">
+            and manufacturer = #{manufacturer,jdbcType=VARCHAR}
+        </if>
+        <if test="specifications != null and specifications !=''">
+            and specifications like CONCAT('%',#{specifications,jdbcType=VARCHAR},'%')
+        </if>
+        <if test="description != null and description !=''">
+            and  description = #{description,jdbcType=VARCHAR}
+        </if>
+        <if test="enable != null">
+            and enable = #{enable,jdbcType=VARCHAR}
+        </if>
+        <if test="monitorFlag != null">
+            and  monitor_flag = #{monitorFlag,jdbcType=BIT}
+        </if>
+        <if test="settingFlag != null">
+            and  setting_flag = #{settingFlag,jdbcType=BIT}
+        </if>
+        <if test="creator != null and creator != ''">
+            and t1.creator like CONCAT('%',#{creator,jdbcType=VARCHAR},'%')
+        </if>
+        <if test="createDateStart != null">
+            and <![CDATA[#{createDateStart,jdbcType=TIMESTAMP} <= t1.create_date ]]>
+        </if>
+        <if test="createDateEnd != null">
+            and <![CDATA[#{createDateEnd,jdbcType=TIMESTAMP} >= t1.create_date ]]>
+        </if>
+        <if test="modifier != null and modifier != ''">
+            and  t1.modifier like CONCAT('%',#{modifier,jdbcType=VARCHAR},'%')
+        </if>
+        <if test="modificationDateStart != null">
+            and  <![CDATA[#{modificationDateStart,jdbcType=TIMESTAMP} <= t1.modification_date ]]>
+        </if>
+        <if test="modificationDateEnd != null">
+            and  <![CDATA[#{modificationDateEnd,jdbcType=TIMESTAMP} >= t1.modification_date ]]>
+        </if>
+        <if test="assetsIdList !=null  and assetsIdList.size() > 0">
+            and t1.id in
+            <foreach collection="assetsIdList" item="item" index="index"  separator="," open="(" close=")">
+                <if test="index%1000==999"> or t1.id in (</if>
+                #{item}
+            </foreach>
+        </if>
+        <if test="fuzzyQuery != null and fuzzyQuery != ''">
+            and  (
+            t1.assets_name like CONCAT('%',#{fuzzyQuery,jdbcType=VARCHAR},'%')
+            or
+            t1.host_name = #{fuzzyQuery,jdbcType=VARCHAR}
+            or
+            t1.in_band_ip like CONCAT('%',#{fuzzyQuery,jdbcType=VARCHAR},'%')
+            or
+            t1.manufacturer = #{fuzzyQuery,jdbcType=VARCHAR}
+            or
+            t1.specifications like CONCAT('%',#{fuzzyQuery,jdbcType=VARCHAR},'%')
+            )
+        </if>
+    </sql>
+
+    <sql id="criteria2">
+        <if test="assetsId != null and assetsId !='' " >
+            and "assets_id" = #{assetsId,jdbcType=VARCHAR}
+        </if>
+        <if test="assetsIds !=null ">
+            and "assets_id" in
+            <foreach collection="assetsIds" item="item" index="index" open="(" close=")" separator=",">
+                #{item}
+            </foreach>
+        </if>
+        <if test="accountId !=null and accountId !='' ">
+            and   t1."id" IN ( SELECT "id" FROM ${TBSNAME}."mw_tangibleassets_table" WHERE "id" IN ( SELECT "assets_id" FROM ${TBSNAME}."mw_assets_account_mapper" WHERE "account_id" =  #{accountId,jdbcType=VARCHAR} )
+            )
+        </if>
+        <if test="assetsName != null and assetsName !=''">
+            and assets_name like CONCAT('%',#{assetsName,jdbcType=VARCHAR},'%')
+        </if>
+        <if test="hostName != null and hostName != ''">
+            and  host_name like CONCAT('%',#{hostName,jdbcType=VARCHAR},'%')
+        </if>
+        <if test="inBandIp != null and inBandIp != ''">
+            and in_band_ip like CONCAT('%',#{inBandIp,jdbcType=VARCHAR},'%')
+        </if>
+        <if test="assetsTypeId != null">
+            and assets_type_id = #{assetsTypeId,jdbcType=INTEGER}
+        </if>
+        <if test="assetsTypeSubId != null">
+            and assets_type_sub_id = #{assetsTypeSubId,jdbcType=INTEGER}
+        </if>
+        <if test="pollingEngine != null">
+            and polling_engine = #{pollingEngine,jdbcType=VARCHAR}
+        </if>
+        <if test="monitorMode != null">
+            and monitor_mode = #{monitorMode,jdbcType=INTEGER}
+        </if>
+        <if test="manufacturer != null and manufacturer != ''">
+            and manufacturer = #{manufacturer,jdbcType=VARCHAR}
+        </if>
+        <if test="specifications != null and specifications !=''">
+            and specifications like CONCAT('%',#{specifications,jdbcType=VARCHAR},'%')
+        </if>
+        <if test="description != null and description !=''">
+            and  description = #{description,jdbcType=VARCHAR}
+        </if>
+        <if test="enable != null">
+            and enable = #{enable,jdbcType=VARCHAR}
+        </if>
+        <if test="monitorFlag != null">
+            and  monitor_flag = #{monitorFlag,jdbcType=BIT}
+        </if>
+        <if test="settingFlag != null">
+            and  "setting_flag" = #{settingFlag,jdbcType=BIT}
+        </if>
+        <if test="creator != null and creator != ''">
+            and t1.creator like CONCAT('%',#{creator,jdbcType=VARCHAR},'%')
+        </if>
+        <if test="createDateStart != null">
+            and <![CDATA[#{createDateStart,jdbcType=TIMESTAMP} <= t1.create_date ]]>
+        </if>
+        <if test="createDateEnd != null">
+            and <![CDATA[#{createDateEnd,jdbcType=TIMESTAMP} >= t1.create_date ]]>
+        </if>
+        <if test="modifier != null and modifier != ''">
+            and  t1.modifier like CONCAT('%',#{modifier,jdbcType=VARCHAR},'%')
+        </if>
+        <if test="modificationDateStart != null">
+            and  <![CDATA[#{modificationDateStart,jdbcType=TIMESTAMP} <= t1.modification_date ]]>
+        </if>
+        <if test="modificationDateEnd != null">
+            and  <![CDATA[#{modificationDateEnd,jdbcType=TIMESTAMP} >= t1.modification_date ]]>
+        </if>
+        <if test="assetsIdList !=null  and assetsIdList.size() > 0">
+            and t1.id in
+            <foreach collection="assetsIdList" item="item" index="index"  separator="," open="(" close=")">
+                <if test="index%1000==999"> or t1.id in (</if>
+                #{item}
+            </foreach>
+        </if>
+        <if test="fuzzyQuery != null and fuzzyQuery != ''">
+            and  (
+            assets_name like CONCAT('%',#{fuzzyQuery,jdbcType=VARCHAR},'%')
+            or
+            host_name = #{fuzzyQuery,jdbcType=VARCHAR}
+            or
+            in_band_ip like CONCAT('%',#{fuzzyQuery,jdbcType=VARCHAR},'%')
+            or
+            manufacturer = #{fuzzyQuery,jdbcType=VARCHAR}
+            or
+            specifications like CONCAT('%',#{fuzzyQuery,jdbcType=VARCHAR},'%')
+            )
+        </if>
+        <if test="isSystem == false">
+            and instr(#{listSet}, t1."id") > 0
+        </if>
+    </sql>
+
+    <sql id ="selectLabelList_sql">
+        select t.* from (SELECT
+        t1.*
+        <foreach collection="allLabelList" item="allList"  separator="," open=",">
+            (case t2.labelCode when #{allList.prop,jdbcType=VARCHAR} then t2.labelValue end) as  #{allList.prop,jdbcType=VARCHAR}
+        </foreach>
+        FROM
+        ${TBSNAME}."mw_tangibleassets_table" t1
+        left join
+        (select
+        t1.assets_id,
+        t2.label_code labelCode,
+        t2.choose_add chooseAdd,
+        case t2.input_format
+        when 1 then t1.tagboard
+        when 2 then t1.date_tagboard
+        when 3 then t3.drop_key
+        end labelValue
+        from mw_assetslabel_table t1
+        left join mw_labelmanage_table t2 on t1.label_id = t2.label_id
+        left join ${TBSNAME}."mw_dropdown_table" t3 on t2.dropdown_value = t3.drop_code and t1.tagboard = t3.drop_key) t2 on t1.id = t2.assets_id
+        where 1=1
+        and t1.delete_flag = FALSE
+        group by t1.id)t
+        where 1=1
+        and delete_flag = false
+        <include refid="criteria"></include>
+        <if test="labelList != null &amp;&amp; labelList.size() >0" >
+            <foreach collection="labelList" item="queryList" >
+                <if test="queryList.labelCode != null &amp;&amp; queryList.labelCode != ''" >
+                    <choose>
+                        <when test="queryList.formatValue == 2">
+                            and <![CDATA[#{queryList.labelDateStart,jdbcType=TIMESTAMP} =< ${queryList.labelCode}  ]]>
+                            and <![CDATA[#{queryList.labelDateEnd,jdbcType=TIMESTAMP} => ${queryList.labelCode}  ]]>
+                        </when>
+                        <when test="queryList.formatValue == 3">
+                            and ${queryList.labelCode} = #{queryList.selectValue,jdbcType=VARCHAR}
+                        </when>
+                        <otherwise>  and ${queryList.labelCode} like CONCAT('%',#{queryList.labelValue,jdbcType=VARCHAR},'%')</otherwise>
+                    </choose>
+                </if>
+            </foreach>
+        </if>
+    </sql>
+
+    <select id="selectList" parameterType="java.util.HashMap" resultMap="ParentMap">
+        select
+        t3."monitorModeName"
+        ,t3."assetsTypeName"
+        ,t3."assetsTypeSubName",
+        t3."vendor_small_icon",
+        t3."vendorCustomFlag",
+        <include refid="Base_Column_List"><property name="alias" value="t3."/></include>
+        from (
+        select  distinct t1."id",
+        d4."drop_value" as "monitorModeName",
+        t4."type_name" as "assetsTypeName",
+        t5."type_name" as "assetsTypeSubName",
+        t6."vendor_small_icon",
+        t6."custom_flag" as "vendorCustomFlag",
+        <include refid="Base_Column_List1"><property name="alias" value="t1."/></include>
+        from ${TBSNAME}."mw_tangibleassets_table" t1
+        left join ${TBSNAME}."mw_dropdown_table" d4 on d4."drop_code" = 'monitor_mode' and d4."drop_key" = t1."monitor_mode"
+        left join ${TBSNAME}."mw_assetssubtype_table" t4 on t1."assets_type_id" = t4."id"
+        left join ${TBSNAME}."mw_assetssubtype_table" t5 on t1."assets_type_sub_id" = t5."id"
+        left join ${TBSNAME}."mw_base_vendor_icon" t6 on t1."manufacturer" = t6."vendor"
+        WHERE t1."delete_flag" = 0
+        <include refid="criteria2"></include>
+        ) t3
+    </select>
+
+    <select id="selectLabelList" parameterType="cn.mw.monitor.configmanage.entity.QueryTangAssetsParam" resultMap="ParentMap">
+        <include refid="selectLabelList_sql" />
+    </select>
+
+    <select id="selectAllLabel" resultType="cn.mw.monitor.configmanage.entity.MwAllLabelDTO" parameterType="cn.mw.monitor.configmanage.entity.QueryLabelParam">
+        select
+        t1.label_id id,
+        t1.label_code prop,
+        t1.label_name label,
+        t1.input_format inputFormat,
+        t1.dropdown_value url
+        from mw_labelmanage_table t1
+        left join mw_label_assetstype_mapper t2 on t1.label_id = t2.label_id
+        where 1=1
+        and t2.assets_type_id =  #{assetsTypeId,jdbcType=INTEGER}
+        <if test="labelName != null and labelName != ''">
+            and t1.label_name LIKE CONCAT('%',#{labelName,jdbcType=VARCHAR},'%')
+        </if>
+        <if test="screen">
+            and t1.screen = true
+        </if>
+    </select>
+
+    <resultMap id="BaseMapEditorSelect" type="cn.mw.monitor.configmanage.entity.MwConfigMapper">
+        <id column="id" jdbcType="VARCHAR" property="assetsId"/>
+        <result column="assets_name" jdbcType="VARCHAR" property="assetsName"/>
+        <result column="timing" jdbcType="VARCHAR" property="timing"/>
+    </resultMap>
+
+    <select id="selectAccount" parameterType="java.lang.String" resultType="cn.mw.monitor.configmanage.entity.MwAccountMapper">
+    select
+        t1.account account,
+        t1.account_id accountId
+    from
+        ${TBSNAME}."mw_assets_account_mapper" t1
+    where  t1.id =
+    (select max(id) from ${TBSNAME}."mw_assets_account_mapper" where assets_id = #{assetsId,jdbcType=VARCHAR})
+  </select>
+
+    <select id="selectTemplate" parameterType="java.lang.String" resultType="cn.mw.monitor.configmanage.entity.MwTemplateMapper">
+    select
+        t1.template template,
+        t1.template_id templateId
+    from
+        mw_assets_template_mapper t1
+    where  t1.id =
+    (select max(id) from mw_assets_template_mapper where assets_id = #{assetsId,jdbcType=VARCHAR})
+  </select>
+
+    <select id="editorSelect" resultMap="BaseMapEditorSelect" parameterType="java.lang.String">
+        select
+            *
+        from
+            ${TBSNAME}."mw_tangibleassets_table" a1
+        where
+            a1.id = #{assetsId,jdbcType=VARCHAR}
+    </select>
+
+    <insert id="saveTimeHis" parameterType="cn.mw.monitor.timetask.entity.MwTimeTaskDownloadHis" useGeneratedKeys="true" keyProperty="id">
+        insert into mw_ncm_timetask_download_history
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="downtime != null ">downtime,</if>
+            <if test="timeId != null ">time_id,</if>
+            <if test="path != null and path != ''">path,</if>
+            <if test="name != null and name != ''">name,</if>
+            <if test="downresult != null and downresult != ''">downresult</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="downtime != null ">#{downtime,jdbcType=TIMESTAMP},</if>
+            <if test="timeId != null ">#{timeId,jdbcType=INTEGER},</if>
+            <if test="path != null and path != ''">#{path,jdbcType=VARCHAR},</if>
+            <if test="name != null and name != ''">#{name,jdbcType=VARCHAR},</if>
+            <if test="downresult != null and downresult != ''">#{downresult,jdbcType=VARCHAR}</if>
+        </trim>
+    </insert>
+
+    <insert id="saveAccountMapper" parameterType="cn.mw.monitor.configmanage.entity.MwAccountMapper" useGeneratedKeys="true" keyProperty="id">
+        insert into ${TBSNAME}."mw_assets_account_mapper"
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="account != null and account != ''">account,</if>
+            <if test="accountId != null ">account_id,</if>
+            <if test="assetsId != null and assetsId != ''">assets_id,</if>
+            <if test="creator != null">creator,</if>
+            <if test="createDate != null">create_date,</if>
+            <if test="modifier != null">modifier,</if>
+            <if test="modificationDate != null">modification_date</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="account != null and account != ''">#{account,jdbcType=VARCHAR},</if>
+            <if test="accountId != null ">#{accountId,jdbcType=INTEGER},</if>
+            <if test="assetsId != null and assetsId != ''">#{assetsId,jdbcType=VARCHAR},</if>
+            <if test="creator != null">#{creator,jdbcType=VARCHAR},</if>
+            <if test="createDate != null"> #{createDate,jdbcType=TIMESTAMP},</if>
+            <if test="modifier != null">#{modifier,jdbcType=VARCHAR},</if>
+            <if test="modificationDate != null"> #{modificationDate,jdbcType=TIMESTAMP}</if>
+        </trim>
+    </insert>
+
+    <delete id="deleteAccountMapper" parameterType="java.lang.String">
+        DELETE FROM ${TBSNAME}."mw_assets_account_mapper"
+        WHERE assets_id = #{assetsId,jdbcType=VARCHAR}
+    </delete>
+
+    <delete id="deleteTemplateMapper" parameterType="java.lang.String">
+        DELETE FROM mw_assets_template_mapper
+        WHERE assets_id = #{assetsId,jdbcType=VARCHAR}
+    </delete>
+
+    <insert id="saveTemplateMapper" parameterType="cn.mw.monitor.configmanage.entity.MwTemplateMapper" useGeneratedKeys="true" keyProperty="id">
+        insert into mw_assets_template_mapper
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="template != null and template != ''">template,</if>
+            <if test="templateId != null ">template_id,</if>
+            <if test="assetsId != null and assetsId != ''">assets_id,</if>
+            <if test="creator != null">creator,</if>
+            <if test="createDate != null">create_date,</if>
+            <if test="modifier != null">modifier,</if>
+            <if test="modificationDate != null">modification_date</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="template != null and template != ''">#{template,jdbcType=VARCHAR},</if>
+            <if test="templateId != null ">#{templateId,jdbcType=INTEGER},</if>
+            <if test="assetsId != null and assetsId != ''">#{assetsId,jdbcType=VARCHAR},</if>
+            <if test="creator != null">#{creator,jdbcType=VARCHAR},</if>
+            <if test="createDate != null"> #{createDate,jdbcType=TIMESTAMP},</if>
+            <if test="modifier != null">#{modifier,jdbcType=VARCHAR},</if>
+            <if test="modificationDate != null"> #{modificationDate,jdbcType=TIMESTAMP}</if>
+        </trim>
+    </insert>
+
+    <select id="selectTemplateMapper" resultType="cn.mw.monitor.configmanage.entity.MwTemplateMapper" parameterType="java.lang.String">
+        select
+            id,template,template_id templateId,assets_id assetsId
+        from
+            mw_assets_template_mapper a1
+        where
+            a1.assets_id = #{assetsId,jdbcType=VARCHAR}
+    </select>
+
+    <select id="selectOneTemplate" parameterType="java.lang.Integer" resultType="cn.mw.monitor.templatemanage.entity.QueryTemplateManageParam">
+    select
+        id,xml,download_type downloadType
+    from
+        mw_templatemanage_table t1
+    where  t1.id = #{templateId,jdbcType=INTEGER}
+  </select>
+
+    <select id="selectAccountMapper" resultType="cn.mw.monitor.configmanage.entity.MwAccountMapper" parameterType="java.lang.String">
+        select
+            id,account,account_id accountId,assets_id assetsId
+        from
+            ${TBSNAME}."mw_assets_account_mapper" a1
+        where
+            a1.assets_id = #{assetsId,jdbcType=VARCHAR}
+    </select>
+
+    <select id="selectOneAccount" parameterType="java.lang.Integer" resultType="cn.mw.monitor.accountmanage.entity.QueryAccountManageParam">
+    select
+        id,account,enable,protocol,port,username,password,enable_cmd enableCmd,
+        enable_password enablePassword,tftp_type TftpType,ip_down IpDown
+    from
+        mw_accountmanage_table t1
+    where  t1.id = #{accountId,jdbcType=INTEGER}
+  </select>
+
+    <insert id="saveDownloadConfig" parameterType="cn.mw.monitor.configmanage.entity.MwNcmDownloadConfig" useGeneratedKeys="true" keyProperty="id">
+        insert into mw_ncm_downloadconfig_table
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="assetsId != null and assetsId != ''">assets_id,</if>
+            <if test="name != null and name != ''">name,</if>
+            <if test="path != null and path != ''">path,</if>
+            <if test="creator != null">creator,</if>
+            <if test="createDate != null">create_date,</if>
+            <if test="configType != null and configType != ''">config_type,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="assetsId != null and assetsId != ''">#{assetsId,jdbcType=VARCHAR},</if>
+            <if test="name != null and name != ''">#{name,jdbcType=VARCHAR},</if>
+            <if test="path != null and path != ''">#{path,jdbcType=VARCHAR},</if>
+            <if test="creator != null">#{creator,jdbcType=VARCHAR},</if>
+            <if test="createDate != null"> #{createDate,jdbcType=TIMESTAMP},</if>
+            <if test="configType != null and configType != ''">#{configType,jdbcType=VARCHAR},</if>
+        </trim>
+    </insert>
+
+    <select id="selectDownloads" resultType="cn.mw.monitor.configmanage.entity.MwNcmDownloadConfig" >
+        select
+        id,
+        name,
+        path,
+        config_type configType,
+        create_date createDate,
+        creator,
+        assets_id assetsId
+        from mw_ncm_downloadconfig_table
+        where assets_id = #{assetsId,jdbcType=VARCHAR}
+        <if test="configType != null">
+            and config_type like CONCAT('%',#{configType,jdbcType=VARCHAR},'%')
+        </if>
+        <if test="name != null">
+            and ( name like CONCAT('%',#{name,jdbcType=VARCHAR},'%')
+
+            or config_type like CONCAT('%',#{name,jdbcType=VARCHAR},'%')
+
+            or creator like CONCAT('%',#{name,jdbcType=VARCHAR},'%') )
+        </if>
+        order by create_date desc
+    </select>
+
+    <select id="selectDownloads2" resultType="cn.mw.monitor.configmanage.entity.MwNcmDownloadConfig"
+            parameterType="cn.mw.monitor.configmanage.entity.MwTangibleassetsDTO">
+        select
+        id,
+        name,
+        path,
+        config_type configType,
+        create_date createDate,
+        assets_id assetsId
+        from mw_ncm_downloadconfig_table
+        where assets_id = #{assetsId,jdbcType=VARCHAR}
+    </select>
+
+    <delete id="deleteDownloads" parameterType="java.util.List">
+        DELETE FROM mw_ncm_downloadconfig_table
+        WHERE id in (
+        <foreach collection="list" item="item" separator=",">
+            #{item.id,jdbcType=INTEGER}
+        </foreach>
+        )
+    </delete>
+
+    <insert id="saveConfigPerfrom" parameterType="cn.mw.monitor.configmanage.entity.MwNcmDownloadConfig" useGeneratedKeys="true" keyProperty="id">
+        insert into mw_ncm_configperfrom_table
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="assetsId != null and assetsId != ''">assets_id,</if>
+            <if test="name != null and name != ''">name,</if>
+            <if test="path != null and path != ''">path,</if>
+            <if test="creator != null">creator,</if>
+            <if test="createDate != null">create_date,</if>
+            <if test="configType != null and configType != ''">config_type,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="assetsId != null and assetsId != ''">#{assetsId,jdbcType=VARCHAR},</if>
+            <if test="name != null and name != ''">#{name,jdbcType=VARCHAR},</if>
+            <if test="path != null and path != ''">#{path,jdbcType=VARCHAR},</if>
+            <if test="creator != null">#{creator,jdbcType=VARCHAR},</if>
+            <if test="createDate != null"> #{createDate,jdbcType=TIMESTAMP},</if>
+            <if test="configType != null and configType != ''">#{configType,jdbcType=VARCHAR},</if>
+        </trim>
+    </insert>
+
+    <select id="getPath" resultType="cn.mw.monitor.configmanage.entity.MwNcmPath" >
+        select
+            id,download_path downloadPath,perfrom_path perfromPath,max_count as maxCount ,max_time as maxTime, valid_type as validType
+        from
+            mw_ncm_configmanage_path
+        where
+            id in (select max(id) from mw_ncm_configmanage_path)
+    </select>
+
+    <insert id="addPath" parameterType="cn.mw.monitor.configmanage.entity.MwNcmPath" useGeneratedKeys="true" keyProperty="id">
+        insert into mw_ncm_configmanage_path
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="downloadPath != null and downloadPath != ''">download_path,</if>
+            <if test="perfromPath != null and perfromPath != ''">perfrom_path,</if>
+            <if test="maxCount != null">
+                max_count,
+            </if>
+            <if test="maxTime != null">
+                max_time,
+            </if>
+            <if test="validType != null">
+                valid_type,
+            </if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="downloadPath != null and downloadPath != ''">#{downloadPath,jdbcType=VARCHAR},</if>
+            <if test="perfromPath != null and perfromPath != ''">#{perfromPath,jdbcType=VARCHAR},</if>
+            <if test="maxCount != null">
+                #{maxCount},
+            </if>
+            <if test="maxTime != null">
+                #{maxTime},
+            </if>
+            <if test="validType != null">
+                #{validType},
+            </if>
+        </trim>
+    </insert>
+
+    <update id="updatePath" parameterType="cn.mw.monitor.configmanage.entity.MwNcmPath">
+        update mw_ncm_configmanage_path
+        <set>
+            <if test="downloadPath != null and downloadPath != ''">
+                download_path = #{downloadPath,jdbcType=VARCHAR},
+            </if>
+            <if test="perfromPath != null and perfromPath != ''">
+                perfrom_path = #{perfromPath,jdbcType=VARCHAR},
+            </if>
+            <if test="maxCount != null">
+                max_count = #{maxCount},
+            </if>
+            <if test="maxTime != null">
+                max_time = #{maxTime},
+            </if>
+            <if test="validType != null">
+                valid_type = #{validType},
+            </if>
+        </set>
+        where id = #{id,jdbcType=INTEGER}
+    </update>
+
+    <select id="selectTimeConfig" parameterType="java.lang.String"
+            resultMap="ParentMap">
+        select * from
+        <include refid="tb"></include>
+        where
+        delete_flag = false
+        and setting_flag = true
+        and timing = #{timeId,jdbcType=VARCHAR}
+    </select>
+
+    <select id="selectPerforms" resultType="cn.mw.monitor.configmanage.entity.MwNcmDownloadConfig" >
+        select
+        id,
+        name,
+        path,
+        config_type configType,
+        creator,
+        create_date createDate,
+        assets_id assetsId
+        from mw_ncm_configperfrom_table
+        where assets_id = #{assetsId,jdbcType=VARCHAR}
+
+        order by create_date desc
+    </select>
+
+    <delete id="deletePerforms" parameterType="java.util.List">
+        DELETE FROM mw_ncm_configperfrom_table
+        WHERE id in (
+        <foreach collection="list" item="item" separator=",">
+            #{item.id,jdbcType=INTEGER}
+        </foreach>
+        )
+    </delete>
+
+    <update id="updateTiming" parameterType="cn.mw.monitor.configmanage.entity.MwConfigMapper">
+        update ${TBSNAME}."mw_tangibleassets_table"
+        <set>
+            timing = #{timing,jdbcType=VARCHAR}
+        </set>
+        where id = #{assetsId,jdbcType=INTEGER}
+        and delete_flag = false
+        and setting_flag = true
+    </update>
+
+    <update id="updateConfig" parameterType="java.lang.String">
+        update ${TBSNAME}."mw_tangibleassets_table"
+        <set>
+            setting_flag = false
+        </set>
+        where id = #{assetsId,jdbcType=VARCHAR}
+        and delete_flag = false
+    </update>
+
+    <select id="getTreeGroup" resultType="cn.mw.monitor.configmanage.entity.MwConfigManageTreeGroup">
+        SELECT * FROM ${TBSNAME}."mw_config_manage_tree_group" where "type" = #{treeName}
+    </select>
+
+    <insert id="addTreeGroup" parameterType="cn.mw.monitor.configmanage.entity.MwConfigManageTreeGroup">
+        insert into ${TBSNAME}."mw_config_manage_tree_group"
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            "id",
+            <if test="name != null and name != ''">"name",</if>
+            <if test="parentId != null ">"parent_id",</if>
+            <if test="type != null and type != ''">"type"</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            ${TBSNAME}.SEQ_CONFIG_MANAGE_TREE_GROUP.NEXTVAL,
+            <if test="name != null and name != ''">#{name,jdbcType=VARCHAR},</if>
+            <if test="parentId != null ">#{parentId,jdbcType=INTEGER},</if>
+            <if test="type != null and type != ''">#{type,jdbcType=VARCHAR}</if>
+        </trim>
+    </insert>
+
+    <update id="updateTreeGroup" parameterType="cn.mw.monitor.configmanage.entity.MwConfigManageTreeGroup">
+        update ${TBSNAME}."mw_config_manage_tree_group"
+        <set>
+            "name" = #{name,jdbcType=VARCHAR},
+            "parent_id" = #{parentId,jdbcType=INTEGER},
+        </set>
+        where "id" = #{id,jdbcType=INTEGER}
+    </update>
+
+    <delete id="deleteTreeGroup" parameterType="java.lang.Integer">
+        DELETE FROM ${TBSNAME}."mw_config_manage_tree_group"
+        WHERE "id" = #{id}
+    </delete>
+
+    <select id="getRuleList" resultType="cn.mw.monitor.configmanage.entity.MwConfigManageRuleManage" >
+        SELECT * FROM mw_config_manage_rule_manage where delete_flag = false
+        <choose>
+            <when test="searchAll != null and searchAll != ''">
+                and (
+                or rule_name like CONCAT('%',#{searchAll,jdbcType=VARCHAR},'%')
+                or creator  like CONCAT('%',#{searchAll,jdbcType=VARCHAR},'%')
+                or modifier  like CONCAT('%',#{searchAll,jdbcType=VARCHAR},'%')
+                )
+            </when>
+            <otherwise>
+                <if test="ruleName != null and ruleName != ''">
+                    and rule_name like CONCAT('%',#{ruleName,jdbcType=VARCHAR},'%')
+                </if>
+                <if test="creator != null and creator != ''">
+                    and creator  like CONCAT('%',#{creator,jdbcType=VARCHAR},'%')
+                </if>
+                <if test="modifier != null and modifier != ''">
+                    and modifier  like CONCAT('%',#{modifier,jdbcType=VARCHAR},'%')
+                </if>
+            </otherwise>
+        </choose>
+        <if test="ruleTreeGroup != null and ruleTreeGroup != ''">
+            and rule_tree_group = #{ruleTreeGroup}
+        </if>
+        <if test="ruleLevel != null ">
+            and rule_level = #{ruleLevel,jdbcType=INTEGER}
+        </if>
+        <if test="isSystem == false">
+            and FIND_IN_SET(id,#{listSet})
+        </if>
+        ORDER BY create_date  desc
+    </select>
+
+    <insert id="addDetectReport" parameterType="cn.mw.monitor.configmanage.entity.DetectReport" useGeneratedKeys="true"
+            keyProperty="id">
+        INSERT INTO mw_config_manage_report_manage (
+         id,
+         report_uuid,
+         report_name,
+         report_tree_group,
+         report_describe,
+         state,
+         create_date,
+         modification_date,
+         creator,
+         modifier,
+         delete_flag )
+        VALUES
+            (
+                NULL,
+                NULL,
+                #{reportName},
+                #{reportTreeGroup},
+                #{reportDesc},
+                0,
+                now(),
+                now(),
+                #{creator},
+                #{updater},
+                FALSE
+            )
+    </insert>
+
+    <update id="updateDetectReport" parameterType="cn.mw.monitor.configmanage.entity.DetectReport">
+        UPDATE mw_config_manage_report_manage
+        SET report_name = #{reportName},
+        report_tree_group = #{reportTreeGroup},
+        report_describe = #{reportDesc},
+        state = #{reportState},
+        modification_date = now(),
+        modifier = #{updater}
+        WHERE
+            id = #{id}
+            and delete_flag = false
+    </update>
+
+    <update id="updateDetectReportState" parameterType="cn.mw.monitor.configmanage.entity.DetectReport">
+        UPDATE mw_config_manage_report_manage
+        SET
+        state = #{reportState},
+        modification_date = now(),
+        modifier = #{updater}
+        WHERE
+            id = #{id}
+            and delete_flag = false
+    </update>
+
+    <update id="updateDetectReportUUID" parameterType="cn.mw.monitor.configmanage.entity.DetectReport">
+        UPDATE mw_config_manage_report_manage
+        SET
+        report_uuid = #{reportUUID},
+        modification_date = now(),
+        modifier = #{updater}
+        WHERE
+            id = #{id}
+            and delete_flag = false
+    </update>
+
+    <update id="batchDeleteDetectReport">
+        UPDATE mw_config_manage_report_manage
+        SET delete_flag = true,
+        modification_date = now(),
+        modifier = #{operator}
+        WHERE
+        id in
+        <foreach collection="list" item="item" separator="," open="(" close=")" index="index">
+            #{item}
+        </foreach>
+        and delete_flag = false
+    </update>
+
+    <insert id="addDetectRelation">
+        INSERT INTO mw_config_manage_detect_relation(id, type_id, type) VALUES
+        <foreach collection="list" index="index" item="item" separator=",">
+            (
+            #{id},
+            #{item},
+            #{detectType}
+            )
+        </foreach>
+    </insert>
+
+    <delete id="deleteDetectRelation">
+        DELETE
+        FROM
+            mw_config_manage_detect_relation
+        WHERE
+            id = #{id}
+            AND type = #{detectType}
+    </delete>
+
+    <delete id="batchDeleteDetectRelation">
+        DELETE
+        FROM
+        mw_config_manage_detect_relation
+        WHERE
+        id in
+        <foreach collection="list" item="item" separator="," open="(" close=")" index="index">
+            #{item}
+        </foreach>
+        AND type = #{detectType}
+    </delete>
+
+    <select id="listDetectReport" parameterType="cn.mw.monitor.configmanage.entity.DetectReportDTO"
+            resultType="cn.mw.monitor.configmanage.entity.DetectReport">
+        SELECT
+        id as id,
+        report_uuid as reportUUID,
+        report_name as reportName,
+        report_tree_group as reportTreeGroup,
+        report_describe as reportDesc,
+        state as reportState,
+        create_date as createDate,
+        modification_date as updateDate,
+        creator as creator,
+        modifier as updater,
+        delete_flag
+        FROM
+        mw_config_manage_report_manage
+        WHERE
+        delete_flag = FALSE
+        <choose>
+            <when test="searchAll != null and searchAll != ''">
+                and (
+                or report_name like CONCAT('%',#{searchAll,jdbcType=VARCHAR},'%')
+                or creator like CONCAT('%',#{searchAll,jdbcType=VARCHAR},'%')
+                or modifier like CONCAT('%',#{searchAll,jdbcType=VARCHAR},'%')
+                )
+            </when>
+            <otherwise>
+                <if test="reportName != null and reportName != ''">
+                    and report_name like CONCAT('%',#{reportName,jdbcType=VARCHAR},'%')
+                </if>
+                <if test="creator != null and creator != ''">
+                    and creator like CONCAT('%',#{creator,jdbcType=VARCHAR},'%')
+                </if>
+                <if test="updater != null and updater != ''">
+                    and modifier like CONCAT('%',#{updater,jdbcType=VARCHAR},'%')
+                </if>
+            </otherwise>
+        </choose>
+        <if test="reportTreeGroup != null">
+            and report_tree_group = #{reportTreeGroup}
+        </if>
+        <if test="reportState != null">
+            and state = #{reportState}
+        </if>
+        <if test="systemUser == false">
+            and FIND_IN_SET(id,#{findInSet})
+        </if>
+        ORDER BY
+        create_date DESC
+    </select>
+
+    <select id="listPolicyManage" parameterType="cn.mw.monitor.configmanage.entity.PolicyManageDTO"
+            resultType="cn.mw.monitor.configmanage.entity.PolicyManage">
+        select
+        id as id,
+        policy_name as policyName,
+        policy_tree_group as policyTreeGroup,
+        policy_describe as policyDesc,
+        config_type as configType,
+        detect_assets_type AS detectAssetsType,
+        detect_condition AS detectCondition,
+        vendor_id AS vendorId,
+        create_date as createDate,
+        modification_date as updateDate,
+        creator as creator,
+        modifier as updater
+        from mw_config_manage_policy_manage
+        WHERE
+        delete_flag = FALSE
+        <choose>
+            <when test="searchAll != null and searchAll != ''">
+                and (
+                or policy_name like CONCAT('%',#{searchAll,jdbcType=VARCHAR},'%')
+                or creator like CONCAT('%',#{searchAll,jdbcType=VARCHAR},'%')
+                or modifier like CONCAT('%',#{searchAll,jdbcType=VARCHAR},'%')
+                )
+            </when>
+            <otherwise>
+                <if test="policyName != null and policyName != ''">
+                    and policy_name like CONCAT('%',#{policyName,jdbcType=VARCHAR},'%')
+                </if>
+                <if test="creator != null and creator != ''">
+                    and creator like CONCAT('%',#{creator,jdbcType=VARCHAR},'%')
+                </if>
+                <if test="updater != null and updater != ''">
+                    and modifier like CONCAT('%',#{updater,jdbcType=VARCHAR},'%')
+                </if>
+            </otherwise>
+        </choose>
+        <if test="policyTreeGroup != null">
+            and policy_tree_group = #{policyTreeGroup}
+        </if>
+        <if test="ids != null and ids.size() > 0">
+            and id in
+            <foreach collection="ids" item="item" index="index" open="(" close=")" separator="," >
+                #{item}
+            </foreach>
+        </if>
+        <if test="systemUser == false">
+            and FIND_IN_SET(id,#{findInSet})
+        </if>
+        ORDER BY
+        create_date DESC
+    </select>
+
+    <select id="listDetectRelation" resultType="java.lang.Integer">
+        SELECT
+            type_id
+        FROM
+            mw_config_manage_detect_relation
+        WHERE
+            id = #{id}
+            AND type = #{detectType}
+    </select>
+
+    <select id="getDetectReportById" resultType="cn.mw.monitor.configmanage.entity.DetectReport">
+        SELECT
+            id as id,
+            report_uuid as reportUUID,
+            report_name as reportName,
+            report_tree_group as reportTreeGroup,
+            report_describe as reportDesc,
+            state as reportState,
+            create_date as createDate,
+            modification_date as updateDate,
+            creator as creator,
+            modifier as updater,
+            delete_flag
+        FROM
+            mw_config_manage_report_manage
+        WHERE
+            delete_flag = FALSE
+            and id = #{id}
+    </select>
+
+    <insert id="addPolicyManage" parameterType="cn.mw.monitor.configmanage.entity.PolicyManage" useGeneratedKeys="true"
+            keyProperty="id">
+        INSERT INTO
+        mw_config_manage_policy_manage
+         ( id,
+         policy_name,
+         policy_tree_group,
+         policy_describe,
+         config_type,
+         detect_assets_type,
+         detect_condition,
+         vendor_id,
+         create_date,
+         modification_date,
+         creator,
+         modifier,
+         delete_flag )
+        VALUES
+	    ( null,
+	     #{policyName},
+	     #{policyTreeGroup},
+	     #{policyDesc},
+	     #{configType},
+	     #{detectAssetsType},
+	     #{detectCondition},
+	     #{vendorId},
+	     now(),
+	     now(),
+	     #{creator},
+	     #{updater},
+	     0 )
+    </insert>
+
+    <update id="updatePolicyManage" parameterType="cn.mw.monitor.configmanage.entity.PolicyManage">
+        UPDATE mw_config_manage_policy_manage
+        SET policy_name = #{policyName},
+        policy_tree_group = #{policyTreeGroup},
+        policy_describe = #{policyDesc},
+        config_type = #{configType},
+        detect_assets_type = #{detectAssetsType},
+        detect_condition = #{detectCondition},
+        vendor_id = #{vendorId},
+        modification_date = now(),
+        modifier = #{updater}
+        WHERE
+            id = #{id}
+            and delete_flag = false
+    </update>
+
+    <update id="batchDeletePolicyManage">
+        UPDATE mw_config_manage_policy_manage
+        SET
+        delete_flag = true,
+        modification_date = now(),
+        modifier = #{operator}
+        WHERE
+        delete_flag = false
+        and id in
+        <foreach collection="list" item="item" separator="," open="(" close=")" index="index">
+            #{item}
+        </foreach>
+    </update>
+
+    <select id="getPolicyManageById" resultType="cn.mw.monitor.configmanage.entity.PolicyManage">
+        select
+            TB_POLICY.id as id,
+            TB_POLICY.policy_name as policyName,
+            TB_POLICY.policy_tree_group as policyTreeGroup,
+            TB_POLICY.policy_describe as policyDesc,
+            TB_POLICY.config_type as configType,
+            TB_POLICY.detect_assets_type as detectAssetsType,
+            TB_POLICY.detect_condition as detectCondition,
+            TB_POLICY.vendor_id as vendorId,
+            TB_POLICY.create_date as createDate,
+            TB_POLICY.modification_date as updateDate,
+            TB_POLICY.creator as creator,
+            TB_POLICY.modifier as updater,
+            TB_VENDOR.vendor as vendorName
+        from mw_config_manage_policy_manage TB_POLICY
+        LEFT JOIN ${TBSNAME}."mw_base_vendor_icon" TB_VENDOR ON TB_POLICY.vendor_id = TB_VENDOR.id
+        WHERE
+        TB_POLICY.delete_flag = FALSE
+        and TB_POLICY.id = #{id}
+    </select>
+
+    <insert id="addPolicyAssetsRelation">
+        INSERT INTO mw_config_manage_policy_relation(policy_id, assets_id) VALUES
+        <foreach collection="list" index="index" item="item" separator=",">
+            (
+            #{id},
+            #{item}
+            )
+        </foreach>
+    </insert>
+
+    <delete id="deletePolicyAssetsRelation">
+        DELETE
+        FROM
+            mw_config_manage_policy_relation
+        WHERE
+            policy_id = #{id}
+    </delete>
+
+    <delete id="batchDeletePolicyAssetsRelation">
+        DELETE
+        FROM
+        mw_config_manage_policy_relation
+        WHERE
+        policy_id in
+        <foreach collection="list" item="item" separator="," open="(" close=")" index="index">
+            #{item}
+        </foreach>
+    </delete>
+
+    <select id="listPolicyAssetsRelation" resultType="java.lang.String">
+        SELECT
+            assets_id
+        FROM
+            mw_config_manage_policy_relation
+        WHERE
+            policy_id = #{id}
+    </select>
+
+    <select id="listAssets" resultType="java.util.HashMap">
+        SELECT
+        id AS id,
+        assets_name assetsName
+        FROM
+        ${TBSNAME}."mw_tangibleassets_table"
+        WHERE
+        delete_flag = FALSE
+        and id in
+        <foreach collection="list" item="item" index="index" open="(" separator="," close=")">
+            #{item}
+        </foreach>
+    </select>
+
+    <insert id="addRuleManage" parameterType="cn.mw.monitor.configmanage.entity.RuleManage" useGeneratedKeys="true"
+            keyProperty="id">
+        INSERT INTO mw_config_manage_rule_manage (
+            rule_name,
+            rule_tree_group,
+            rule_describe,
+            rule_match_content,
+            rule_content_type,
+            rule_match_type,
+            rule_senior_type,
+            rule_level,
+            rule_repair_type,
+            rule_repair_string,
+            create_date,
+            modification_date,
+            creator,
+            modifier,
+            delete_flag
+        )
+        VALUES
+            (
+                #{ruleName},
+                #{ruleTreeGroup},
+                #{ruleDescribe},
+                #{ruleMatchContent},
+                #{matchContentType},
+                #{ruleMatchType},
+                #{seniorType},
+                #{ruleLevel},
+                0,
+                '暂无',
+                now(),
+                now(),
+                #{creator},
+                #{modifier},
+                0
+            )
+    </insert>
+
+    <update id="batchDeleteRuleManage">
+        UPDATE mw_config_manage_rule_manage
+        SET
+        modification_date = now(),
+        modifier = #{operator},
+        delete_flag = true
+        WHERE
+        delete_flag = false
+        and id in
+        <foreach collection="list" item="item" separator="," open="(" close=")" index="index">
+            #{item}
+        </foreach>
+    </update>
+
+    <update id="updateRuleManage" parameterType="cn.mw.monitor.configmanage.entity.RuleManage">
+        UPDATE mw_config_manage_rule_manage
+        SET rule_name = #{ruleName},
+            rule_tree_group = #{ruleTreeGroup},
+            rule_describe = #{ruleDescribe},
+            rule_match_content = #{ruleMatchContent},
+            rule_content_type = #{matchContentType},
+            rule_match_type =  #{ruleMatchType},
+            rule_senior_type =   #{seniorType},
+            rule_level =  #{ruleLevel},
+            modification_date = now(),
+            modifier = #{modifier}
+            WHERE
+                delete_flag = false
+                and id = #{id}
+    </update>
+
+    <insert id="insertMwAlertRuleSelect" parameterType="java.util.List">
+        insert into mw_alert_rule_select(id,deep,condition_unit,name,relation,value,parent_id,uuid) values
+        <foreach collection="list" item="item" index="index" separator=",">
+            (#{item.key},#{item.deep},#{item.condition},#{item.name},#{item.relation},#{item.value},#{item.parentKey},#{item.uuid})
+        </foreach>
+    </insert>
+
+    <delete id="deleteMwAlertRuleSelect">
+        delete from mw_alert_rule_select where uuid = #{uuid}
+    </delete>
+
+    <delete id="batchDeleteMwAlertRuleSelect">
+        delete from mw_alert_rule_select where uuid in
+        <foreach collection="list" item="item" index="index" open="(" close=")" separator=",">
+            #{item}
+        </foreach>
+    </delete>
+
+    <select id="selectMwAlertRuleSelect"  resultType="cn.mw.monitor.weixinapi.MwRuleSelectParam">
+        select
+        id as 'key',
+        deep deep,
+        condition_unit as 'condition',
+        name,
+        relation,
+        value,
+        parent_id as parentKey
+        from mw_alert_rule_select
+        <if test="uuid != null and uuid != ''">
+            where uuid = #{uuid}
+        </if>
+    </select>
+
+    <select id="getRuleManageById" resultType="cn.mw.monitor.configmanage.entity.RuleManage">
+        SELECT
+            id,
+            rule_name as ruleName,
+            rule_tree_group as ruleTreeGroup,
+            rule_describe as ruleDescribe,
+            rule_match_content as ruleMatchContent,
+            rule_content_type as matchContentType,
+            rule_match_type as ruleMatchType,
+            rule_senior_type as seniorType,
+            rule_level as ruleLevel,
+            rule_repair_type as ruleRepairType,
+            rule_repair_string as ruleRepairString,
+            create_date as createDate,
+            modification_date as modificationDate,
+            creator as creator,
+            modifier as modifier
+        FROM
+            mw_config_manage_rule_manage
+        WHERE
+            delete_flag = FALSE
+            and id = #{id}
+    </select>
+
+    <select id="fuzzSearchReportData"  resultType="java.util.Map">
+        SELECT
+        *
+        FROM
+        (
+        SELECT
+        report_name AS keyName,
+        'reportName' AS type
+        FROM
+        mw_config_manage_report_manage
+        WHERE
+        delete_flag = FALSE
+        <if test="systemUser == false">
+            and FIND_IN_SET(id,#{listSet})
+        </if>
+        GROUP BY
+        keyName UNION
+        SELECT
+        creator AS keyName,
+        'creator' AS type
+        FROM
+        mw_config_manage_report_manage
+        WHERE
+        delete_flag = FALSE
+        <if test="systemUser == false">
+            and FIND_IN_SET(id,#{listSet})
+        </if>
+        GROUP BY
+        keyName UNION
+        SELECT
+        modifier AS keyName,
+        'updater' AS type
+        FROM
+        mw_config_manage_report_manage
+        WHERE
+        delete_flag = FALSE
+        <if test="systemUser == false">
+            and FIND_IN_SET(id,#{listSet})
+        </if>
+        GROUP BY
+        keyName
+        ) TB_ALL
+    </select>
+
+    <select id="fuzzSearchPolicyData"  resultType="java.util.Map">
+        SELECT
+        *
+        FROM
+        (
+        SELECT
+        policy_name AS keyName,
+        'policyName' AS type
+        FROM
+        mw_config_manage_policy_manage
+        WHERE
+        delete_flag = FALSE
+        <if test="systemUser == false">
+            and FIND_IN_SET(id,#{listSet})
+        </if>
+        GROUP BY
+        keyName UNION
+        SELECT
+        creator AS keyName,
+        'creator' AS type
+        FROM
+        mw_config_manage_policy_manage
+        WHERE
+        delete_flag = FALSE
+        <if test="systemUser == false">
+            and FIND_IN_SET(id,#{listSet})
+        </if>
+        GROUP BY
+        keyName UNION
+        SELECT
+        modifier AS keyName,
+        'updater' AS type
+        FROM
+        mw_config_manage_policy_manage
+        WHERE
+        delete_flag = FALSE
+        <if test="systemUser == false">
+            and FIND_IN_SET(id,#{listSet})
+        </if>
+        GROUP BY
+        keyName
+        ) TB_ALL
+    </select>
+
+    <select id="fuzzSearchRuleData"  resultType="java.util.Map">
+        SELECT
+        *
+        FROM
+        (
+        SELECT
+        rule_name AS keyName,
+        'ruleName' AS type
+        FROM
+        mw_config_manage_rule_manage
+        WHERE
+        delete_flag = FALSE
+        <if test="systemUser == false">
+            and FIND_IN_SET(id,#{listSet})
+        </if>
+        GROUP BY
+        keyName UNION
+        SELECT
+        creator AS keyName,
+        'creator' AS type
+        FROM
+        mw_config_manage_rule_manage
+        WHERE
+        delete_flag = FALSE
+        <if test="systemUser == false">
+            and FIND_IN_SET(id,#{listSet})
+        </if>
+        GROUP BY
+        keyName UNION
+        SELECT
+        modifier AS keyName,
+        'modifier' AS type
+        FROM
+        mw_config_manage_rule_manage
+        WHERE
+        delete_flag = FALSE
+        <if test="systemUser == false">
+            and FIND_IN_SET(id,#{listSet})
+        </if>
+        GROUP BY
+        keyName
+        ) TB_ALL
+    </select>
+
+    <select id="getReportRelationList" resultType="java.util.Map">
+        SELECT DISTINCT
+        TB_REPORT.report_name AS typeName,
+        TB_REPORT.id AS typeId,
+        TB_REPORT.create_date as createDate,
+        TB_REPORT.modification_date as updateDate
+        FROM
+        mw_config_manage_detect_relation TB_REL
+        LEFT JOIN mw_config_manage_report_manage TB_REPORT ON TB_REL.id = TB_REPORT.id
+        WHERE
+        TB_REL.type_id = #{id}
+        AND TB_REL.type = 'REPORT'
+        <if test="systemUser == false">
+            and FIND_IN_SET(TB_REL.id,#{listSet})
+        </if>
+    </select>
+
+    <select id="getRuleRelationList" resultType="java.util.Map">
+        SELECT DISTINCT
+            TB_RULE.rule_name AS typeName,
+            TB_RULE.id AS typeId,
+            TB_RULE.create_date AS createDate,
+	        TB_RULE.modification_date AS updateDate
+        FROM
+            mw_config_manage_detect_relation TB_REL
+            LEFT JOIN mw_config_manage_rule_manage TB_RULE ON TB_REL.type_id = TB_RULE.id
+        WHERE
+            TB_REL.id = #{id}
+            AND TB_REL.type = 'POLICY'
+            <if test="systemUser == false">
+                and FIND_IN_SET(TB_REL.id,#{listSet})
+            </if>
+    </select>
+
+    <select id="listRuleManage" resultType="cn.mw.monitor.configmanage.entity.RuleManage">
+        SELECT
+            id,
+            rule_name as ruleName,
+            rule_match_content as ruleMatchContent,
+            rule_content_type as matchContentType,
+            rule_match_type as ruleMatchType,
+            rule_senior_type as seniorType,
+            rule_level as ruleLevel,
+            rule_repair_type as ruleRepairType,
+            rule_repair_string as ruleRepairString
+        FROM
+            mw_config_manage_rule_manage
+        WHERE
+            delete_flag = FALSE
+            and id in
+            <foreach collection="list" open="(" close=")" item="item" index="index" separator=",">
+                #{item}
+            </foreach>
+    </select>
+
+    <insert id="insertDetectExecLog" parameterType="cn.mw.monitor.configmanage.entity.DetectExecLog" useGeneratedKeys="true"
+            keyProperty="id">
+        INSERT INTO mw_config_manage_detect_exec_log (
+            report_uuid,
+            assets_id,
+            rule_id,
+            policy_id,
+            report_id,
+            handle_state,
+            rule_level,
+            create_date,
+            modification_date,
+            creator,
+            modifier,
+            delete_flag )
+        VALUES
+            (
+                #{reportUUID},
+                #{assetsId},
+                #{ruleId},
+                #{policyId},
+                #{reportId},
+                0,
+                #{ruleLevel},
+                now(),
+                now(),
+                #{creator},
+                #{updater},
+                0
+            )
+    </insert>
+
+    <select id="getLastFileName" resultType="java.lang.String">
+        SELECT
+            CONCAT( path, '/', name )
+        FROM
+            mw_ncm_downloadconfig_table
+        WHERE
+            assets_id = #{assetsId}
+            <if test="configType != null and configType != 'all'">
+                and config_type = #{configType}
+            </if>
+        ORDER BY
+            create_date DESC
+            LIMIT 1
+    </select>
+
+    <update id="updateExecLogStatus">
+        UPDATE mw_config_manage_detect_exec_log
+            SET
+            handle_state = #{execStatus},
+            <if test="matchStatus != null and matchStatus == 0">
+                rule_level = 3,
+            </if>
+            modification_date = now()
+        WHERE
+            id = #{logId}
+            AND delete_flag = FALSE
+            AND handle_state = 0
+    </update>
+
+    <select id="countReportExec" resultType="java.lang.Integer">
+        SELECT
+            count( 1 )
+        FROM
+            mw_config_manage_detect_exec_log
+        WHERE
+            report_uuid = #{reportUUID}
+            AND delete_flag = FALSE
+    </select>
+
+    <select id="countFinishedReportExec" resultType="java.lang.Integer">
+        SELECT
+            count( 1 )
+        FROM
+            mw_config_manage_detect_exec_log
+        WHERE
+            report_uuid = #{reportUUID}
+            AND delete_flag = FALSE
+            AND (
+            handle_state = 2
+            OR handle_state = 3)
+    </select>
+
+    <select id="listLogByUUID" resultType="cn.mw.monitor.configmanage.entity.DetectExecLog">
+        SELECT
+            id as id,
+            report_uuid as reportUUID,
+            assets_id as assetsId,
+            rule_id as ruleId,
+            policy_id as policyId,
+            report_id as reportId,
+            handle_state as handleState,
+            rule_level as ruleLevel,
+            create_date as createDate,
+            modification_date as updateDate
+        FROM
+            mw_config_manage_detect_exec_log
+        WHERE
+            report_uuid = #{reportUUID}
+            AND delete_flag = FALSE
+    </select>
+
+    <select id="listAssetsByReportUUID" resultType="java.util.Map">
+        SELECT DISTINCT
+            TB_ASSETS.id AS assetsId,
+            TB_ASSETS.assets_name AS assetsName,
+            TB_ASSETS.in_band_ip AS inBandIP
+        FROM
+            mw_config_manage_detect_exec_log TB_LOG
+            LEFT JOIN ${TBSNAME}."mw_tangibleassets_table" TB_ASSETS ON TB_LOG.assets_id = TB_ASSETS.id
+        WHERE
+            TB_LOG.report_uuid = #{reportUUID}
+            AND TB_ASSETS.delete_flag = FALSE
+        ORDER BY
+            TB_ASSETS.create_date DESC
+    </select>
+
+    <select id="listPolicyAssetsByVendor" resultType="java.lang.String">
+        SELECT DISTINCT
+            TB_ASSETS.id
+        FROM
+            ${TBSNAME}."mw_tangibleassets_table" TB_ASSETS
+            LEFT JOIN ${TBSNAME}."mw_base_vendor_icon" TB_VENDOR ON TB_ASSETS.manufacturer = TB_VENDOR.vendor
+        WHERE
+            TB_ASSETS.delete_flag = FALSE
+            <choose>
+                <when test="condition != null and condition == 0">
+                    and  TB_VENDOR.id = #{vendorId}
+                </when>
+                <otherwise>
+                    and  TB_VENDOR.id != #{vendorId}
+                </otherwise>
+            </choose>
+    </select>
+
+    <select id="countUnHandle" resultType="java.lang.Integer">
+        SELECT
+            count( 1 )
+        FROM
+            mw_config_manage_detect_exec_log
+        WHERE
+            report_uuid = #{reportUUID}
+            AND delete_flag = 0
+            AND handle_state = 0
+    </select>
+
+    <select id="countRuleDetect" resultType="java.lang.Integer">
+        SELECT
+            count( 1 )
+        FROM
+            mw_config_manage_detect_exec_log
+        WHERE
+            report_uuid = #{reportUUID}
+            AND delete_flag = 0
+            AND handle_state != 0
+            and rule_level != 3
+            and rule_id = #{ruleId}
+    </select>
+
+    <select id="countPolicyDetect" resultType="java.lang.Integer">
+        SELECT
+            count( 1 )
+        FROM
+            mw_config_manage_detect_exec_log
+        WHERE
+            report_uuid = #{reportUUID}
+            AND delete_flag = 0
+            AND handle_state != 0
+            and policy_id = #{policyId}
+            and rule_level != 3
+    </select>
+
+    <select id="countReportDetect" resultType="java.lang.Integer">
+        SELECT
+            count( 1 )
+        FROM
+            mw_config_manage_detect_exec_log
+        WHERE
+            report_uuid = #{reportUUID}
+            AND delete_flag = 0
+            AND handle_state != 0
+            and rule_level = #{level}
+    </select>
+
+    <select id="getAssetsById" resultMap="ParentMap">
+        select
+        <include refid="Base_Column_List1">
+            <property name="alias" value="t1."/>
+        </include>
+        from ${TBSNAME}."mw_tangibleassets_table" t1
+        where t1.id = #{id} and t1.delete_flag = false
+    </select>
+
+    <insert id="insertConfigChange">
+         INSERT INTO mw_config_manage_changes ( assets_id, new_file_path, old_file_path, create_time, delete_flag )
+VALUES
+	( #{id}, #{newFilePath}, #{oldFilePath}, now(), 0 )
+    </insert>
+
+    <select id="selectChangedConfigs" resultType="java.util.Map">
+        SELECT
+        TB_CHANGE.assets_id AS assetsId,
+        TB_ASSETS.assets_name AS assetsName,
+        TB_CHANGE.new_file_path AS newFilePath,
+        TB_CHANGE.old_file_path AS oldFilePath,
+        TB_CHANGE.create_time AS createTime
+        FROM
+        mw_config_manage_changes TB_CHANGE
+        LEFT JOIN ${TBSNAME}."mw_tangibleassets_table" TB_ASSETS ON TB_CHANGE.assets_id = TB_ASSETS.id
+        WHERE
+            TB_CHANGE.delete_flag = FALSE
+            and
+            TB_ASSETS.delete_flag = FALSE
+        <if test="id != null and id != ''">
+                AND TB_CHANGE.assets_id = #{id}
+            </if>
+            ORDER BY
+            TB_CHANGE.create_time DESC
+    </select>
+
+    <select id="selectDownloadInfos" resultType="cn.mw.monitor.configmanage.entity.MwNcmDownloadConfig">
+        SELECT distinct
+            TB_CONFIG.config_type,
+            TB_CONFIG.name,
+            TB_CONFIG.path ,
+            CONCAT(IFNULL( TB_ASSETS.assets_name, '未知资产' ),'_',IFNULL( TB_ASSETS.in_band_ip, '未知IP' )) AS context
+        FROM
+            mw_ncm_downloadconfig_table TB_CONFIG
+            LEFT JOIN ${TBSNAME}."mw_tangibleassets_table" TB_ASSETS ON TB_CONFIG.assets_id = TB_ASSETS.id
+        WHERE
+            TB_ASSETS.delete_flag = false
+            and
+            TB_CONFIG.create_date BETWEEN #{createTimeStart}
+            AND #{createTimeEnd}
+    </select>
+
+    <select id="fuzzSearchAssetsData"  resultType="java.util.Map">
+        SELECT
+            *
+        FROM
+            (
+            SELECT
+                assets_name AS keyName,
+                'assetsName' AS type
+            FROM
+                ${TBSNAME}."mw_tangibleassets_table"
+            WHERE
+                setting_flag = TRUE
+                AND delete_flag = false
+            GROUP BY
+                keyName
+            UNION
+            SELECT
+                host_name AS keyName,
+                'hostName' AS type
+            FROM
+                ${TBSNAME}."mw_tangibleassets_table"
+            WHERE
+                setting_flag = TRUE
+                AND delete_flag = false
+            GROUP BY
+                keyName
+            UNION
+            SELECT
+                in_band_ip AS keyName,
+                'inBandIp' AS type
+            FROM
+                ${TBSNAME}."mw_tangibleassets_table"
+            WHERE
+                setting_flag = TRUE
+                AND delete_flag = false
+            GROUP BY
+                keyName
+                UNION
+            SELECT
+                manufacturer AS keyName,
+                'manufacturer' AS type
+            FROM
+                ${TBSNAME}."mw_tangibleassets_table"
+            WHERE
+                setting_flag = TRUE
+                AND delete_flag = false
+            GROUP BY
+                keyName
+                UNION
+            SELECT
+                specifications AS keyName,
+                'specifications' AS type
+            FROM
+                ${TBSNAME}."mw_tangibleassets_table"
+            WHERE
+                setting_flag = TRUE
+                AND delete_flag = false
+            GROUP BY
+                keyName
+            ) TB_ALL
+    </select>
+
+    <select id="fuzzSearchTemplateData"  resultType="java.util.Map">
+        SELECT
+            *
+        FROM
+            (
+            SELECT
+                template AS keyName,
+                'template' AS type
+            FROM
+                mw_templatemanage_table
+            GROUP BY
+                keyName
+            ) TB_ALL
+    </select>
+
+    <select id="fuzzSearchAccountData"  resultType="java.util.Map">
+        SELECT
+            *
+        FROM
+            (
+            SELECT
+                account AS keyName,
+                'account' AS type
+            FROM
+                mw_accountmanage_table
+            GROUP BY
+                keyName UNION
+            SELECT
+                username AS keyName,
+                'username' AS type
+            FROM
+                mw_accountmanage_table
+            GROUP BY
+                keyName
+            ) TB_ALL
+    </select>
+
+    <select id="listAssetsExport" resultType="cn.mw.monitor.configmanage.entity.ExportAssetsParam">
+        SELECT
+            IFNULL( TB_ASSETS.assets_name, '' ) AS assetsName,
+            IFNULL( TB_TEMPLATE.template, '' ) AS templateName,
+            IFNULL( TB_ACCOUNT.account, '' ) AS accountName,
+            IFNULL( TB_ACCOUNT.username, '' ) AS userName,
+            IFNULL( TB_ACCOUNT.password, '' ) AS password,
+            IFNULL( TB_ACCOUNT.protocol, '' ) AS protocol,
+            IFNULL( TB_ACCOUNT.port, '' ) AS port,
+            IFNULL( TB_ASSETS.id, '' ) AS assetsId
+        FROM
+            ${TBSNAME}."mw_tangibleassets_table" TB_ASSETS
+            LEFT JOIN ${TBSNAME}."mw_assets_account_mapper" TB_ACCOUNT_REL ON TB_ASSETS.id = TB_ACCOUNT_REL.assets_id
+            LEFT JOIN mw_accountmanage_table TB_ACCOUNT ON TB_ACCOUNT_REL.account_id = TB_ACCOUNT.id
+            LEFT JOIN mw_assets_template_mapper TB_TEMPLATE_REL ON TB_ASSETS.id = TB_TEMPLATE_REL.assets_id
+            LEFT JOIN mw_templatemanage_table TB_TEMPLATE ON TB_TEMPLATE_REL.template_id = TB_TEMPLATE.id
+        WHERE
+            TB_ASSETS.setting_flag = TRUE
+            AND delete_flag = FALSE
+    </select>
+
+    <select id="selectOutAccount" resultType="cn.mw.monitor.service.assets.model.MwTangibleassetsTable" >
+    SELECT h."id" as "assetsId",h."id" ,"hostname" as "hostName","ip" as "assetsName",m."id" as "accountId",m."account_alias" as "accountAlias"  FROM "mw_script_out_asssets" h
+    LEFT JOIN "mw_script_account_manage_table" m on  m."id" = h."account_id" WHERE 1=1
+        <if test="accountId!=0">and "account_id" = #{accountId}</if>
+    <if test="sreach!=null and sreach!=''">and ("hostname" like ('%'||#{sreach,jdbcType=VARCHAR}||'%') or "ip" like ('%'||#{sreach,jdbcType=VARCHAR}||'%') ) </if>
+    </select>
+
+    <insert id="insertVariable" parameterType="cn.mw.monitor.configmanage.entity.MwScriptVariable" >
+      INSERT INTO "mw_script_varibale"("name", "type", "value", "change_type", "run_ture", "varible_type", "conrrelation_id","varible_desc")
+    VALUES
+    (#{mwScriptVariable.name},#{mwScriptVariable.type},#{mwScriptVariable.value},#{mwScriptVariable.changeType},#{mwScriptVariable.runTure},#{mwScriptVariable.varibleType},#{mwScriptVariable.conrrelationId},#{mwScriptVariable.varibleDesc})
+    </insert>
+
+    <select id="getVariable" resultType="cn.mw.monitor.configmanage.entity.MwScriptVariable">
+        SELECT "id",  "name", "type", "value", "change_type", "run_ture", "varible_type", "conrrelation_id","varible_desc" FROM "mw_script_varibale" WHERE "id" in
+        <foreach collection="ids" item="item" index="index" open="(" close=")" separator=",">
+            #{item}
+        </foreach>
+    </select>
+
+
+    <select id="getVariableById" resultType="cn.mw.monitor.configmanage.entity.MwScriptVariable">
+        SELECT "id",  "name", "type", "value", "change_type", "run_ture", "varible_type", "conrrelation_id","varible_desc" FROM "mw_script_varibale" WHERE "conrrelation_id" =
+        #{integer}
+    </select>
+
+    <select id="getAsstetByid" resultType="java.util.Map" >
+        SELECT "id" as "assetsId","hostname" as "hostName","ip" as "assetsName"  FROM "mw_script_out_asssets" WHERE "id" =#{accountId}
+    </select>
+
+    <select id="selectOutAssets" resultType="cn.mw.monitor.service.assets.model.MwTangibleassetsTable">
+        SELECT "id" as "assetsId","id" ,"hostname" as "hostName","ip" as "assetsName"  FROM "mw_script_out_asssets" WHERE "id"  in
+        <foreach collection="ids" item="item" index="index" open="(" close=")" separator=",">
+            #{item}
+        </foreach>
+    </select>
+
+    <select id="selectOutAccountList" resultType="cn.mw.monitor.service.assets.model.MwTangibleassetsTable">
+        SELECT h."id" as "assetsId",h."id" ,"hostname" as "hostName","ip" as "assetsName",m."id" as
+        "accountId",m."account_alias" as "accountAlias" FROM "mw_script_out_asssets" h
+        LEFT JOIN "mw_script_account_manage_table" m on m."id" = h."account_id" WHERE 1=1 and
+        "ip" like ('%'||#{s,jdbcType=VARCHAR}||'%')
+         and  "account_alias" like ('%'||#{p,jdbcType=VARCHAR}||'%')
+
+    </select>
+</mapper>

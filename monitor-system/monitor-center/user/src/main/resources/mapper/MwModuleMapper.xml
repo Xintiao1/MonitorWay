@@ -1,0 +1,246 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.mw.monitor.user.dao.MwModuleDao">
+
+    <resultMap id="BaseMap" type="cn.mw.monitor.user.model.MwModule">
+        <id column="id" jdbcType="INTEGER" property="id"/>
+        <result column="module_name" jdbcType="VARCHAR" property="moduleName"/>
+        <result column="url" jdbcType="VARCHAR" property="url"/>
+        <result column="module_desc" jdbcType="VARCHAR" property="moduleDesc"/>
+        <result column="pid" jdbcType="INTEGER" property="pid"/>
+        <result column="deep" jdbcType="INTEGER" property="deep"/>
+        <result column="nodes" jdbcType="VARCHAR" property="nodes"/>
+        <result column="is_node" jdbcType="BOOLEAN" property="isNode" />
+        <result column="enable" jdbcType="VARCHAR" property="enable"/>
+        <result column="version" jdbcType="INTEGER" property="version"/>
+        <result column="delete_flag" jdbcType="BOOLEAN" property="deleteFlag"/>
+        <result column="node_protocol" jdbcType="VARCHAR" property="nodeProtocol"/>
+    </resultMap>
+
+    <sql id="tb_column">
+        id,
+        module_name,
+        url,
+        module_desc,
+        pid,
+        deep,
+        nodes,
+        is_node,
+        enable,
+        version,
+        delete_flag,
+        node_protocol
+    </sql>
+
+    <insert id="insert" parameterType="cn.mw.monitor.user.model.MwModule">
+        INSERT INTO mw_module
+        (
+            id,
+            pid,
+            module_name,
+            module_desc,
+            url,
+            is_node,
+            deep,
+            nodes,
+            enable,
+            version,
+            delete_flag
+        ) VALUES (
+            #{id,jdbcType=INTEGER},
+            #{pid,jdbcType=INTEGER},
+            #{moduleName,jdbcType=VARCHAR},
+            #{moduleDesc,jdbcType=VARCHAR},
+            #{url,jdbcType=VARCHAR},
+            #{isNode,jdbcType=BIT},
+            #{deep,jdbcType=INTEGER},
+            #{nodes,jdbcType=VARCHAR},
+            #{enable,jdbcType=VARCHAR},
+            #{version,jdbcType=INTEGER},
+            0
+        )
+    </insert>
+
+    <delete id="deleteByPrimaryKey">
+        DELETE FROM mw_module
+        WHERE id = #{id,jdbcType=INTEGER}
+    </delete>
+
+    <delete id="deleteModuleByIds">
+        UPDATE mw_module
+        SET
+            delete_flag = true
+        WHERE id IN (
+        <foreach collection="ids" item="id" separator=",">
+            #{id,jdbcType=INTEGER}
+        </foreach>
+        )
+    </delete>
+
+    <insert id="insertModulePerm">
+        INSERT INTO mw_module_perm_mapper (
+        module_id,
+        perm_id
+        )  VALUES
+        <foreach collection="list" item="list" separator=",">
+            (
+            #{list.moduleId,jdbcType=INTEGER},
+            #{list.permId,jdbcType=INTEGER}
+            )
+        </foreach>
+    </insert>
+    <delete id="deleteModulePermByIds">
+        delete from mw_module_perm_mapper
+        where module_id in (
+        <foreach collection="ids" item="id" separator=",">
+            #{id,jdbcType=INTEGER}
+        </foreach>
+        )
+    </delete>
+
+    <select id="selectByPrimaryKey" resultType="cn.mw.monitor.user.model.MwModule">
+        SELECT
+            id,
+            pid,
+            module_name moduleName,
+            module_desc moduleDesc,
+            url,
+            is_node isNode,
+            deep,
+            nodes,
+            enable,
+            version
+        FROM mw_module
+        WHERE id = #{id,jdbcType=INTEGER}
+    </select>
+
+    <update id="updateByPrimaryKeySelective" parameterType="cn.mw.monitor.user.model.MwModule">
+        UPDATE mw_module
+        SET
+        <if test="pid != null">
+            pid = #{pid,jdbcType=INTEGER},
+        </if>
+        <if test="moduleName != null">
+            module_name = #{moduleName,jdbcType=VARCHAR},
+        </if>
+        <if test="moduleDesc != null">
+            module_desc = #{moduleDesc,jdbcType=VARCHAR},
+        </if>
+        <if test="url != null">
+            url = #{url,jdbcType=VARCHAR},
+        </if>
+        <if test="isNode != null">
+            is_node = #{isNode,jdbcType=TINYINT},
+        </if>
+        <if test="deep != null">
+            deep = #{deep,jdbcType=TINYINT},
+        </if>
+        <if test="nodes != null">
+            nodes = #{nodes,jdbcType=VARCHAR},
+        </if>
+        <if test="enable != null">
+            enable = #{enable,jdbcType=VARCHAR},
+        </if>
+            version = version + 1
+        WHERE id = #{id,jdbcType=INTEGER}
+        AND version = #{version,jdbcType=INTEGER}
+    </update>
+
+    <!--更新模块子节点-->
+    <update id="updateIsNoteById">
+         UPDATE mw_module
+        SET is_node = #{isNote,jdbcType=BIT}
+        WHERE id = #{pid,jdbcType=INTEGER}
+    </update>
+
+    <update id="updateModule" parameterType="cn.mw.monitor.user.model.MwModule">
+        UPDATE mw_module
+        SET
+        <if test="moduleName != null and moduleName != ''">
+            module_name = #{moduleName,jdbcType=VARCHAR},
+        </if>
+        <if test="url != null">
+            url = #{url,jdbcType=VARCHAR},
+        </if>
+        <if test="moduleDesc != null">
+            module_desc = #{moduleDesc,jdbcType=VARCHAR}
+        </if>
+        WHERE id = #{id,jdbcType=INTEGER}
+    </update>
+
+    <select id="selectByUrl" resultType="cn.mw.monitor.user.model.MwModule">
+        SELECT
+            id,
+            pid,
+            module_name moduleName,
+            module_desc moduleDesc,
+            url,
+            is_node isNode,
+            deep,
+            nodes,
+            enable,
+            version
+        FROM mw_module
+        WHERE url = #{url,jdbcType=VARCHAR}
+    </select>
+
+    <!-- 查询模块信息列表 -->
+    <select id="selectList" resultType="cn.mw.monitor.user.model.MwModule">
+        SELECT
+            id,
+            module_name moduleName,
+            url,
+            module_desc moduleDesc,
+            pid,
+            deep,
+            nodes,
+            is_node isNode,
+            enable,
+            version
+        FROM mw_module
+    </select>
+
+    <!-- 根据模块id查询模块深度和节点id -->
+    <select id="selectDeepNodesById" resultType="java.util.Map">
+        SELECT
+            deep,
+            nodes
+        FROM
+        mw_module
+        WHERE id = #{pid,jdbcType=INTEGER}
+    </select>
+
+    <!-- 查询新增模块的最大id -->
+    <select id="selectMaxModuleId" resultType="java.lang.Integer">
+        SELECT
+            max(id)
+        FROM mw_module
+    </select>
+
+    <select id="selectModuleById" resultMap="BaseMap">
+        SELECT <include refid="tb_column" />
+        FROM mw_module
+        WHERE id = #{id,jdbcType=INTEGER}
+    </select>
+
+    <select id="selectModule" resultMap="BaseMap">
+        SELECT <include refid="tb_column" />
+        FROM mw_module
+        WHERE 1 = 1
+        <if test="id != null ">
+            AND id = #{id,jdbcType=INTEGER}
+        </if>
+        <if test="pid != null ">
+            AND pid = #{id,jdbcType=INTEGER}
+        </if>
+    </select>
+
+    <select id="countModuleByPid" resultType="java.lang.Integer">
+         SELECT
+            COUNT(1)
+        FROM mw_sys_org
+        WHERE delete_flag = FALSE
+        AND pid = #{id,jdbcType=INTEGER}
+    </select>
+
+</mapper>

@@ -1,0 +1,363 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.mw.monitor.knowledgeBase.dao.MwKnowledgeBaseTableDao">
+    <resultMap id="ParentMap" type="cn.mw.monitor.service.knowledgeBase.model.MwKnowledgeBaseTable">
+        <id column="id" jdbcType="VARCHAR" property="id"/>
+        <result column="title" jdbcType="VARCHAR" property="title"/>
+        <result column="trigger_cause" jdbcType="VARCHAR" property="triggerCause"/>
+        <result column="attachment_url" jdbcType="VARCHAR" property="attachmentUrl"/>
+        <result column="solution" jdbcType="VARCHAR" property="solution"/>
+        <result column="type_id" jdbcType="INTEGER" property="typeId"/>
+        <result column="type_name" jdbcType="VARCHAR" property="typeName"/>
+        <result column="creator" jdbcType="VARCHAR" property="creator"/>
+        <result column="create_date" jdbcType="TIMESTAMP" property="createDate"/>
+        <result column="modifier" jdbcType="VARCHAR" property="modifier"/>
+        <result column="modification_date" jdbcType="TIMESTAMP" property="modificationDate"/>
+        <result column="activiti_status" jdbcType="INTEGER" property="activitiStatus"/>
+        <result column="process_id" jdbcType="VARCHAR" property="processId"/>
+        <result column="delete_flag" jdbcType="BIT" property="deleteFlag"/>
+        <result column="version" jdbcType="INTEGER" property="version"/>
+    </resultMap>
+    <resultMap id="TypeMap" type="cn.mw.monitor.knowledgeBase.dto.TypeTreeDTO">
+        <result column="type_id" jdbcType="INTEGER" property="typeId"/>
+        <result column="type_name" jdbcType="VARCHAR" property="typeName"/>
+        <result column="K_count" jdbcType="INTEGER" property="kCount"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+    id, title, trigger_cause, attachment_url, solution, type_id,
+    creator, create_date, modifier, modification_date, delete_flag, activiti_status, process_id
+  </sql>
+
+    <sql id="Base_Column_List1">
+    ${alias}id, ${alias}title, ${alias}trigger_cause, ${alias}attachment_url, ${alias}solution, ${alias}type_id,
+    ${alias}creator, ${alias}create_date, ${alias}modifier, ${alias}modification_date, ${alias}delete_flag, ${alias}activiti_status, ${alias}process_id
+  </sql>
+
+    <sql id="select_Table_List">
+    id, title, trigger_cause, type_id,
+    creator, create_date, modifier, modification_date
+  </sql>
+
+    <sql id="select_Table_List1">
+    ${alias}id, ${alias}title, ${alias}trigger_cause,${alias}solution, ${alias}type_id,
+    ${alias}creator, ${alias}create_date, ${alias}modifier, ${alias}modification_date, ${alias}activiti_status, ${alias}process_id
+  </sql>
+    <sql id="tb">
+    mw_knowledgebase_table
+  </sql>
+
+    <sql id="criteria">
+        <if test="id != null and id != ''">
+            and ${alias}id = #{id,jdbcType=VARCHAR}
+        </if>
+        <if test="typeId!=null">
+            and ${alias}type_id = #{typeId,jdbcType=INTEGER}
+        </if>
+        <if test="title != null and title != ''">
+            and ${alias}title like CONCAT('%',#{title,jdbcType=VARCHAR},'%')
+        </if>
+        <if test="triggerCause != null and triggerCause !=''">
+            and ${alias}trigger_cause like CONCAT('%',#{triggerCause,jdbcType=VARCHAR},'%')
+        </if>
+        <if test="creator != null and creator != ''">
+            and ${alias}creator = #{creator,jdbcType=VARCHAR}
+        </if>
+        <if test="createDateStart != null">
+            AND <![CDATA[#{createDateStart,jdbcType=TIMESTAMP} <= ${alias}create_date ]]>
+        </if>
+        <if test="createDateEnd != null">
+            AND <![CDATA[#{createDateEnd,jdbcType=TIMESTAMP} >= ${alias}create_date ]]>
+        </if>
+        <if test="modifier != null and modifier != ''">
+            AND ${alias}modifier LIKE CONCAT('%',#{modifier,jdbcType=VARCHAR},'%')
+        </if>
+        <if test="modificationDateStart != null">
+            AND  <![CDATA[#{modificationDateStart,jdbcType=TIMESTAMP} <= ${alias}modification_date ]]>
+        </if>
+        <if test="modificationDateEnd != null">
+            AND <![CDATA[#{modificationDateEnd,jdbcType=TIMESTAMP} >= ${alias}modification_date ]]>
+        </if>
+        <if test="activitiStatus != null and activitiStatus != 0">
+            and ${alias}activiti_status = #{activitiStatus,jdbcType=INTEGER}
+        </if>
+        <if test="fuzzyQuery!= null and fuzzyQuery !='' ">
+            and CONCAT(
+            IFNULL( ${alias}title, '' ),
+            IFNULL( ${alias}trigger_cause, '' ),
+            IFNULL( sub.type_name, '' ),
+            IFNULL( ${alias}solution, '' ),
+            IFNULL( ${alias}creator, '' ),
+            IFNULL( ${alias}modifier, '' )
+            ) LIKE CONCAT('%',#{fuzzyQuery,jdbcType=VARCHAR},'%')
+            ORDER BY
+            ( CASE WHEN INSTR( ${alias}title, #{fuzzyQuery}) > 0 THEN 0 ELSE 1 END ),
+            ( CASE WHEN INSTR( ${alias}trigger_cause, #{fuzzyQuery}) > 0 THEN 0 ELSE 1 END ),
+            ( CASE WHEN INSTR( sub.type_name, #{fuzzyQuery} ) > 0 THEN 0 ELSE 1 END ),
+            ( CASE WHEN INSTR( ${alias}solution, #{fuzzyQuery} ) > 0 THEN 0 ELSE 1 END ),
+            ( CASE WHEN INSTR( ${alias}creator, #{fuzzyQuery} ) > 0 THEN 0 ELSE 1 END ),
+            ( CASE WHEN INSTR( ${alias}modifier, #{fuzzyQuery} ) > 0 THEN 0 ELSE 1 END )
+        </if>
+    </sql>
+
+    <select id="selectById" parameterType="java.lang.String" resultMap="ParentMap">
+        select
+        <include refid="Base_Column_List"/>
+        from
+        <include refid="tb"/>
+        t1
+        where delete_flag = FALSE and t1.id = #{id,jdbcType=VARCHAR}
+    </select>
+
+    <select id="selectVersionById" parameterType="java.lang.String" resultType="int">
+        select
+        version
+        from
+        <include refid="tb"/>
+        where delete_flag = FALSE and id = #{id,jdbcType=VARCHAR}
+    </select>
+
+    <update id="delete" parameterType="java.util.List">
+        update
+        <include refid="tb"/>
+        set delete_flag = true
+        where id in (
+        <foreach collection="list" item="id" separator=",">
+            #{id,jdbcType=VARCHAR}
+        </foreach>
+        )
+    </update>
+
+    <insert id="insert" parameterType="cn.mw.monitor.knowledgeBase.dto.AddOrUpdateKnowledgeBaseParam"
+            useGeneratedKeys="false" keyProperty="id">
+        insert into
+        <include refid="tb"/>
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="id != null">
+                id,
+            </if>
+            <if test="title != null">
+                title,
+            </if>
+            <if test="triggerCause != null">
+                trigger_cause,
+            </if>
+            <if test="attachmentUrl != null">
+                attachment_url,
+            </if>
+            <if test="solution != null">
+                solution,
+            </if>
+            <if test="typeId != null">
+                type_id,
+            </if>
+            <if test="creator != null">
+                creator,
+            </if>
+            create_date,
+            <if test="modifier != null">
+                modifier,
+            </if>
+            modification_date,
+            <if test="deleteFlag != null">
+                delete_flag,
+            </if>
+            <if test="version != null">
+                version,
+            </if>
+            <if test="activitiStatus != null">
+                activiti_status,
+            </if>
+            <if test="processId != null">
+                process_id
+            </if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="id != null">
+                #{id,jdbcType=VARCHAR},
+            </if>
+            <if test="title != null">
+                #{title,jdbcType=VARCHAR},
+            </if>
+            <if test="triggerCause != null">
+                #{triggerCause,jdbcType=VARCHAR},
+            </if>
+            <if test="attachmentUrl != null">
+                #{attachmentUrl,jdbcType=VARCHAR},
+            </if>
+            <if test="solution != null">
+                #{solution,jdbcType=VARCHAR},
+            </if>
+            <if test="typeId != null">
+                #{typeId,jdbcType=INTEGER},
+            </if>
+            <if test="creator != null">
+                #{creator,jdbcType=VARCHAR},
+            </if>
+            now(),
+            <if test="modifier != null">
+                #{modifier,jdbcType=VARCHAR},
+            </if>
+            now(),
+            <if test="deleteFlag != null">
+                #{deleteFlag,jdbcType=BIT},
+            </if>
+            <if test="version != null">
+                #{version,jdbcType=INTEGER},
+            </if>
+            <if test="activitiStatus != null">
+                4,
+            </if>
+            <if test="processId != null">
+                #{processId,jdbcType=VARCHAR}
+            </if>
+        </trim>
+    </insert>
+
+    <update id="update" parameterType="cn.mw.monitor.knowledgeBase.dto.AddOrUpdateKnowledgeBaseParam">
+        update
+        <include refid="tb"/>
+        <set>
+            <if test="title != null">
+                title = #{title,jdbcType=VARCHAR},
+            </if>
+            <if test="triggerCause != null">
+                trigger_cause = #{triggerCause,jdbcType=VARCHAR},
+            </if>
+            <if test="attachmentUrl != null">
+                attachment_url = #{attachmentUrl,jdbcType=VARCHAR},
+            </if>
+            <if test="solution != null">
+                solution = #{solution,jdbcType=VARCHAR},
+            </if>
+            <if test="typeId != null">
+                type_id = #{typeId,jdbcType=INTEGER},
+            </if>
+            <if test="modifier != null">
+                modifier = #{modifier,jdbcType=VARCHAR},
+            </if>
+            <if test="modificationDate != null">
+                modification_date = now(),
+            </if>
+            <if test="version != null">
+                version = #{version,jdbcType=INTEGER} + 1,
+            </if>
+        </set>
+        where id = #{id,jdbcType=VARCHAR}
+    </update>
+
+    <sql id="in_typeId">
+        <if test="typeIds!=null">
+            and ${alias}type_id IN (
+            <foreach collection="typeIds" item="typeId" separator=",">
+                #{typeId,jdbcType=INTEGER}
+            </foreach>
+            )
+        </if>
+    </sql>
+    <select id="selectTableList" resultMap="ParentMap" parameterType="java.util.Map">
+        select * from (
+        select
+        sub.type_name,
+        <include refid="select_Table_List1"><property name="alias" value="t1."/></include>
+        from
+        <include refid="tb"/> t1
+         left join mw_assetssubtype_table sub on sub.id = t1.type_id
+        where t1.delete_flag = FALSE
+        <include refid="in_typeId"><property name="alias" value="t1."/></include>
+        <include refid="criteria"><property name="alias" value="t1."/></include>
+        ) t2
+        order by t2.create_date desc
+    </select>
+
+    <select id="selectTypeClassByPId" resultMap="TypeMap" parameterType="java.lang.Integer">
+     SELECT
+	    t3.id type_id,
+	    t3.type_name type_name,
+	    count(know_id) K_count
+     FROM
+	    (
+	        SELECT
+		        t1.id,
+		        t1.type_name,
+		        t2.id know_id
+	        FROM
+		    ( SELECT id,type_name FROM mw_assetssubtype_table WHERE pid = #{pid,jdbcType=INTEGER} ) t1
+		    LEFT JOIN ( SELECT id,type_id FROM mw_knowledgebase_table WHERE delete_flag = FALSE and activiti_status = 4) t2 ON t1.id = t2.type_id
+	    ) t3
+
+    GROUP BY
+	    type_id
+  </select>
+
+    <update id="editorActivitiStatus">
+        update
+        <include refid="tb"/>
+        <set>
+            activiti_status = #{activitiStatus,jdbcType=INTEGER},
+        </set>
+        where id = #{knowledgeId,jdbcType=VARCHAR}
+    </update>
+
+    <update id="editorActivitiParam">
+        update
+        <include refid="tb"/>
+        <set>
+            process_id = #{processId,jdbcType=VARCHAR},
+            activiti_status = #{activitiStatus,jdbcType=INTEGER}
+        </set>
+        where id = #{knowledgeId,jdbcType=VARCHAR}
+    </update>
+
+    <select id="selectList" resultMap="ParentMap">
+        select
+        <include refid="select_Table_List"/>
+        from
+        <include refid="tb"/>
+        where delete_flag = FALSE and creator =  #{creator,jdbcType=VARCHAR} and activiti_status = #{activitiStatus,jdbcType=INTEGER}
+    </select>
+
+    <select id="selectByProcessId" parameterType="java.lang.String" resultMap="ParentMap">
+        select
+        sub.type_name,
+        <include refid="Base_Column_List1"><property name="alias" value="t1."/></include>
+        from
+        <include refid="tb"/>
+        t1
+        left join mw_assetssubtype_table sub on sub.id = t1.type_id
+        where delete_flag = FALSE and t1.process_id = #{processId,jdbcType=VARCHAR}
+    </select>
+
+    <select id="fuzzSearchAllFiled" resultType="java.util.Map">
+        SELECT
+        base.title,
+        base.trigger_cause,
+        <if test="activitiStatus!=null and activitiStatus != 0">
+            base.creator,
+            base.modifier,
+        </if>
+        sub.type_name
+        FROM
+        <include refid="tb"/>
+        base
+        left join mw_assetssubtype_table sub on sub.id = base.type_id
+        where delete_flag = FALSE
+        and CONCAT(
+        IFNULL( base.title, '' ),
+        IFNULL( base.trigger_cause, '' ),
+        IFNULL( sub.type_name, '' ),
+        IFNULL( base.solution, '' ),
+        IFNULL( base.creator, '' ),
+        IFNULL( base.modifier, '' )
+        ) LIKE CONCAT('%',#{value,jdbcType=VARCHAR},'%')
+        ORDER BY
+        ( CASE WHEN INSTR( base.title, #{value}) > 0 THEN 0 ELSE 1 END ),
+        ( CASE WHEN INSTR( base.trigger_cause, #{value}) > 0 THEN 0 ELSE 1 END ),
+        ( CASE WHEN INSTR( sub.type_name, #{value} ) > 0 THEN 0 ELSE 1 END ),
+        <if test="activitiStatus!=null and activitiStatus != 0">
+            ( CASE WHEN INSTR( base.creator, #{value} ) > 0 THEN 0 ELSE 1 END ),
+            ( CASE WHEN INSTR( base.modifier, #{value} ) > 0 THEN 0 ELSE 1 END ),
+        </if>
+        ( CASE WHEN INSTR( base.solution, #{value} ) > 0 THEN 0 ELSE 1 END )
+    </select>
+</mapper>

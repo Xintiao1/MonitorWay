@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.mw.monitor.prometheus.dao.QueryConfigDao">
+
+    <sql id="columns">
+        ID
+        ,QUERY_NAME,QUERY_SQL,STATE,UNIT
+    </sql>
+
+    <select id="getAllQueryConfigs" resultType="cn.mw.monitor.prometheus.dto.QueryConfigDto">
+        select
+        <include refid="columns"></include>
+        from MW_PROMETHEUS_QUERY_CONFIG
+        where STATE=1
+    </select>
+
+    <select id="getQueryConfigById" resultType="cn.mw.monitor.prometheus.dto.QueryConfigDto">
+        select
+        <include refid="columns"></include>
+        from MW_PROMETHEUS_QUERY_CONFIG
+        where STATE=1 AND ID =  #{queryId,jdbcType=INTEGER}
+    </select>
+</mapper>

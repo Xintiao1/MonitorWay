@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.mw.monitor.model.dao.MWModelCommonDao">
+
+    <select id="selectModelInfoByRoomAndCabinet" resultType="cn.mw.monitor.service.model.param.MwModelInstanceCommonParam">
+        SELECT
+            a.model_id AS "modelId",
+            a.model_index AS "modelIndex",
+            a.model_view AS "modelView",
+            b.instance_id AS "modelInstanceId"
+        FROM
+            mw_cmdbmd_manage a
+            LEFT JOIN mw_cmdbmd_instance b ON a.model_id = b.model_id
+        WHERE
+            a.delete_flag = '0'
+            AND a.model_view IN ( '1', '2' )
+            AND b.instance_id IS NOT NULL
+    </select>
+
+    <select id="selectInstanceInfoByCabinet" resultType="cn.mw.monitor.service.model.param.MwModelInstanceCommonParam">
+        SELECT
+            a.model_id AS "modelId",
+            a.model_index AS "modelIndex",
+            b.instance_name AS "modelInstanceName",
+            b.instance_id AS "modelInstanceId"
+        FROM
+            mw_cmdbmd_manage a
+        LEFT JOIN mw_cmdbmd_instance b ON a.model_id = b.model_id
+        WHERE
+            a.delete_flag = '0'
+          AND a.model_view = '3'
+          AND b.instance_id IS NOT NULL
+    </select>
+
+    <select id="selectModelInstanceInfo" resultType="cn.mw.monitor.service.model.param.MwModelInstanceCommonParam" >
+         SELECT
+            a.model_id AS "modelId",
+            a.model_index AS "modelIndex",
+            b.instance_id AS "modelInstanceId"
+        FROM
+            mw_cmdbmd_manage a
+            LEFT JOIN mw_cmdbmd_instance b ON a.model_id = b.model_id
+        WHERE
+            a.delete_flag = '0'
+            AND a.model_id = ${fromUserModelId}
+            AND b.instance_id IS NOT NULL
+    </select>
+
+</mapper>

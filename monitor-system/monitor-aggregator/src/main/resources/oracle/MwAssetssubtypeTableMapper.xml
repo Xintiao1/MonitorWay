@@ -1,0 +1,273 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.mw.monitor.assetsSubType.dao.MwAssetsSubTypeTableDao">
+  <resultMap id="BaseResultMap" type="cn.mw.monitor.assetsSubType.model.MwAssetsSubTypeTable">
+    <id column="id" jdbcType="INTEGER" property="id" />
+    <result column="type_name" jdbcType="CHAR" property="typeName" />
+    <result column="pid" jdbcType="INTEGER" property="pid" />
+    <result column="nodes" jdbcType="INTEGER" property="nodes" />
+    <result column="type_desc" jdbcType="VARCHAR" property="typeDesc" />
+    <result column="enable" jdbcType="VARCHAR" property="enable" />
+    <result column="classify" jdbcType="INTEGER" property="classify" />
+    <result column="groupid" jdbcType="INTEGER" property="groupid" />
+    <result column="creator" jdbcType="VARCHAR" property="creator" />
+    <result column="create_date" jdbcType="TIMESTAMP" property="createDate" />
+    <result column="modifier" jdbcType="VARCHAR" property="modifier" />
+    <result column="modification_Date" jdbcType="TIMESTAMP" property="modificationDate" />
+    <result column="type_icon" jdbcType="VARCHAR" property="typeIcon" />
+  </resultMap>
+
+  <sql id="Base_Column_List">
+    "id", "type_name", "pid", "type_desc", "nodes", "enable", "creator", "create_date", "modifier", "modification_Date","groupid", "type_icon"
+  </sql>
+
+  <sql id="tb">
+    ${TBSNAME}."mw_assetssubtype_table"
+  </sql>
+
+  <select id="selectById" parameterType="java.lang.Integer" resultMap="BaseResultMap">
+    select
+    <include refid="Base_Column_List" />
+    from mw_assetssubtype_table
+    where id = #{id,jdbcType=INTEGER}
+  </select>
+
+  <delete id="delete" parameterType="java.util.List">
+    delete from mw_assetssubtype_table
+    where id in
+    (
+    <foreach collection="list" item="deleteList" separator=",">
+    #{deleteList.value,jdbcType=INTEGER}
+    </foreach>
+    )
+  </delete>
+
+  <insert id="insertBatch" parameterType="java.util.List">
+    insert into mw_assetssubtype_table (type_name, pid,
+      type_desc,nodes, enable, creator,
+      create_date, modifier, modification_Date, type_icon
+      )
+    values
+    <foreach collection="list" item="insertList" separator=",">
+    ( #{insertList.typeName,jdbcType=CHAR}, #{insertList.pid,jdbcType=INTEGER},
+      #{insertList.typeDesc,jdbcType=VARCHAR},#{insertList.nodes,jdbcType=VARCHAR}, true, #{insertList.creator,jdbcType=VARCHAR},
+      now(), #{insertList.modifier,jdbcType=VARCHAR}, now(), #{insertList.typeIcon,jdbcType=VARCHAR}
+      )
+    </foreach>
+  </insert>
+  <insert id="insert" parameterType="cn.mw.monitor.assetsSubType.model.MwAssetsSubTypeTable">
+    insert into mw_assetssubtype_table
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+      <if test="typeName != null">
+        type_name,
+      </if>
+      <if test="pid != null">
+        pid,
+      </if>
+      <if test="typeDesc != null">
+        type_desc,
+      </if>
+      <if test="nodes != null">
+        nodes,
+      </if>
+        enable,
+      <if test="creator != null">
+        creator,
+      </if>
+      create_date,
+      <if test="modifier != null">
+        modifier,
+      </if>
+      <if test="classify != null">
+        classify,
+      </if>
+      <if test="groupid != null">
+        groupid,
+      </if>
+      <if test="typeIcon != null">
+        type_icon,
+      </if>
+      modification_Date
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+      <if test="typeName != null">
+        #{typeName,jdbcType=CHAR},
+      </if>
+      <if test="pid != null">
+        #{pid,jdbcType=INTEGER},
+      </if>
+      <if test="typeDesc != null">
+        #{typeDesc,jdbcType=VARCHAR},
+      </if>
+      <if test="nodes != null">
+        #{nodes,jdbcType=VARCHAR},
+      </if>
+      true,
+      <if test="creator != null">
+        #{creator,jdbcType=VARCHAR},
+      </if>
+      now(),
+      <if test="modifier != null">
+        #{modifier,jdbcType=VARCHAR},
+      </if>
+      <if test="classify != null">
+        #{classify,jdbcType=INTEGER},
+      </if>
+      <if test="groupid != null">
+        #{groupid,jdbcType=INTEGER},
+      </if>
+      <if test="typeIcon != null">
+        #{typeIcon,jdbcType=VARCHAR},
+      </if>
+      now()
+    </trim>
+  </insert>
+  <update id="updateById" parameterType="cn.mw.monitor.assetsSubType.model.MwAssetsSubTypeTable">
+    update mw_assetssubtype_table
+    <set>
+      <if test="typeName != null">
+        type_name = #{typeName,jdbcType=VARCHAR},
+      </if>
+      <if test="typeDesc != null">
+        type_desc = #{typeDesc,jdbcType=VARCHAR},
+      </if>
+      <if test="modifier != null">
+        modifier = #{modifier,jdbcType=VARCHAR},
+      </if>
+      <if test="typeIcon != null">
+        type_icon = #{typeIcon,jdbcType=VARCHAR},
+      </if>
+        modification_Date = now()
+    </set>
+    where id = #{id,jdbcType=INTEGER}
+  </update>
+  <update id="updateBatch" parameterType="java.util.List">
+    <foreach collection="list" item="updateList" separator=",">
+    update mw_assetssubtype_table
+    set type_name = #{updateList.typeName,jdbcType=CHAR},
+      type_desc = #{updateList.typeDesc,jdbcType=VARCHAR},
+      modifier = #{updateList.modifier,jdbcType=VARCHAR},
+      modification_Date = now()
+    where id = #{updateList.id,jdbcType=INTEGER}
+    </foreach>
+  </update>
+
+  <select id="selectList" resultMap="BaseResultMap" parameterType="cn.mw.monitor.assetsSubType.api.param.AssetsSubType.QueryAssetsSubTypeParam">
+    select * from
+    <include refid="tb"></include>
+    where "pid" = #{pid,jdbcType=INTEGER}
+    <if test="classify !=null">
+      and "classify" = #{classify,jdbcType=INTEGER}
+    </if>
+  </select>
+
+  <select id="selectAllList" resultMap="BaseResultMap" parameterType="cn.mw.monitor.assetsSubType.api.param.AssetsSubType.QueryAssetsSubTypeParam">
+    select * from
+    <include refid="tb"></include>
+  </select>
+
+    <select id="selectAutoIncrment" parameterType="java.lang.Integer" resultType="java.lang.Integer">
+      select auto_increment from information_schema.tables where table_name = 'mw_assetssubtype_table'and table_schema = '${schema}'
+    </select>
+
+  <insert id="batCreateGroupServerMap" parameterType="java.util.List">
+    insert into mw_assetsgroup_server_mapper (
+    group_id, monitor_server_id, assets_subtype_id
+    )values
+    <foreach collection="list" item="item" separator=",">
+      (
+      #{item.groupId,jdbcType=VARCHAR},
+      #{item.monitorServerId,jdbcType=INTEGER},
+      #{item.assetsSubtypeId,jdbcType=VARCHAR}
+      )
+    </foreach>
+  </insert>
+
+  <select id="selectGroupServerMap"  parameterType="java.lang.Integer" resultType="cn.mw.monitor.assetsSubType.model.MwAssetsGroupTable">
+    select
+     id id,
+     group_id groupId,
+     monitor_server_id monitorServerId,
+     assets_subtype_id assetsSubtypeId
+    from
+        mw_assetsgroup_server_mapper
+    where group_id is not null and monitor_server_id is not null and group_id != ''
+
+    <if test="assetsSubTypeId !=null">
+      and assets_subtype_id = #{assetsSubTypeId,jdbcType=INTEGER}
+    </if>
+  </select>
+
+  <delete id="deleteGroupIds" parameterType="java.util.List">
+    delete from mw_assetsgroup_server_mapper
+    where id in
+    (
+    <foreach collection="list" item="deleteList" separator=",">
+      #{deleteList.id,jdbcType=INTEGER}
+    </foreach>
+    )
+  </delete>
+
+  <delete id="cleanGroupServerMap">
+    truncate table mw_assetsgroup_server_mapper
+  </delete>
+
+  <select id="selectGroupNames" resultType="cn.mw.monitor.assetsSubType.model.MwAssetsSubTypeTable">
+    select
+    id,
+    type_name typeName,
+    pid pid,
+    nodes nodes
+    from
+    <include refid="tb"></include>
+    where pid = 0 and classify in (1,2,3)
+  </select>
+
+  <insert id="insertBatchGroupServerMap" parameterType="java.util.List">
+    insert into mw_assetsgroup_server_mapper (
+    group_id, monitor_server_id, assets_subtype_id
+    )values
+    <foreach collection="list" item="item" separator=",">
+      (
+      #{item.groupId,jdbcType=VARCHAR},
+      #{item.monitorServerId,jdbcType=INTEGER},
+      #{item.assetsSubtypeId,jdbcType=INTEGER}
+      )
+    </foreach>
+  </insert>
+
+  <select id="getAssetsUseType" resultType="java.lang.Integer">
+    select
+        distinct (assets_type_id)
+    from
+        mw_tangibleassets_table
+    where delete_flag = false
+  </select>
+
+  <select id="getAssetsUseSubType" resultType="java.lang.Integer">
+    select
+        distinct (assets_type_sub_id)
+    from
+        mw_tangibleassets_table
+    where delete_flag = false
+  </select>
+
+  <select id="selectTypeTrees" resultType="cn.mw.monitor.assetsSubType.dto.TypeTreeDTO">
+    select id, type_name typeName, pid from
+    <include refid="tb"></include>
+    <where>
+      <if test="pid != null">
+        and pid = #{pid,jdbcType=INTEGER}
+      </if>
+    </where>
+  </select>
+
+  <select id="selectTypeList" resultType="cn.mw.monitor.service.dropdown.param.DropdownDTO">
+    select id dropKey, type_name dropValue from
+    <include refid="tb"></include>
+    where pid = #{pid,jdbcType=INTEGER}
+    <if test="classify != null">
+      and classify = #{classify,jdbcType=INTEGER}
+    </if>
+  </select>
+</mapper>

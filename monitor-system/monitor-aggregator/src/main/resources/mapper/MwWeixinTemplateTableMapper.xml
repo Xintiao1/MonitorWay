@@ -1,0 +1,654 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.mw.monitor.weixin.dao.MwWeixinTemplateDao">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="cn.mw.monitor.weixin.entity.MwWeixinTemplateTable">
+        <id column="id" property="id" />
+        <result column="template_id" property="templateId" />
+        <result column="title" property="title" />
+        <result column="primary_industry" property="primaryIndustry" />
+        <result column="deputy_industry" property="deputyIndustry" />
+        <result column="content" property="content" />
+        <result column="example" property="example" />
+    </resultMap>
+
+
+    <sql id="Base_Column_List" >
+        id,template_id,title,content
+    </sql>
+
+    <sql id="tb">
+        mw_wexin_template
+    </sql>
+
+    <select id="selectOne" parameterType="java.lang.String" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List" />
+        from mw_wexin_template
+        where template_id = #{templateId,jdbcType=VARCHAR}
+    </select>
+
+    <select id="selectOneByTemplateName" parameterType="java.lang.String" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List" />
+        from mw_wexin_template
+        where title = #{templateName,jdbcType=VARCHAR}
+    </select>
+
+
+    <delete id="delete" parameterType="java.lang.String">
+        delete from mw_wexin_template
+        where title = #{title,jdbcType=VARCHAR}
+    </delete>
+
+    <insert id="insert" parameterType="cn.mw.monitor.weixin.entity.MwWeixinTemplateTable">
+        insert into mw_wexin_template
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="templateId != null and templateId !=''">
+                template_id,
+            </if>
+            <if test="title != null and title !=''">
+                title,
+            </if>
+            <if test="primaryIndustry != null and primaryIndustry !=''">
+                primary_industry,
+            </if>
+            <if test="deputyIndustry != null and deputyIndustry !=''">
+                deputy_industry,
+            </if>
+            <if test="content != null and content !=''">
+                content,
+            </if>
+            <if test="example != null and example !=''">
+                example
+            </if>
+        </trim>
+
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="templateId != null and templateId !=''">
+                #{templateId,jdbcType=VARCHAR},
+            </if>
+            <if test="title != null and title !=''">
+                #{title,jdbcType=VARCHAR},
+            </if>
+            <if test="primaryIndustry != null and primaryIndustry !=''">
+                #{primaryIndustry,jdbcType=VARCHAR},
+            </if>
+            <if test="deputyIndustry != null and deputyIndustry !=''">
+                #{deputyIndustry,jdbcType=VARCHAR},
+            </if>
+            <if test="content != null and content !=''">
+                #{content,jdbcType=VARCHAR},
+            </if>
+            <if test="example != null and example !=''">
+                #{example,jdbcType=VARCHAR}
+            </if>
+        </trim>
+    </insert>
+
+    <select id="selectGxActionId" parameterType="java.lang.String" resultType="java.lang.String">
+    select
+    t1.action_id  actioId
+    from mw_alert_action_assets_mapper t1
+    where t1.assets_id = #{hostId,jdbcType=VARCHAR}
+  </select>
+
+    <select id="selectRuleMapper" parameterType="java.lang.String" resultType="cn.mw.monitor.weixin.entity.ActionRule">
+    SELECT a.id  id,a.action_id actionId,a.rule_id ruleId, b.action_type actionType
+    from mw_alert_action_rule_mapper a LEFT JOIN mw_alert_rule b on a.rule_id=b.rule_id and b.state = true
+    where a.action_id = #{actionId,jdbcType=VARCHAR}
+  </select>
+
+    <select id="selectUserId" parameterType="java.lang.String" resultType="java.lang.Integer">
+    select
+    user_id  userId
+    from mw_alert_action_user_mapper
+    where action_id = #{actionId,jdbcType=VARCHAR}
+  </select>
+
+    <select id="selectLevel" parameterType="java.lang.String" resultType="java.lang.String">
+    select
+        severity
+    from mw_alert_serverity_mapper
+    where action_id = #{actionId,jdbcType=VARCHAR}
+  </select>
+
+    <insert id="insertRecord" parameterType="cn.mw.monitor.weixin.entity.AlertRecordTable" useGeneratedKeys="true" keyProperty="id"
+            keyColumn="id">
+        insert into mw_alert_record_table
+          (`date`,method,text,is_success,hostid,error,title,ip,is_alarm,eventid)
+        values (
+            #{date,jdbcType=TIMESTAMP}
+            ,#{method,jdbcType=VARCHAR}
+            ,#{text,jdbcType=VARCHAR}
+            ,#{isSuccess,jdbcType=INTEGER}
+            ,#{hostid,jdbcType=VARCHAR}
+            ,#{error,jdbcType=VARCHAR}
+            ,#{title,jdbcType=VARCHAR}
+            ,#{ip,jdbcType=VARCHAR}
+            ,#{isAlarm}
+            ,#{eventid,jdbcType=VARCHAR}
+        )
+    </insert>
+
+    <insert id="insertRecordUserMapper">
+        insert into mw_alert_record_user_mapper
+        (id,user_id)
+        values
+        <foreach collection="userIds" item="list" separator=",">
+            (#{id,jdbcType=INTEGER},#{list,jdbcType=INTEGER})
+        </foreach>
+    </insert>
+
+    <insert id="insertRecordEmailMapper">
+        insert into mw_alert_record_email_mapper
+        (id,email)
+        values
+        <foreach collection="emails" item="list" separator=",">
+            (#{id,jdbcType=INTEGER},#{list})
+        </foreach>
+    </insert>
+
+    <select id="selectRecord" parameterType="cn.mw.monitor.weixin.entity.AlertRecordTable" resultType="java.lang.Integer">
+        select
+        count(*)
+        from mw_alert_record_table
+        where title = #{title} and  is_alarm = #{isAlarm} and ip = #{ip} and  `date` > #{date}
+    </select>
+
+    <select id="selectEmail" parameterType="java.util.HashSet" resultType="java.lang.String">
+        select
+        email
+        from mw_sys_user
+        where user_id in (
+        <foreach collection="list" item="item" separator=",">
+            #{item,jdbcType=INTEGER}
+        </foreach>
+        ) and delete_flag = 0 and user_state = 'ACTIVE'
+    </select>
+
+    <select id="selectEmailBy" resultType="java.lang.String">
+        select
+        email
+        from mw_sys_user
+        where user_id in (
+        <foreach collection="list" item="item" separator=",">
+            #{item,jdbcType=INTEGER}
+        </foreach>
+        ) and delete_flag = 0 and user_state = 'ACTIVE'
+    </select>
+
+    <select id="selectPopupAction" resultType="cn.mw.monitor.service.action.param.AddAndUpdateAlertActionParam">
+        select
+        action_id as actionId,
+        action_name as actionName,
+        is_all_assets,
+        is_all_user as isAllUser,
+        assets_name,
+        in_band_ip,
+        assets_type_id,
+        assets_type_sub_id,
+        monitor_mode,
+        polling_engine,
+        manufacturer,
+        specifications,
+        state,
+        area,
+        email
+        from mw_alert_action
+        where action_id =#{actionId,jdbcType=VARCHAR}
+    </select>
+
+    <select id="selectLevelRuleEmailMapper" parameterType="cn.mw.monitor.alert.param.ActionLevelRuleParam" resultType="cn.mw.monitor.alert.param.ActionLevelRuleParam">
+        select
+        is_alluser as isAllUser,
+        email
+        from mw_alert_action_level_rule_email_mapper
+        where action_id = #{actionId} and level = #{level}
+    </select>
+
+    <select id="selectQyWeixinUserId" parameterType="java.util.HashSet" resultType="java.lang.String">
+        select
+        wechat_id
+        from mw_sys_user
+        where user_id in (
+        <foreach collection="list" item="item" separator=",">
+            #{item,jdbcType=INTEGER}
+        </foreach>
+        ) and delete_flag = 0 and user_state = 'ACTIVE'
+    </select>
+
+    <select id="selectWeixinUserId" parameterType="java.util.HashSet" resultType="java.lang.String">
+        select
+        open_id
+        from mw_sys_user
+        where user_id in (
+        <foreach collection="list" item="item" separator=",">
+            #{item,jdbcType=INTEGER}
+        </foreach>
+        ) and delete_flag = 0 and user_state = 'ACTIVE'
+    </select>
+
+    <select id="selectPhones" parameterType="java.util.HashSet" resultType="java.lang.String">
+        select
+        phone_number
+        from mw_sys_user
+        where user_id in (
+        <foreach collection="list" item="item" separator=",">
+            #{item,jdbcType=INTEGER}
+        </foreach>
+        ) and delete_flag = 0 and user_state = 'ACTIVE'
+    </select>
+    <select id="selectMorePhones" parameterType="java.util.HashSet" resultType="java.lang.String">
+        select
+        more_phones
+        from mw_sys_user
+        where user_id in (
+        <foreach collection="list" item="item" separator=",">
+            #{item,jdbcType=INTEGER}
+        </foreach>
+        ) and more_phones IS NOT NULL and more_phones != "" and delete_flag = 0 and user_state = 'ACTIVE'
+    </select>
+
+    <select id="selectassetsType"  resultType="java.lang.String">
+    select
+    b.type_name as assetsType,
+    from mw_tangibleassets_table a
+    left join mw_assetssubtype_table b on a.assets_type_id=b.id
+    where  a.delete_flag=false and
+    a.assets_id=#{hostId,jdbcType=VARCHAR}
+    </select>
+
+
+
+
+    <select id="selectEmailFrom" parameterType="java.lang.String" resultType="cn.mw.monitor.util.entity.EmailFrom">
+    select
+        is_ssl as isSsl,
+        email_server_address as hostName,
+        email_server_port as port,
+        email_send_username as username,
+        email_send_password as password,
+        personal as personal,
+        title as emailHeaderTitle,
+        logo,
+        url,
+        is_logo as isLogo,
+        is_delsuffix as isDelsuffix
+    from mw_alert_email_rule
+        <if test="id != null">
+            where rule_id = #{id}
+        </if>
+    limit 1
+  </select>
+
+    <select id="selectEmailFromCommon" parameterType="java.lang.String" resultType="cn.mw.monitor.util.entity.EmailFrom">
+        select
+            is_ssl as isSsl,
+            email_server_address as hostName,
+            email_server_port as port,
+            email_send_username as username,
+            email_send_password as password,
+            personal as personal,
+            title as emailHeaderTitle,
+            logo,
+            url,
+            is_logo as isLogo,
+            is_delsuffix as isDelsuffix
+        from mw_alert_email_rule
+        where rule_id = #{id}
+  </select>
+
+    <select id="selectEmailByNameCommon" parameterType="java.lang.String" resultType="cn.mw.monitor.util.entity.EmailFrom">
+        select
+            t1.is_ssl as isSsl,
+            t1.email_server_address as hostName,
+            t1.email_server_port as port,
+            t1.email_send_username as username,
+            t1.email_send_password as password,
+            t1.personal as personal,
+            t1.title as emailHeaderTitle,
+            t1.logo,
+            t1.url,
+            t1.is_logo as isLogo,
+            t1.is_delsuffix as isDelsuffix
+        from mw_alert_email_rule t1, mw_alert_rule t2
+        where t1.rule_id = t2.rule_id and  t2.rule_name = #{ruleName} and t2.delete_flag = false limit 1
+  </select>
+
+    <select id="findWeiXinMessage" parameterType="java.lang.String" resultType="cn.mw.monitor.util.entity.GeneralMessageEntity">
+    select
+        rule_id as  ruleId,
+        apply_id as id,
+        secret as secret,
+        agent_id as agentId
+    from mw_alert_apply_weixin_rule
+    <if test="ruleId != null">
+        where rule_id = #{ruleId,jdbcType=VARCHAR}
+    </if>
+    limit 1
+  </select>
+
+    <select id="findShenZhenSmsFrom" parameterType="java.lang.String" resultType="cn.mw.monitor.weixin.entity.MwShenZhenSMSFromEntity">
+    select
+        app_id as  appID,
+        app_pwd as appPWD,
+        biz_class_id as bizClassID,
+        biz_type_id as bizTypeID,
+        biz_sub_type_id as bizSubTypeID,
+        ext_no as extNo,
+        is_need_report as isNeedReport,
+        cust_id as custID,
+        app_sms_code as appSMSCode,
+        api_url as apiUrl,
+        role_name as apiRoleName
+    from mw_alert_shenzhenSMS_rule
+    where rule_id = #{ruleId,jdbcType=VARCHAR}
+  </select>
+
+    <select id="findWeiXinFrom" parameterType="java.lang.String" resultType="cn.mw.monitor.weixin.entity.WeixinFromEntity">
+        select
+            rule_id as  ruleId,
+            app_secret as secret,
+            agent_id as agentId,
+            alert_templeate as alertTempleate,
+            recovery_templeate as recoveryTempleate
+        from mw_alert_weixin_rule
+        where rule_id = #{ruleId,jdbcType=VARCHAR}
+  </select>
+
+    <select id="findWelinkFrom" parameterType="java.lang.String" resultType="cn.mw.monitor.service.alert.dto.WeLinkRuleParam">
+        select
+            rule_id as  ruleId,
+            app_id as appId,
+            app_secret as appSecret,
+            public_accid as publicAccId
+        from mw_alert_welink_rule
+        where rule_id = #{ruleId,jdbcType=VARCHAR}
+  </select>
+
+    <select id="selectRuleById" parameterType="java.lang.String" resultType="cn.mw.monitor.service.alert.dto.AlertRuleTableCommons">
+        select
+        rule_id as ruleId,
+        rule_name as ruleName,
+        rule_desc as ruleDesc,
+        action_type  as actionType,
+        creator,
+        modifier,
+        create_date as createDate ,
+        modification_date as modificationDate,
+        state as enable,
+        proxy_ip as proxyIp,
+        proxy_port as proxyPort,
+        proxy_account as proxyAccount,
+        proxy_paaword as proxyPassword,
+        proxy_state as proxyState
+        from mw_alert_rule
+        where rule_id=#{ruleId,jdbcType=VARCHAR}
+    </select>
+
+    <select id="findDingdingQunMessage" parameterType="java.lang.String" resultType="cn.mw.monitor.weixin.entity.DingdingqunFromEntity">
+    select
+        rule_id as  ruleId,
+        webhook as webHook,
+        keyword as keyWord,
+        secret as secret
+    from mw_alert_dingdingqun_rule
+    where rule_id = #{ruleId,jdbcType=VARCHAR}
+  </select>
+
+    <select id="findAliyunSMSMessage" parameterType="java.lang.String" resultType="cn.mw.monitor.weixin.entity.AliyunSmsFromEntity">
+    select
+        rule_id as  ruleId,
+        signName as signName,
+        templateCode as templateCode,
+        accessKeyId as accessKeyId,
+        accessKeySecret as accessKeySecret
+    from mw_alert_aliyunsms_rule
+    where rule_id = #{ruleId,jdbcType=VARCHAR}
+  </select>
+
+    <insert id="insertOverdue" parameterType="cn.mw.monitor.weixin.entity.MwOverdueTable">
+        insert into mw_alert_overdue_table (context,
+        con_time,
+        start_time,
+        create_date,
+        modification_date,
+        modifier,
+        is_send,
+        delete_flag) values
+        <foreach collection="list" item="data" separator="," close=";">
+            (
+                #{data.context,jdbcType=VARCHAR},
+                #{data.conTime,jdbcType=TIMESTAMP},
+                #{data.startTime,jdbcType=TIMESTAMP},
+                #{data.createDate,jdbcType=TIMESTAMP},
+                #{data.modificationDate,jdbcType=TIMESTAMP},
+                #{data.modifier,jdbcType=VARCHAR},
+                #{data.isSend,jdbcType=BIT},
+                #{data.deleteFlag,jdbcType=BIT}
+            )
+        </foreach>
+
+
+    </insert>
+
+    <resultMap id="BaseMap" type="cn.mw.monitor.weixin.entity.MwOverdueTable">
+        <id column="id" jdbcType="VARCHAR" property="id"/>
+        <result column="context" jdbcType="VARCHAR" property="context"/>
+        <result column="con_time" jdbcType="TIMESTAMP" property="conTime"/>
+        <result column="start_time" jdbcType="TIMESTAMP" property="startTime"/>
+
+        <result column="create_date" jdbcType="TIMESTAMP" property="createDate"/>
+        <result column="modification_date" jdbcType="TIMESTAMP" property="modificationDate"/>
+        <result column="modifier" jdbcType="VARCHAR" property="modifier"/>
+        <result column="is_send" jdbcType="BIT" property="isSend"/>
+        <result column="delete_flag" jdbcType="BIT" property="deleteFlag"/>
+    </resultMap>
+
+    <sql id="Base_Column_List2">
+       id,context,con_time,start_time,create_date,modification_date,modifier,is_send,delete_flag
+    </sql>
+
+    <sql id="criteria">
+        <if test="context != null and context != ''">
+            and context like CONCAT('%',#{context,jdbcType=VARCHAR},'%')
+        </if>
+        <if test="conTimeStart != null">
+            and <![CDATA[#{conTimeStart,jdbcType=TIMESTAMP}<= con_time ]]>
+        </if>
+        <if test="conTimeEnd != null">
+            and <![CDATA[#{conTimeEnd,jdbcType=TIMESTAMP}>= con_time ]]>
+        </if>
+        <if test="startTimeStart != null">
+            and <![CDATA[#{startTimeStart,jdbcType=TIMESTAMP}<= start_time ]]>
+        </if>
+        <if test="startTimeEnd != null">
+            and <![CDATA[#{startTimeEnd,jdbcType=TIMESTAMP}>= start_time ]]>
+        </if>
+        <if test="startTimeStart != null">
+            and <![CDATA[#{createDateStart,jdbcType=TIMESTAMP}<= create_date ]]>
+        </if>
+        <if test="startTimeEnd != null">
+            and <![CDATA[#{createDateEnd,jdbcType=TIMESTAMP}>= create_date ]]>
+        </if>
+        <if test="modificationDateStart != null">
+            and <![CDATA[#{modificationDateStart,jdbcType=TIMESTAMP}<= modification_date ]]>
+        </if>
+        <if test="modificationDateEnd != null">
+            and <![CDATA[#{modificationDateEnd,jdbcType=TIMESTAMP}>= modification_date ]]>
+        </if>
+        <if test="modifier != null and modifier != ''">
+            and modifier = #{modifier,jdbcType=VARCHAR}
+        </if>
+        <if test="isSend != null ">
+            and is_send =#{isSend,jdbcType=BIT}
+        </if>
+    </sql>
+
+    <select id="selectList" resultMap="BaseMap">
+        select
+        <include refid="Base_Column_List2"></include>
+        from
+        mw_alert_overdue_table a1
+        where delete_flag = false
+        <include refid="criteria"></include>
+    </select>
+
+
+    <update id="deleteBatch" parameterType="java.util.List">
+        update  mw_alert_overdue_table
+        set delete_flag = true
+        where id in (
+        <foreach collection="idList" item="deleteList" separator=",">
+            #{deleteList.id,jdbcType=INTEGER}
+        </foreach>
+        )
+    </update>
+
+    <select id="selectOverdue" resultMap="BaseMap">
+        select
+        <include refid="Base_Column_List2"></include>
+        from
+        mw_alert_overdue_table a1
+        where delete_flag = false and id in (
+        <foreach collection="ids" item="deleteList" separator=",">
+            #{deleteList.value,jdbcType=INTEGER}
+        </foreach>
+        )
+    </select>
+
+    <update id="batUpdate" parameterType="java.util.List">
+        <foreach collection="list" item ="updateList" separator=";">
+            update mw_alert_overdue_table
+            set is_send = #{updateList.isSend,jdbcType=INTEGER},
+            modifier = #{updateList.modifier,jdbcType=VARCHAR},
+            modification_date = #{updateList.modificationDate,jdbcType=TIMESTAMP}
+            where id = #{updateList.id,jdbcType=INTEGER}
+        </foreach>
+    </update>
+
+    <select id="selectLevelRuleMapper" resultType="cn.mw.monitor.weixin.entity.ActionRule">
+    SELECT a.action_id actionId,a.rule_id ruleId, b.action_type actionType
+    from mw_alert_action_level_rule_mapper a LEFT JOIN mw_alert_rule b on a.rule_id=b.rule_id and b.state = true
+    where a.action_id = #{actionId,jdbcType=VARCHAR} and a.`level` = #{level}
+  </select>
+
+    <select id="findTCPFrom" resultType="cn.mw.monitor.util.entity.TCP_UDPFrom">
+        select host as host,
+               port as port,
+               agreement_type as agreementType,
+               algorithm as algorithm,
+               key_path as path,
+               key_password as password
+        from mw_alert_tcp_udp_rule
+        where rule_id = #{ruleId}
+    </select>
+    <select id="findCaiZhengTingSmsFrom" resultType="cn.mw.monitor.weixin.entity.MwCaiZhengTingSMSFromEntity">
+        select app_id as appID,
+        app_key as appKey,
+        sign,
+        type,
+        account,
+        password,
+        id,
+        url
+        from mw_alert_caizhengju_sms_rule
+        where rule_id = #{ruleId,jdbcType=VARCHAR}
+    </select>
+
+    <select id="findAliyunYuYinMessage" resultType="cn.mw.monitor.util.entity.AliYunYuYinlParam">
+        select rule_id ruleId,
+            access_key_id accessKeyId,
+            access_key_secret accessKeySecret,
+            tts_code ttsCode,
+            called_show_number calledShowNumber,
+            type
+        from mw_alert_aliyun_yuyin_rule
+        where rule_id = #{ruleId,jdbcType=VARCHAR}
+    </select>
+
+    <select id="findTengxunSMSMessage" resultType="cn.mw.monitor.util.entity.TengXunSmsFromEntity">
+        select rule_id ruleId,
+            sign_name signName,
+            secret_id secretId,
+            secret_key secretKey,
+            template_id templateId,
+            app_id appId,
+            recovery_template_id recoveryTemplateId
+        from mw_alert_tengxunsms_rule
+        where rule_id = #{ruleId,jdbcType=VARCHAR}
+    </select>
+
+    <select id="findHuaWeiSMSMessage" resultType="cn.mw.monitor.util.entity.HuaWeiSmsFromEntity">
+        select rule_id ruleId,
+            app_key appKey,
+            app_secret appSecret,
+            sender sender,
+            template_id templateId,
+            sign_name signName,
+            recovery_template_id recoveryTemplateId
+        from mw_alert_huaweisms_rule
+        where rule_id = #{ruleId,jdbcType=VARCHAR}
+    </select>
+
+    <select id="selectUserName" parameterType="java.util.HashSet" resultType="cn.mw.monitor.weixin.entity.UserInfo">
+        select
+        user_name as userName,
+        phone_number as phoneNumber
+        from mw_sys_user
+        where user_id in (
+        <foreach collection="list" item="item" separator=",">
+            #{item,jdbcType=INTEGER}
+        </foreach>
+        ) and delete_flag = 0 and user_state = 'ACTIVE'
+    </select>
+
+    <select id="selectUserNameBy" resultType="cn.mw.monitor.weixin.entity.UserInfo">
+        select
+        user_name as userName,
+        phone_number as phoneNumber
+        from mw_sys_user
+        where user_id in (
+        <foreach collection="list" item="item" separator=",">
+            #{item,jdbcType=INTEGER}
+        </foreach>
+        ) and delete_flag = 0 and user_state = 'ACTIVE'
+    </select>
+
+    <select id="selectByUserId" parameterType="java.util.HashSet" resultType="cn.mw.monitor.service.user.model.MWUser">
+        select
+        login_name as loginName,
+        user_id as userId
+        from mw_sys_user
+        where user_id in (
+        <foreach collection="list" item="item" separator=",">
+            #{item,jdbcType=INTEGER}
+        </foreach>
+        ) and delete_flag = 0 and user_state = 'ACTIVE'
+    </select>
+
+    <select id="selectLoginName" parameterType="java.util.HashSet" resultType="java.lang.String">
+        select
+        login_name
+        from mw_sys_user
+        where user_id in (
+        <foreach collection="list" item="item" separator=",">
+            #{item,jdbcType=INTEGER}
+        </foreach>
+        ) and delete_flag = 0 and user_state = 'ACTIVE'
+    </select>
+
+    <select id="selectGroupName" parameterType="java.util.HashSet" resultType="java.lang.String">
+        select
+        group_name
+        from mw_group_table
+        where group_id in (
+        <foreach collection="list" item="item" separator=",">
+            #{item,jdbcType=INTEGER}
+        </foreach>
+        )
+    </select>
+
+</mapper>

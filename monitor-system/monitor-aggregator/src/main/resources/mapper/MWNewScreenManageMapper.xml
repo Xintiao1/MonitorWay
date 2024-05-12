@@ -1,0 +1,262 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.mw.monitor.screen.dao.MWNewScreenManageDao">
+    <select id="selectNewScreenAssets" resultType="java.lang.String">
+        select type_icon from mw_assetssubtype_table where id = #{typeId}
+    </select>
+
+    <select id="selectAssetsDateRegionData" resultType="java.util.Map">
+        select assets_amount assetsAmount,census_date censusDate from mw_assetsamount_time where census_date BETWEEN #{startTime} AND #{endTime}
+    </select>
+
+    <select id="selectOneDayAssetsCount" resultType="java.lang.Integer">
+        select  assets_amount  from mw_assetsamount_time where census_date = #{time}
+    </select>
+
+    <select id="selectNewScreenInitModule" resultType="cn.mw.monitor.screen.dto.MWNewScreenModuleDto">
+        select bulk_id bulkId,bulk_name bulkName,module_url moduleUrl,display_time,display_time displayTime from mw_newhomepage_init where delete_flag = false
+        <if test="type != null and type == 1">
+            and init_type = 1
+        </if>
+    </select>
+
+    <select id="selectUserNewScreenModule" resultType="cn.mw.monitor.screen.dto.MWNewScreenModuleDto">
+        select
+            model_data_id modelDataId,
+            bulk_id bulkId,
+            bulk_name bulkName,
+            user_id userId,
+            create_date createDate,
+            count,
+            date_type dateType,
+            start_time startTime,
+            end_time endTime
+        from mw_newindex_bulk where user_id=#{userId} and delete_flag=false
+    </select>
+
+    <select id="selectNewScreenAssetsFilterData"
+            resultType="cn.mw.monitor.screen.dto.MWNewScreenAssetsFilterDto">
+            SELECT
+                id,
+                model_data_id modelDataId,
+                model_id modelId,
+                user_id userId,
+                assets_name assetsName,
+                in_band_ip inBandIp,
+                assets_type_id assetsTypeId,
+                assets_type_sub_id assetsTypeSubId,
+                monitor_mode monitorMode,
+                polling_engine pollingEngine,
+                manufacturer,
+                specifications,
+                time_lag timeLag,
+                filter_label_id filterLabelId,
+                filter_org_id filterOrgId,
+                name bulkName
+            FROM
+                mw_newscreen_filter_assets
+            WHERE
+                model_id = #{modelId}
+                AND model_data_id = #{modelDataId}
+                AND user_id = #{userId}
+    </select>
+
+    <insert id="insertNewScreenUserModule">
+        INSERT INTO mw_newindex_bulk(model_data_id,bulk_id,bulk_name,user_id,create_date,count) VALUES
+        <foreach collection="items" item="item" separator=",">
+            (#{item.modelDataId},#{item.bulkId},#{item.bulkName},#{item.userId},now(),#{item.count})
+        </foreach>
+    </insert>
+
+    <insert id="insertNewScreenAssetsFilter" useGeneratedKeys="true" keyColumn="id" keyProperty="id">
+        insert into mw_newscreen_filter_assets(model_data_id,model_id,user_id,assets_name,in_band_ip,assets_type_id,assets_type_sub_id,monitor_mode,polling_engine,manufacturer,specifications,time_lag,filter_label_id,filter_org_id,name)
+        values(
+            #{modelDataId,jdbcType=VARCHAR},
+            #{modelId,jdbcType=INTEGER},
+            #{userId,jdbcType=INTEGER},
+            #{assetsName,jdbcType=VARCHAR},
+            #{inBandIp,jdbcType=VARCHAR},
+            #{assetsTypeId,jdbcType=INTEGER},
+            #{assetsTypeSubId,jdbcType=INTEGER},
+            #{monitorMode,jdbcType=VARCHAR},
+            #{pollingEngine,jdbcType=VARCHAR},
+            #{manufacturer,jdbcType=VARCHAR},
+            #{specifications,jdbcType=VARCHAR},
+            #{timeLag,jdbcType=INTEGER},
+            #{filterLabelId,jdbcType=VARCHAR},
+            #{filterOrgId,jdbcType=VARCHAR},
+            #{bulkName,jdbcType=VARCHAR}
+        )
+    </insert>
+
+    <update id="updateNewScreenAssetsFilter">
+        update mw_newscreen_filter_assets set
+             assets_name=#{assetsName,jdbcType=VARCHAR},
+             in_band_ip=#{inBandIp,jdbcType=VARCHAR},
+             assets_type_id=#{assetsTypeId,jdbcType=INTEGER},
+             assets_type_sub_id=#{assetsTypeSubId,jdbcType=INTEGER},
+             monitor_mode=#{monitorMode,jdbcType=VARCHAR},
+             polling_engine=#{pollingEngine,jdbcType=VARCHAR},
+             manufacturer=#{manufacturer,jdbcType=VARCHAR},
+             specifications=#{specifications,jdbcType=VARCHAR},
+             time_lag=#{timeLag,jdbcType=VARCHAR},
+             filter_label_id=#{filterLabelId,jdbcType=VARCHAR},
+             filter_org_id=#{filterOrgId,jdbcType=VARCHAR},
+             name=#{bulkName,jdbcType=VARCHAR}
+        where model_data_id=#{modelDataId,jdbcType=VARCHAR}
+        and user_id=#{userId,jdbcType=INTEGER}
+    </update>
+
+    <update id="updateNewScreenModuleName">
+        update mw_newindex_bulk set bulk_name = #{name} where delete_flag = false and model_data_id = #{modelDataId} and user_id = #{userId}
+    </update>
+    <update id="updateNewScreenCreateDate">
+        update mw_newindex_bulk set create_date = #{createDate} where model_data_id = #{modelDataId} and bulk_id = #{bulkId} and user_id = #{userId}
+    </update>
+
+    <delete id="deleteNewScreenUserModule">
+        delete from mw_newindex_bulk where model_data_id = #{modelDataId} and bulk_id = #{bulkId} and user_id = #{userId}
+    </delete>
+
+    <select id="getNewScreenFilterAssets" resultType="cn.mw.monitor.service.assets.model.MwCommonAssetsDto">
+        select
+        user_id as userId,
+        assets_name as assetsName,
+        in_band_ip as inBandIp,
+        assets_type_id as assetsTypeId,
+        assets_type_sub_id as assetsTypeSubId,
+        monitor_mode as monitorMode,
+        polling_engine as pollingEngine,
+        manufacturer ,
+        specifications,
+        time_lag as timeLag,
+        model_data_id as modelDataId,
+        model_id as modelId,
+        filter_label_id,
+        filter_org_id
+        from mw_newscreen_filter_assets where user_id=#{userId,jdbcType=INTEGER} and model_id=#{modelId,jdbcType=INTEGER}
+        and model_data_id=#{modelDataId,jdbcType=VARCHAR}
+    </select>
+    <select id="selectAssetsCount" resultType="java.lang.Integer">
+         select count(1) from mw_tangibleassets_table where delete_flag = 0
+    </select>
+    <insert id="saveAssetsAmountCensusData">
+        INSERT INTO
+            mw_assetsamount_time
+            ( assets_amount, census_date, update_date )
+        VALUES
+	        ( #{count}, #{censusDate}, now() );
+    </insert>
+
+    <delete id="deleteMwAlertRuleSelect">
+         delete from mw_alert_rule_select where uuid = #{uuid}
+    </delete>
+
+    <select id="selectAsssetsData" resultType="cn.mw.monitor.screen.dto.MWTangibleassetsDto">
+        SELECT
+        id,
+        assets_id assetsId,
+        assets_name assetsName,
+        monitor_server_id monitorServerId
+        FROM
+        mw_tangibleassets_table
+        WHERE
+        delete_flag = FALSE
+        <if test="assetsTypeId != null">
+            and assets_type_id = #{assetsTypeId}
+        </if>
+        <if test="assetsTypeSubId != null">
+            and assets_type_sub_id = #{assetsTypeSubId}
+        </if>
+    </select>
+
+    <insert id="insertMwAlertRuleSelect" parameterType="java.util.List">
+        insert into mw_alert_rule_select(id,deep,condition_unit,name,relation,value,parent_id,uuid) values
+        <foreach collection="list" item="item" index="index" separator=",">
+            (#{item.key},#{item.deep},#{item.condition},#{item.name},#{item.relation},#{item.value},#{item.parentKey},#{item.uuid})
+        </foreach>
+    </insert>
+
+    <select id="selectMwAlertRuleSelect"  resultType="cn.mw.monitor.weixinapi.MwRuleSelectParam">
+        select
+        id as 'key',
+        deep deep,
+        condition_unit as 'condition',
+        name,
+        relation,
+        value,
+        parent_id as parentKey
+        from mw_alert_rule_select
+        <if test="uuid != null and uuid != ''">
+            where uuid = #{uuid}
+        </if>
+    </select>
+    <select id="selectLabelValue" resultType="java.lang.String">
+        select drop_value from mw_dropdown_table where delete_flag = false and drop_code = #{dropCode}
+    </select>
+    <select id="selectNewScreenInitModuleById" resultType="cn.mw.monitor.screen.dto.MWNewScreenModuleDto">
+        select bulk_id bulkId,bulk_name bulkName,module_url moduleUrl,display_time,display_time displayTime from mw_newhomepage_init where bulk_id = #{bulkId}
+    </select>
+
+    <update id="updateNewHomeModule" parameterType="cn.mw.monitor.screen.dto.MWNewScreenModuleDto">
+        update mw_newindex_bulk set count = #{count},date_type =  #{dateType},start_time =  #{startTime},end_time =  #{endTime} where model_data_id = #{modelDataId} and user_id = #{userId} and delete_flag = false
+    </update>
+
+    <select id="getAssetsIdAndServerId" resultType="java.util.Map">
+        select assets_id assetsId,monitor_server_id serverId from mw_tangibleassets_table where delete_flag = false
+    </select>
+
+    <select id="selectNewScreenAssetsFilterByUserId"
+            resultType="cn.mw.monitor.screen.dto.MWNewScreenAssetsFilterDto">
+            SELECT
+                id,
+                model_data_id modelDataId,
+                model_id modelId,
+                user_id userId,
+                assets_name assetsName,
+                in_band_ip inBandIp,
+                assets_type_id assetsTypeId,
+                assets_type_sub_id assetsTypeSubId,
+                monitor_mode monitorMode,
+                polling_engine pollingEngine,
+                manufacturer,
+                specifications,
+                time_lag timeLag,
+                filter_label_id filterLabelId,
+                filter_org_id filterOrgId,
+                name bulkName
+            FROM
+                mw_newscreen_filter_assets
+            WHERE user_id = #{userId}
+    </select>
+    <delete id="deleteModuleInfo">
+        delete from mw_newindex_bulk where user_id != #{userId}
+    </delete>
+    <delete id="deleteScreenFilterInfo">
+        delete from mw_newscreen_filter_assets where user_id != #{userId}
+    </delete>
+
+    <insert id="batchInsertNewScreenAssetsFilter" useGeneratedKeys="true" keyColumn="id" keyProperty="id">
+        insert into mw_newscreen_filter_assets(model_data_id,model_id,user_id,assets_name,in_band_ip,assets_type_id,assets_type_sub_id,monitor_mode,polling_engine,manufacturer,specifications,time_lag,filter_label_id,filter_org_id,name)
+        values
+        <foreach collection="list" item="item" separator=",">
+            (
+            #{item.modelDataId,jdbcType=VARCHAR},
+            #{item.modelId,jdbcType=INTEGER},
+            #{item.userId,jdbcType=INTEGER},
+            #{item.assetsName,jdbcType=VARCHAR},
+            #{item.inBandIp,jdbcType=VARCHAR},
+            #{item.assetsTypeId,jdbcType=INTEGER},
+            #{item.assetsTypeSubId,jdbcType=INTEGER},
+            #{item.monitorMode,jdbcType=VARCHAR},
+            #{item.pollingEngine,jdbcType=VARCHAR},
+            #{item.manufacturer,jdbcType=VARCHAR},
+            #{item.specifications,jdbcType=VARCHAR},
+            #{item.timeLag,jdbcType=INTEGER},
+            #{item.filterLabelId,jdbcType=VARCHAR},
+            #{item.filterOrgId,jdbcType=VARCHAR},
+            #{item.bulkName,jdbcType=VARCHAR}
+            )
+        </foreach>
+    </insert>
+</mapper>

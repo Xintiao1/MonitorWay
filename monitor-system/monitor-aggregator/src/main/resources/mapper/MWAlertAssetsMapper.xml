@@ -1,0 +1,413 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.mw.monitor.alert.dao.MWAlertAssetsDao">
+    <select id="getHostIds" resultType="java.lang.String">
+        select assets_id from mw_tangibleassets_table
+		where  monitor_flag=true and delete_flag=false
+    </select>
+
+    <select id="getHostIdsByUserId" resultType="java.lang.String">
+        select a.assets_id from mw_tangibleassets_table a
+		left join mw_user_assets_mapper b on
+		a.id = b.assets_id
+		left join mw_sys_user c on c.user_id=b.user_id
+		where  a.monitor_flag=true and a.delete_flag=false and c.delete_flag=false and
+		c.user_id=#{userId,jdbcType=INTEGER}
+    </select>
+    <select id="getUserIds" resultType="java.lang.Integer">
+      select user_id from mw_sys_user where user_state='ACTIVE' and delete_flag=false
+    </select>
+    <select id="getAssetsById" resultType="cn.mw.monitor.service.alert.dto.AssetsDto">
+        select
+        a.id,
+        a.assets_id                as assetsId,
+        a.assets_name              as assetsName,
+        a.in_band_ip               as assetsIp,
+        b.type_name                as assetsType,
+        a.monitor_server_id        as monitorServerId,
+        c.monitoring_server_name   as monitorServerName
+        from mw_tangibleassets_table a
+		left join mw_assetssubtype_table b on a.assets_type_id=b.id
+		left join mw_thirdparty_server_table c on a.monitor_server_id=c.id
+		where  a.delete_flag=false and c.delete_flag=false and
+		a.assets_id=#{assetsId,jdbcType=VARCHAR}
+		and a.monitor_server_id=#{monitorServerId,jdbcType=INTEGER}
+    </select>
+
+
+
+    <select id="getCountByUserIdAndTypeId" resultType="java.lang.Integer">
+      select count(0) from mw_tangibleassets_table a
+		left join mw_user_assets_mapper b on
+		a.assets_id = b.assets_id
+		left join mw_sys_user c on c.user_id=b.user_id
+		left join mw_assetssubtype_table d on a.assets_type_id=d.id
+		where c.user_id=#{userId,jdbcType=INTEGER} and d.id=#{assertTypeId,jdbcType=INTEGER}
+		and a.monitor_flag=true and d.enable='ACTIVE' and c.user_state=1
+    </select>
+    <select id="getAssetsNameById" resultType="java.lang.String">
+        select a.assets_name
+        from mw_tangibleassets_table a
+		where a.id=#{assetsId,jdbcType=VARCHAR}
+    </select>
+    <select id="getAssetsNameAndIPById" resultType="java.util.HashMap">
+        select assets_name as name,in_band_ip as ip
+        from mw_tangibleassets_table
+		where assets_id=#{assetsId,jdbcType=VARCHAR} and monitor_server_id=#{monitorServerId,jdbcType=INTEGER}
+    </select>
+    <select id="getServerIds" resultType="java.lang.Integer">
+        SELECT DISTINCT monitor_server_id FROM
+	    mw_tangibleassets_table
+        WHERE
+	    delete_flag = FALSE and monitor_flag=true
+    </select>
+    <select id="getWebMonitor" resultType="java.util.Map">
+        select
+        web_name webName, web_url webUrl
+        from mw_webmonitor_table where host_id=#{id,jdbcType=VARCHAR} and enable='ACTIVE'
+    </select>
+    <select id="getLink" resultType="java.util.Map">
+         select
+         link_name linkName
+        from mw_network_link where delete_flag=false and enable='ACTIVE' and
+        (
+        ( target_assets_id=#{hostId,jdbcType=VARCHAR} and target_server_id=#{monitorServerId,jdbcType=INTEGER })
+        or
+        (root_assets_id=#{hostId,jdbcType=VARCHAR} and root_server_id=#{monitorServerId,jdbcType=INTEGER })
+        )
+        <if test="hostIp!=null">
+            or(
+            link_target_ip = #{hostIp}
+            )
+        </if>
+
+    </select>
+
+    <select id="getSendInfo" resultType="cn.mw.monitor.accountmanage.entity.AlertRecordTableDTO" parameterType="cn.mw.monitor.service.alert.dto.RecordParam">
+        select
+        t.id,
+        t.date,
+        t.method,
+        t.text,
+        t.is_success as isSuccess,
+        t.hostid,
+        t.eventid as eventId,
+        t.error,
+        t.title,
+        t.ip
+        from mw_alert_record_table t
+        where
+        1=1
+        <if test="isToday">
+            AND t.date >= now()
+        </if>
+        <if test="sendState == 1">
+            AND t.is_success = 0
+        </if>
+        <if test="sendState == 0">
+            AND t.is_success != 0;
+        </if>
+        <if test="eventid != null and eventid != ''">
+            AND t.eventid = #{eventid}
+        </if>
+        GROUP BY t.id desc limit 1000
+    </select>
+
+    <select id="selectCountRecordTable" resultType="java.lang.Integer">
+        select count(*) from mw_alert_record_table
+    </select>
+
+    <select id="getAlertRecordUserIds" resultType="cn.mw.monitor.accountmanage.entity.AlertRecordTableDTO">
+        select t.id,
+        t.user_id as userId,
+        t1.user_name as userName
+        from mw_alert_record_user_mapper t
+        left join mw_sys_user t1 on t1.user_id = t.user_id
+        where id in (
+        <foreach collection="ids" item="list" separator=",">
+            #{list}
+        </foreach>
+        )  limit 1000
+    </select>
+
+    <select id="getSendInfoList" resultType="cn.mw.monitor.accountmanage.entity.AlertRecordTableDTO" parameterType="cn.mw.monitor.service.alert.dto.RecordParam">
+        select
+        t.id,
+        t.date,
+        t.method,
+        t.text,
+        t.is_success as isSuccess,
+        t.hostid,
+        t.eventid as eventId,
+        t.error,
+        t.title,
+        t.ip,
+        ifnull(group_concat(t1.user_name),(select group_concat(t3.email) from mw_alert_record_email_mapper t3 where t3.id = t.id )) as userName
+        from mw_alert_record_table t
+        left join mw_alert_record_user_mapper t2 on t2.id = t.id
+        left join mw_sys_user t1 on t2.user_id = t1.user_id
+        GROUP BY t.id desc limit #{startNum},#{endNum}
+    </select>
+
+    <delete id="deleteRecord">
+        delete from  mw_alert_record_table where #{date} >= `date`;
+    </delete>
+
+    <select id="getAssetsByIds" resultType="cn.mw.monitor.service.alert.dto.AssetsDto">
+        select
+        a.id,
+        a.assets_id                as assetsId,
+        a.assets_name              as assetsName,
+        a.in_band_ip               as assetsIp,
+        b.type_name                as assetsType,
+        a.monitor_server_id        as monitorServerId,
+        c.monitoring_server_name   as monitorServerName
+        from mw_tangibleassets_table a
+        left join mw_assetssubtype_table b on a.assets_type_id=b.id
+        left join mw_thirdparty_server_table c on a.monitor_server_id=c.id
+        where  a.delete_flag=false and c.delete_flag=false and
+        a.assets_id in (
+        <foreach collection="assetsIds" item="list" separator=",">
+            #{list}
+        </foreach>
+        )
+    </select>
+
+    <select id="getMonitorServerName" resultType="java.util.Map">
+        select id , monitoring_server_name as monitorServerName
+        from mw_thirdparty_server_table
+        where delete_flag = false
+    </select>
+
+    <insert id="insertAlertSolutionTable" parameterType="cn.mw.monitor.service.alert.dto.AlertReasonEditorParam">
+        insert into mw_alert_solution_table (
+        <if test="triggerReason != null and triggerReason != ''">
+            trigger_reason,
+        </if>
+        <if test="solution != null and solution != ''">
+            solution,
+        </if>
+        event_id,
+        server_id,
+        create_date
+        )values (
+        <if test="triggerReason != null and triggerReason != ''">
+            #{triggerReason},
+        </if>
+        <if test="solution != null and solution != ''">
+            #{solution},
+        </if>
+        #{eventId},
+        #{monitorServerId},
+        now()
+        )
+    </insert>
+
+    <select id="selectCountAlertSolutionTable" parameterType="cn.mw.monitor.service.alert.dto.AlertReasonEditorParam" resultType="java.lang.Integer">
+        select count(*)
+        from mw_alert_solution_table
+        where event_id = #{eventId} and server_id = #{monitorServerId}
+    </select>
+
+    <update id="updateAlertSolutionTable" parameterType="cn.mw.monitor.service.alert.dto.AlertReasonEditorParam">
+        update mw_alert_solution_table set
+        <if test="triggerReason != null and triggerReason != ''">
+            trigger_reason = #{triggerReason},
+        </if>
+        <if test="solution != null and solution != ''">
+            solution = #{solution},
+        </if>
+        create_date = now()
+        where event_id = #{eventId} and server_id = #{monitorServerId}
+    </update>
+
+    <select id="selectAlertSolutionTable" parameterType="cn.mw.monitor.service.alert.dto.AlertReasonEditorParam" resultType="cn.mw.monitor.service.alert.dto.AlertReasonEditorParam">
+        select solution as solution,
+        trigger_reason as triggerReason
+        from mw_alert_solution_table
+        where event_id = #{eventId} and server_id = #{monitorServerId}
+    </select>
+
+    <insert id="insertConfirmUserTable" parameterType="cn.mw.monitor.service.alert.dto.AlertConfirmUserParam">
+        insert into mw_alert_confirm_user_table (
+        confirm_date,
+        user_id,
+        event_id,
+        server_id,
+        type
+        )values (
+        now(),
+        #{userId},
+        #{eventId},
+        #{monitorServerId},
+        #{type}
+        )
+    </insert>
+
+    <insert id="insertConfirmUserTables" parameterType="java.util.List">
+        insert into mw_alert_confirm_user_table (
+        confirm_date,
+        user_id,
+        event_id,
+        server_id,
+        type
+        )values
+        <foreach collection="list" item="item" separator=",">
+            (now(),#{item.userId},#{item.eventId},#{item.monitorServerId},#{item.type})
+        </foreach>
+    </insert>
+
+    <select id="selectListAlertSolutionTable"  resultType="cn.mw.monitor.service.alert.dto.AlertReasonEditorParam">
+        select solution as solution,
+        trigger_reason as triggerReason,
+        event_id as eventId,
+        server_id as monitorServerId
+        from mw_alert_solution_table
+        order by create_date desc limit 3000
+    </select>
+
+    <select id="selectConfirmUserList"  resultType="cn.mw.monitor.service.alert.dto.AlertConfirmUserParam">
+        select
+        t.event_id as eventId,
+        t.server_id as monitorServerId,
+        t1.user_name as userName
+        from mw_alert_confirm_user_table t
+        left join mw_sys_user t1 on t1.user_id = t.user_id
+        order by confirm_date limit 3000
+    </select>
+
+    <select id="selectConfirmByEventId"  resultType="cn.mw.monitor.service.alert.dto.AlertConfirmUserParam">
+        select
+        t.event_id as eventId,
+        t.server_id as monitorServerId,
+        t1.user_name as userName,
+        t.type as type,
+        t.confirm_date as confirmDate,
+        t1.phone_number as phoneNumber,
+        t1.user_id as userId
+        from mw_alert_confirm_user_table t
+        left join mw_sys_user t1 on t1.user_id = t.user_id
+        where t.server_id = #{monitorServerId}
+        and t.event_id = #{eventid}
+        order by confirm_date limit 3000
+    </select>
+
+    <select id="selectOrgByUserIds" resultType="cn.mw.monitor.service.alert.dto.AlerUserOrgParam">
+        SELECT
+            t2.user_id userId,
+            t1.org_name orgName
+        FROM mw_sys_org t1
+                 LEFT JOIN mw_user_org_mapper t2 ON t1.org_id = t2.org_id
+        WHERE t1.delete_flag = FALSE
+          AND t2.delete_flag = FALSE
+          AND t2.user_id in (
+                <foreach collection="list" item="item" index="index" separator=",">
+                    #{item}
+                </foreach>
+            )
+    </select>
+
+
+    <select id="getRecordHostIds" resultType="java.lang.String">
+        select DISTINCT hostid
+        from mw_alert_record_table
+        where hostid in (
+        <foreach collection="hostIds" item="item" separator=",">
+            (#{item})
+        </foreach>
+            )
+        <if test="startTime != null">
+            and `date` >= #{startTime}
+        </if>
+        <if test="endTime != null">
+            and #{endTime} >= `date`
+        </if>
+    </select>
+
+    <select id="getAlertRecordUserIds" resultType="cn.mw.monitor.accountmanage.entity.AlertRecordTableDTO">
+        select t.id,
+        t.user_id as userId,
+        t1.user_name as userName
+        from mw_alert_record_user_mapper t
+        left join mw_sys_user t1 on t1.user_id = t.user_id
+        where id in (
+        <foreach collection="ids" item="list" separator=",">
+            #{list}
+        </foreach>
+        )
+    </select>
+
+    <insert id="insertTriggercloseTable" parameterType="java.util.List">
+        insert into mw_alert_trigger_close_table(server_id,trigger_id,close_date,operator) values
+        <foreach collection="list" item="item" index="index" separator=",">
+            (#{item.monitorServerId},#{item.objectId},now(),#{item.operatorId})
+        </foreach>
+    </insert>
+
+    <delete id="deleteTriggercloseTable" parameterType="java.util.List">
+        delete from mw_alert_trigger_close_table where
+        <foreach collection="list" item="item" index="index" separator="or">
+            (server_id = #{item.monitorServerId} and trigger_id = #{item.objectId})
+        </foreach>
+    </delete>
+
+    <select id="getTriggercloseTableTriggerIds" resultType="cn.mw.monitor.service.zbx.param.CloseDto">
+        select t.trigger_id as objectId,
+               t.server_id as monitorServerId,
+               t.close_date as closeDate,
+               t1.user_name as userName
+        from mw_alert_trigger_close_table t
+        left join mw_sys_user t1 on t1.user_id = t.operator
+    </select>
+
+    <insert id="insertIgnoreTable" parameterType="java.util.List">
+        insert into mw_alert_ignore_table(id,server_id,event_id,ignore_date,operator,name) values
+        <foreach collection="list" item="item" index="index" separator=",">
+            (#{item.id},#{item.monitorServerId},#{item.eventid},now(),#{item.operatorId},#{item.name})
+        </foreach>
+    </insert>
+
+    <select id="selectIgnoreTable" resultType="cn.mw.monitor.service.zbx.param.IgnoreAlertDto">
+        select t.id as id,
+               t.server_id as monitorServerId,
+               t.event_id as eventid,
+               t1.user_name as userName,
+               t.name as `name`,
+               t.ignore_date as ignoreDate
+        from mw_alert_ignore_table t
+                 left join mw_sys_user t1 on t1.user_id = t.operator
+    </select>
+
+    <delete id="deleteIgnoreTable" parameterType="java.util.List">
+        delete from mw_alert_ignore_table where id in (
+        <foreach collection="list" item="item" index="index" separator=",">
+            #{item.id}
+        </foreach>
+        )
+    </delete>
+
+    <select id="selectCountRecordByDate" resultType="java.lang.Integer">
+        select count(*) from mw_alert_record_table
+        where
+        <if test="isSuccess == 0">
+            is_success = 0
+        </if>
+        <if test="isSuccess != 0">
+            is_success != 0
+        </if>
+        <if test="endTime != null and endTime != ''">
+            and #{endTime} >= date and  date >= #{startTime}
+        </if>
+
+    </select>
+
+    <delete id="deleteRecordInfo">
+        DELETE
+        FROM
+            mw_alert_record_table
+        where id not in (
+            SELECT id from (select id from mw_alert_record_table order by date desc limit 1000) as qu
+        )
+    </delete>
+
+</mapper>

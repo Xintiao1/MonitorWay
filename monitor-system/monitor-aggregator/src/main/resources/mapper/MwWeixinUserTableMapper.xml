@@ -1,0 +1,211 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.mw.monitor.weixin.dao.MwWeixinUserDao">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="cn.mw.monitor.weixin.entity.MwWeixinUserTable">
+        <id column="id" property="id" />
+        <result column="openid" property="openid" />
+        <result column="nickname" property="nickname" />
+        <result column="sex" property="sex" />
+        <result column="country" property="country" />
+        <result column="province" property="province" />
+        <result column="city" property="city" />
+        <result column="create_date" property="createDate" />
+        <result column="modification_date" property="modificationDate" />
+    </resultMap>
+
+    <resultMap id="BaseResultMap1" type="cn.mw.monitor.weixin.entity.MwOrgMapper">
+        <result column="type_id" property="typeId" />
+        <result column="org_id" property="orgId" />
+        <result column="type" property="type" />
+    </resultMap>
+
+    <resultMap id="BaseResultMap2" type="cn.mw.monitor.weixin.entity.MwDatapermission">
+        <id column="id" property="id" />
+        <result column="type" property="type" />
+        <result column="type_id" property="typeId" />
+        <result column="is_user" property="isUser" />
+        <result column="is_group" property="isGroup" />
+        <result column="description" property="description" />
+    </resultMap>
+
+
+    <sql id="Base_Column_List" >
+        id,openid,nickname,country,province,city
+    </sql>
+
+    <sql id="tb">
+        mw_wexin_user
+    </sql>
+
+    <select id="selectOne" parameterType="java.lang.String" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List" />
+        from mw_wexin_user
+        where openid = #{openid,jdbcType=VARCHAR}
+    </select>
+
+    <select id="selectOneByMwLoginName" parameterType="java.lang.String" resultMap="BaseResultMap">
+        select
+        t1.openid,t1.nickname,t1.country,t1.province,t1.city
+        from mw_wexin_user t1 left join mw_wexin_user_mapper t2 on t1.openid=t2.openid
+        where t2.login_name = #{loninName,jdbcType=VARCHAR}
+    </select>
+
+
+    <select id="selectList"  resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List" />
+        from mw_wexin_user
+    </select>
+
+    <update id="updateById" parameterType="cn.mw.monitor.weixin.entity.MwWeixinUserTable">
+        update mw_wexin_user
+        <set>
+            <if test="nickname != null">
+                nickname = #{nickname,jdbcType=VARCHAR},
+            </if>
+            <if test="sex != null">
+                sex = #{sex,jdbcType=INTEGER},
+            </if>
+            <if test="country != null">
+                country = #{country,jdbcType=VARCHAR},
+            </if>
+            <if test="province != null">
+                province = #{province,jdbcType=VARCHAR},
+            </if>
+            <if test="city != null">
+                city = #{city,jdbcType=VARCHAR},
+            </if>
+            <if test="modifier != null">
+                modifier = #{modifier,jdbcType=VARCHAR},
+            </if>
+            modification_Date = now()
+        </set>
+        where openid = #{openid,jdbcType=VARCHAR}
+    </update>
+
+    <delete id="delete" parameterType="java.lang.String">
+        delete from mw_wexin_user
+        where openid = #{openid,jdbcType=VARCHAR}
+    </delete>
+
+    <insert id="insert" parameterType="cn.mw.monitor.weixin.entity.MwWeixinUserTable">
+        insert into mw_wexin_user
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="openid != null">
+                openid,
+            </if>
+            <if test="nickname != null">
+                nickname,
+            </if>
+            <if test="sex != null">
+                sex,
+            </if>
+            <if test="country != null">
+                country,
+            </if>
+            <if test="province != null">
+                province,
+            </if>
+            <if test="city != null">
+                city,
+            </if>
+            <if test="creator != null">
+                creator,
+            </if>
+            create_date,
+            <if test="modifier != null">
+                modifier,
+            </if>
+            modification_Date
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="openid != null">
+                #{openid,jdbcType=VARCHAR},
+            </if>
+            <if test="nickname != null">
+                #{nickname,jdbcType=VARCHAR},
+            </if>
+            <if test="sex != null">
+                #{sex,jdbcType=INTEGER},
+            </if>
+            <if test="country != null">
+                #{country,jdbcType=VARCHAR},
+            </if>
+            <if test="province != null">
+                #{province,jdbcType=VARCHAR},
+            </if>
+            <if test="city != null">
+                #{city,jdbcType=VARCHAR},
+            </if>
+            <if test="creator != null">
+                #{creator,jdbcType=VARCHAR},
+            </if>
+            now(),
+            <if test="modifier != null">
+                #{modifier,jdbcType=VARCHAR},
+            </if>
+            now()
+        </trim>
+    </insert>
+
+    <select id="select1"  parameterType="java.lang.String" resultMap="BaseResultMap1">
+        select
+            *
+        from mw_org_mapper
+        where type_id = #{assetsId,jdbcType=VARCHAR} and `type` ="ASSETS"
+    </select>
+
+    <select id="select2"  parameterType="java.lang.Integer" resultType="java.lang.Integer">
+        select a.user_id
+        from mw_user_org_mapper a left join mw_user_role_mapper b on a.user_id=b.user_id
+        left join mw_role c on b.role_id=c.id
+        where a.org_id=#{orgId,jdbcType=INTEGER} and c.data_perm='PUBLIC'
+    </select>
+
+    <select id="select3"  parameterType="java.lang.String" resultMap="BaseResultMap2">
+        select
+            *
+        from mw_datapermission
+        where type_id = #{typeId,jdbcType=VARCHAR} and `type` ="ASSETS"
+    </select>
+
+    <select id="select4"  parameterType="java.lang.String" resultType="java.lang.Integer">
+       select
+            user_id
+        from mw_user_mapper
+        where type_id = #{typeId,jdbcType=VARCHAR} and `type` ="ASSETS"
+    </select>
+
+    <select id="select5"  parameterType="java.lang.String" resultType="java.lang.Integer">
+       select user_id from mw_user_group_mapper
+        where group_id in(
+            SELECT group_id from mw_group_mapper
+            where  `type` ="ASSETS" and type_id='1592450073059f8b66a1f3c7b4611aa6'
+        )
+    </select>
+
+    <select id="select6" parameterType="java.util.List" resultType="java.lang.String">
+        select
+            t1.openid
+        from mw_wexin_user t1 left join mw_wexin_user_mapper t2 on t1.openid=t2.openid
+        where t2.user_id in
+        <foreach collection="list" item="userId" separator="," open="(" close=")">
+            #{userId,jdbcType=INTEGER}
+        </foreach>
+    </select>
+
+    <select id="select7" parameterType="java.util.List" resultType="java.lang.String">
+        select
+        wechat_id
+        from mw_sys_user
+        where user_id in
+        <foreach collection="list" item="userId" separator="," open="(" close=")">
+            #{userId,jdbcType=INTEGER}
+        </foreach>
+    </select>
+
+
+</mapper>

@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en"
+      xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>IP信息变化通知</title>
+
+</head>
+<body>
+<table width="645" border="0" align="center" cellpadding="0" cellspacing="0">
+    <tbody><tr><td height="150" align="left" valign="top" style="border:1px solid #000000;word-break:break-all;padding:0px">
+        <table width="650" border="0" align="center" cellpadding="0" cellspacing="0">
+            <tbody>
+            <tr>
+                <td width="650" height="45" valign="top" style="padding-bottom:10pt; ">
+                    <table width="620" border="0" align="center" cellspacing="0" bordercolor="#000000" class="MaoNormalTable" style="color: rgb(0, 0, 0); font-family: 'lucida Grande', Verdana, 'Microsoft YaHei'; font-size: 15px; font-style: normal; font-variant: normal; font-weight: normal; letter-spacing: normal; line-height: 22pt; orphans: auto; text-align: start; text-indent: 0px; text-transform: none; white-space: normal; widows: auto; word-spacing: 0px; -webkit-text-stroke-width: 0px; background-color: rgb(255, 255, 255);">
+                        <tr>
+                            <td width="620" height="27" style="font-family: '微软雅黑'; font-size: 15px; -webkit-font-smoothing: subpixel-antialiased; padding: 3pt;">尊敬的网络管理员，你好！<br />IP信息有变化：</td>
+                        </tr>
+                    </table>
+                    <table width="620" border="0" align="center" cellspacing="0" bordercolor="#000000" class="MaoNormalTable" style="color: rgb(0, 0, 0); font-family: 'lucida Grande', Verdana, '微软雅黑'; font-size: 15px; font-style: normal; font-variant: normal; font-weight: normal; letter-spacing: normal; line-height: 22pt; orphans: auto; text-align: start; text-indent: 0px; text-transform: none; white-space: normal; widows: auto; word-spacing: 0px; -webkit-text-stroke-width: 0px; background-color: rgb(255, 255, 255); border-top:1px solid #000000; border-right:1px solid #000000; border-bottom:1px solid #000000;">
+                        <tr>
+                        <td width="154" height="27" style="font-family: '微软雅黑'; font-size: 15px; -webkit-font-smoothing: subpixel-antialiased; padding: 3pt; border-left:1px solid #000000; border-right:1px solid #000000; border-bottom:1px solid #000000;">IP</td>
+                        <td width="233" height="27" style="font-family: '微软雅黑'; font-size: 15px; -webkit-font-smoothing: subpixel-antialiased; padding: 3pt; border-bottom:1px solid #000000;">原MAC</td>
+                        <td width="233" height="27" style="font-family: '微软雅黑'; font-size: 15px; -webkit-font-smoothing: subpixel-antialiased; padding: 3pt; border-bottom:1px solid #000000;">现MAC</td>
+                        </tr>
+                        <tr data-th-each="data:${emailParam}">
+                            <td width="154" height="27" style="font-family: '微软雅黑'; font-size: 15px; -webkit-font-smoothing: subpixel-antialiased; padding: 3pt; border-left:1px solid #000000; border-right:1px solid #000000; border-bottom:1px solid #000000;"><span th:text="${data.ip}">XXX</span></td>
+                            <td width="233" height="27" style="font-family: '微软雅黑'; font-size: 15px; -webkit-font-smoothing: subpixel-antialiased; padding: 3pt; border-bottom:1px solid #000000;"><span th:text="${data.oldMac}">XXX</span></td>
+                            <td width="233" height="27" style="font-family: '微软雅黑'; font-size: 15px; -webkit-font-smoothing: subpixel-antialiased; padding: 3pt; border-bottom:1px solid #000000;"><span th:text="${data.newMac}">XXX</span></td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+            <tr>
+                <td width="650" height="40" bgcolor="#EFEFEF">
+                    <div align="center" style="font-family:'微软雅黑'; color:#333333; font-size:14px; ">请运维人员相互转告！</div>
+                </td>
+            </tr>
+            </tbody>
+        </table></td></tr>
+    </tbody>
+</table>
+</body>
+</html>

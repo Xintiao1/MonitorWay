@@ -1,0 +1,641 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.mw.monitor.screen.dao.MWLagerScreenDao">
+    <sql id="Base_Column_List">
+        screen_id ,
+        screen_name as screenName,
+        screen_desc as screenDesc,
+        enable,
+        image,
+        layout_data_id as layoutDataId,
+        layout_id as layoutId
+    </sql>
+    <sql id="Base_Column_List1">
+     screen_id,
+    screenName,
+    screenDesc,
+    ENABLE,
+    image,
+    layoutDataId,
+    layoutId,
+    create_date
+    </sql>
+    <sql id="Base_Column_List2">
+        t1.screen_id ,
+		screen_name AS screenName,
+		screen_desc AS screenDesc,
+		enable,
+		image,
+		t3.id AS layoutDataId,
+		layout_id AS layoutId,
+		create_date
+    </sql>
+    <sql id="union_group">
+        <if test="groupIds!=null">
+            UNION
+            SELECT
+            <include refid="Base_Column_List1"></include>
+            FROM (SELECT DISTINCT
+            <include refid="Base_Column_List2"></include>
+            FROM mw_large_screen_table t1
+            LEFT JOIN mw_datapermission t2 ON t1.screen_id = t2.type_id
+            LEFT JOIN mw_layout_data t3 ON t1.screen_id = t3.screen_id
+            WHERE
+            t2.is_group =1 AND t1.delete_flag = FALSE ) t1
+            LEFT JOIN
+            (SELECT type_id,group_id FROM mw_group_mapper where type='SCREEN') t2 ON t1.screen_id = t2.type_id
+            where group_id IN
+            <foreach collection="groupIds" item="item" index="index" open="(" separator="," close=")">
+                #{item.value,jdbcType=INTEGER}
+            </foreach>
+            <include refid="criteria"></include>
+            order by create_date desc
+        </if>
+    </sql>
+
+    <sql id="criteria">
+        <if test="enable !=null and enable !=''">
+            and enable=#{enable,jdbcType=VARCHAR}
+        </if>
+        <if test="screenId !=null and screenId !=''">
+            and t1.screen_id=#{screenId,jdbcType=VARCHAR}
+        </if>
+    </sql>
+
+    <resultMap id="ModelDto" type="cn.mw.monitor.screen.dto.LagerScreenDataDto">
+        <id column="screen_id" property="screenId"/>
+        <result column="layoutDataId" property="layoutDataId"/>
+        <result column="screenName" property="screenName"/>
+        <result column="screenDesc" property="screenDesc"/>
+        <result column="enable" property="enable"/>
+        <result column="image" property="image"/>
+        <result column="layoutId" property="layoutId"/>
+        <result column="create_date" property="createDate"/>
+
+        <collection property="modelDtos" ofType="cn.mw.monitor.screen.dto.ModelDto" select="selectModelList"
+                    column="layoutDataId">
+            <result column="bulkDataId" property="bulkDataId"></result>
+            <result column="modelId" property="modelId"></result>
+            <result column="modelDataId" property="modelDataId"></result>
+            <result column="modelName" property="modelName"></result>
+            <result column="modelDesc" property="modelDesc"></result>
+            <result column="modelType" property="modelType"></result>
+            <result column="screenId" property="screenId"></result>
+            <result column="isOpenMapName" property="isOpenMapName"></result>
+        </collection>
+
+        <collection property="userIds" ofType="java.lang.Integer" select="selectUser" column="screen_id">
+        </collection>
+        <!--        <collection property="orgIds" ofType="java.lang.Integer" select="selectOrg" column="screen_id">-->
+        <!--        </collection>-->
+        <collection property="department" ofType="cn.mw.monitor.service.user.dto.OrgDTO" select="selectOrg" column="screen_id">
+            <result property="orgId" jdbcType="INTEGER" column="orgId"/>
+            <result property="orgName" jdbcType="VARCHAR" column="orgName"/>
+            <result property="nodes" jdbcType="VARCHAR" column="nodes"/>
+        </collection>
+        <collection property="groupIds" ofType="java.lang.Integer" select="selectGroup" column="screen_id">
+        </collection>
+
+    </resultMap>
+
+    <select id="selectUser" parameterType="java.lang.String" resultType="java.lang.Integer">
+        select distinct
+        t2.user_id userIds
+        from mw_user_mapper t1
+        left join mw_sys_user t2 on t1.user_id = t2.user_id
+        where t1.type_id = #{screen_id,jdbcType=VARCHAR} and t1.type='SCREEN'
+    </select>
+
+    <!--    <select id="selectOrg" parameterType="java.lang.String" resultType="java.lang.Integer">-->
+    <!--        select-->
+    <!--        t2.org_id orgIds-->
+    <!--        from mw_org_mapper t1-->
+    <!--        left join mw_sys_org t2 on t1.org_id = t2.org_id-->
+    <!--        where t1.type_id = #{screenId,jdbcType=VARCHAR} and t1.type='SCREEN'-->
+    <!--    </select>-->
+
+    <select id="selectOrg" parameterType="java.lang.String" resultType="cn.mw.monitor.service.user.dto.OrgDTO">
+    select distinct
+    t1.org_id orgId,
+    t1.org_name orgName,
+    t1.nodes
+    from mw_sys_org t1
+    left join mw_org_mapper t2  on t1.org_id = t2.org_id
+    where t2.type='SCREEN' and t2.type_id = #{screenId,jdbcType=VARCHAR}
+  </select>
+    <select id="selectGroup" parameterType="java.lang.String" resultType="java.lang.Integer">
+        select distinct
+        t2.group_id groupIds
+        from mw_group_mapper t1
+        left join mw_group_table t2 on t1.group_id = t2.group_id
+        where t1.type_id = #{screenId,jdbcType=VARCHAR} and t1.type='SCREEN'
+    </select>
+
+    <select id="selectModelList" parameterType="java.lang.String" resultType="cn.mw.monitor.screen.dto.ModelDto">
+  SELECT distinct
+	bulk_data_id AS bulkDataId,
+	model_id AS modelId,
+	model_data_id AS modelDataId,
+	model_name AS modelName,
+	model_desc AS modelDesc,
+	model_type AS modelType,
+	screen_id as screenId,
+	t5.open_map_name as isOpenMapName
+FROM
+	mw_layout_data t2
+	LEFT JOIN mw_layout_data_bulk_mapper t3 ON t2.id = t3.layout_data_id
+	LEFT JOIN mw_bulk_data t4 ON t3.bulk_data_id = t4.id
+	LEFT JOIN mw_model_data t5 ON t4.model_data_id = t5.id
+	LEFT JOIN mw_model_base t6 ON t5.model_id = t6.id
+	where t2.id=#{layout_data_id,jdbcType=VARCHAR} and t2.delete_flag=false
+    </select>
+
+
+    <insert id="addLagerScreen" parameterType="cn.mw.monitor.screen.param.MwLagerScreenParam">
+    insert into mw_large_screen_table(screen_id,screen_name,screen_desc,creator,create_date,modifier,modification_date)
+     values(#{screenId,jdbcType=VARCHAR},
+     #{screenName,jdbcType=VARCHAR},
+     #{screenDesc,jdbcType=VARCHAR},
+     #{creator,jdbcType=VARCHAR},
+     now(),
+     #{creator,jdbcType=VARCHAR},
+     now()
+     )
+    </insert>
+    <update id="updateLagerScreen" parameterType="cn.mw.monitor.screen.param.MwLagerScreenParam">
+        update mw_large_screen_table set
+        screen_name= #{screenName,jdbcType=VARCHAR},
+        screen_desc=#{screenDesc,jdbcType=VARCHAR},
+        modifier=#{modifier,jdbcType=VARCHAR},
+        modification_date=now()
+        where screen_id= #{screenId,jdbcType=VARCHAR}
+    </update>
+
+    <select id="getPriLargerScreenList" resultMap="ModelDto"
+            parameterType="cn.mw.monitor.screen.dto.PermDto">
+        SELECT
+        <include refid="Base_Column_List1"></include>
+        FROM (SELECT DISTINCT
+        <include refid="Base_Column_List2"></include>
+        FROM mw_large_screen_table t1
+        LEFT JOIN mw_datapermission t2 ON t1.screen_id = t2.type_id
+        LEFT JOIN mw_layout_data t3 ON t1.screen_id = t3.screen_id
+        WHERE t2.is_user = 1 AND t1.delete_flag = FALSE order by create_date desc ) t1
+        LEFT JOIN
+        (SELECT type_id,user_id FROM mw_user_mapper where type='SCREEN') t2 ON t1.screen_id = t2.type_id
+        WHERE
+        user_id =#{userId,jdbcType=INTEGER}
+        <include refid="criteria"></include>
+        <include refid="union_group"></include>
+    </select>
+
+    <select id="getCoordinateAddress" resultType="cn.mw.monitor.screen.dto.CoordinateAddress">
+        select address,coordinate,org_id from mw_sys_org where delete_flag=false;
+    </select>
+    <select id="getCoordinateAddressByOrgId" resultType="string" parameterType="integer">
+        select coordinate from mw_sys_org where delete_flag=false  and org_id=#{id,jdbcType=INTEGER}
+    </select>
+
+    <select id="getOrgAssetInfo" resultType="cn.mw.monitor.screen.dto.AssetOrgMapperDto">
+    SELECT
+	t1.type_id,
+	t1.org_id,
+	t2.assets_type_id,
+	t3.type_name
+    FROM
+	(
+	SELECT
+		type_id,
+		org_id
+	FROM
+		mw_org_mapper
+	WHERE
+		type = "ASSETS"
+	AND type_id IN ( SELECT id FROM mw_tangibleassets_table WHERE delete_flag = 0 )) t1
+	LEFT JOIN mw_tangibleassets_table t2 ON t2.id = t1.type_id
+	LEFT JOIN mw_assetssubtype_table t3 ON t3.id = t2.assets_type_id
+    </select>
+
+    <select id="getPubLargerScreenList" resultMap="ModelDto"
+            parameterType="cn.mw.monitor.screen.dto.PermDto">
+        SELECT
+        <include refid="Base_Column_List1"></include>
+        FROM (
+        SELECT DISTINCT
+        <include refid="Base_Column_List2"></include>
+        FROM
+        mw_large_screen_table t1
+        LEFT JOIN mw_layout_data t3 ON t1.screen_id = t3.screen_id
+        <choose>
+            <when test="isAdmin==false">
+                LEFT JOIN (SELECT type_id,org_id FROM mw_org_mapper where type='SCREEN') t2 ON t1.screen_id = t2.type_id
+                WHERE t1.delete_flag = FALSE
+                AND org_id IN
+                <foreach collection="orgIds" item="item" index="index" open="(" separator="," close=")">
+                    #{item.value,jdbcType=INTEGER}
+                </foreach>
+                order by create_date desc) t1
+                where 1=1
+                <include refid="criteria"></include>
+                <include refid="union_group"></include>
+            </when>
+            <otherwise>
+                WHERE t1.delete_flag = FALSE
+                <include refid="criteria"></include>
+                order by t1.create_date desc
+                ) t1
+            </otherwise>
+        </choose>
+    </select>
+
+    <insert id="addModelData">
+        insert into mw_model_data(id,model_id,open_map_name) values(#{id,jdbcType=VARCHAR},#{modelId,jdbcType=INTEGER},#{openMapName})
+    </insert>
+    <update id="updateBulkdata">
+        update mw_bulk_data set model_data_id=#{moduleDateId,jdbcType=VARCHAR} where id=#{id,jdbcType=VARCHAR}
+    </update>
+    <insert id="addLayoutData" parameterType="cn.mw.monitor.screen.dto.LayoutDataDto">
+    insert into mw_layout_data(id,screen_id,layout_id)
+     values(#{layoutDataId,jdbcType=VARCHAR},
+            #{screenId,jdbcType=VARCHAR},
+            #{layoutId,jdbcType=INTEGER}
+            )
+    </insert>
+    <insert id="insertLayoutDataBulk">
+       insert into  mw_layout_data_bulk_mapper(layout_data_id,bulk_data_id) values(#{layoutDataId,jdbcType=VARCHAR},#{bulkDateId,jdbcType=VARCHAR})
+    </insert>
+
+    <insert id="addScreenUser">
+        insert into mw_user_mapper(type_id,user_id,type)
+        values
+        <foreach collection="list" item="insertList" separator=",">
+            (#{insertList.typeId,jdbcType=VARCHAR},#{insertList.userId,jdbcType=INTEGER},#{insertList.type,jdbcType=VARCHAR})
+        </foreach>
+    </insert>
+    <insert id="addScreenGroup">
+        insert into mw_group_mapper(type_id,group_id,type)
+        values
+        <foreach collection="list" item="insertList" separator=",">
+            (#{insertList.typeId,jdbcType=VARCHAR},#{insertList.groupId,jdbcType=INTEGER},#{insertList.type,jdbcType=VARCHAR})
+        </foreach>
+    </insert>
+    <insert id="addScreenOrg">
+        insert into mw_org_mapper(type_id,org_id,type)
+        values
+        <foreach collection="list" item="insertList" separator=",">
+            (#{insertList.typeId,jdbcType=VARCHAR},#{insertList.orgId,jdbcType=INTEGER},#{insertList.type,jdbcType=VARCHAR})
+        </foreach>
+    </insert>
+
+    <update id="deleteLagerScreen">
+        update mw_large_screen_table set delete_flag=true where screen_id=#{screenId,jdbcType=VARCHAR}
+    </update>
+    <select id="selectScreenName" resultType="string">
+        select screen_name from mw_large_screen_table where screen_id=#{screenId,jdbcType=VARCHAR}
+    </select>
+
+    <delete id="deleteScreenUser">
+        delete from mw_user_mapper  where type_id=#{screenId,jdbcType=VARCHAR} and type='SCREEN'
+    </delete>
+    <delete id="deleteScreenGroup">
+        delete from  mw_group_mapper  where type_id=#{screenId,jdbcType=VARCHAR} and type='SCREEN'
+    </delete>
+    <delete id="deleteScreenOrg">
+        delete from mw_org_mapper where type_id=#{screenId,jdbcType=VARCHAR} and type='SCREEN'
+    </delete>
+    <delete id="deleteLayoutDataBulkMapper">
+        delete from  mw_layout_data_bulk_mapper where layout_data_id=#{layoutDataId,jdbcType=VARCHAR}
+    </delete>
+    <delete id="deleteScreenLayoutMapper">
+        delete from  mw_large_screen_layout_mapper where layout_data_id=#{layoutDataId,jdbcType=VARCHAR}
+    </delete>
+
+    <select id="selectLayoutDataId" parameterType="java.lang.String" resultType="java.lang.String">
+         select layout_data_id from mw_large_screen_layout_mapper where screen_id=#{screenId,jdbcType=VARCHAR}
+     </select>
+    <update id="deleteLayoutData">
+        update mw_layout_data set delete_flag=true where id=#{layoutDataId,jdbcType=VARCHAR} and delete_flag=false
+    </update>
+
+    <select id="selectBulkDataId" resultType="java.lang.String">
+        select bulk_data_id from mw_layout_data a left join mw_layout_data_bulk_mapper b on a. id=b.layout_data_id where a.id=#{layoutDataId,jdbcType=VARCHAR} and a.delete_flag=false
+    </select>
+    <update id="deleteBulkData">
+        delete from mw_bulk_data where id in
+        <foreach collection="list" item="deleteList" separator="," open="(" close=")">
+            #{deleteList}
+        </foreach>
+    </update>
+
+    <delete id="deleteModelData">
+        delete from mw_model_data where id in
+        <foreach collection="list" item="deleteList" separator="," open="(" close=")">
+            #{deleteList}
+        </foreach>
+    </delete>
+
+    <delete id="deleteAssetsFilters">
+        delete from mw_filter_assets where model_data_id in
+        <foreach collection="list" item="deleteList" separator="," open="(" close=")">
+            #{deleteList}
+        </foreach>
+    </delete>
+
+    <update id="deleteModelDataById">
+        update mw_model_data set delete_flag=true where id=#{moduleDataId,jdbcType=VARCHAR}
+    </update>
+
+    <select id="selectModelData" resultType="java.lang.String" parameterType="java.util.List">
+        select model_data_id from mw_bulk_data where id in
+        <foreach collection="list" item="selectList" separator="," open="(" close=")">
+            #{selectList}
+        </foreach>
+    </select>
+
+    <update id="updateEnable" parameterType="cn.mw.monitor.screen.param.EnableParam">
+        update mw_large_screen_table set
+        enable=#{enable,jdbcType=VARCHAR},
+        modifier=#{modifier,jdbcType=VARCHAR},
+        modification_date=now()
+        where screen_id=#{screenId,jdbcType=VARCHAR}
+    </update>
+
+
+    <insert id="insertDataPermission" parameterType="cn.mw.monitor.service.user.dto.DataPermissionDto"
+            useGeneratedKeys="true"
+            keyProperty="id">
+        insert into mw_datapermission(type,type_id,is_user,is_group,description)
+        values(#{type,jdbcType=VARCHAR},#{typeId,jdbcType=VARCHAR},#{isUser,jdbcType=INTEGER},#{isGroup,jdbcType=INTEGER},#{description,jdbcType=VARCHAR})
+    </insert>
+    <insert id="addBulkdataId">
+   insert into mw_bulk_data(id) values(#{id,jdbcType=VARCHAR})
+    </insert>
+
+    <select id="getLayoutBase" resultType="java.lang.Integer">
+        select id from mw_layout_base
+    </select>
+    <select id="getModelList" resultType="cn.mw.monitor.screen.model.Model">
+        select id  as modelId,
+        model_name as modelName,
+        model_desc as modelDesc,
+        model_content as modelContent,
+        model_type as modelType
+        from mw_model_base where is_show=1
+    </select>
+
+    <select id="getModelType" resultType="java.lang.String">
+        SELECT model_type  FROM mw_model_base where is_show=1 GROUP BY model_type
+    </select>
+    <select id="getModelId" resultType="cn.mw.monitor.screen.dto.ModelContentDto">
+     select
+     t1.id as modelDataId,
+     model_id as modelId,
+	 model_content as modelContent,
+     assets_type_id as assetsTypeId,
+     item_name as itemName,
+	 model_type as modelType,
+	 t2.class as className
+	 from mw_model_data t1
+     LEFT JOIN mw_model_base t2 ON t1.model_id = t2.id
+      where t1.id=#{modelDataId,jdbcType=VARCHAR}
+    </select>
+    <select id="getLayoutCount" resultType="java.lang.Integer">
+        select count from mw_layout_base where id=#{layoutId,jdbcType=INTEGER}
+    </select>
+    <select id="getModelData" resultType="cn.mw.monitor.screen.dto.ModelDataDto">
+    SELECT
+	t1.id AS modelDataId,
+	model_id AS modelId,
+	model_content AS modelContent
+    FROM
+	mw_model_data t1
+	LEFT JOIN mw_model_base t2 ON t1.model_id = t2.id
+    </select>
+<!--    <update id="updateBulkDataTime">-->
+<!--        update mw_bulk_data set time_lag=#{timelag,jdbcType=INTEGER} where id=#{bulkDataId,jdbcType=VARCHAR}-->
+<!--    </update>-->
+    <update id="updateModelData" parameterType="cn.mw.monitor.screen.param.UpdateModelDataParam">
+        update mw_model_data set model_id=#{modelId,jdbcType=VARCHAR},open_map_name=#{isOpenMapName} where id=#{modelDataId,jdbcType=VARCHAR}
+    </update>
+    <update id="updateBulkData">
+       update mw_bulk_data set model_data_id=#{modelDateId,jdbcType=VARCHAR} where id=#{bulkDataId,jdbcType=VARCHAR}
+    </update>
+
+    <update id="deleteLayoutDatabyBulkDataId">
+        update mw_layout_data set delete_flag=true where bulk_data_id=#{bulkDataId,jdbcType=VARCHAR}
+    </update>
+    <update id="saveScreenImg">
+        update mw_large_screen_table set image=#{image,jdbcType=VARCHAR} where screen_id=#{screenId,jdbcType=VARCHAR}
+    </update>
+    <update id="updateModelDataId">
+        update mw_bulk_data set model_data_id=null where model_data_id=#{modelDataId,jdbcType=VARCHAR}
+    </update>
+    <update id="updateScreenName">
+        update mw_large_screen_table set
+        screen_name=#{screenName,jdbcType=VARCHAR},
+        modifier=#{modifier,jdbcType=VARCHAR},
+        modification_date=now()
+        where screen_id= #{screenId,jdbcType=VARCHAR}
+    </update>
+
+    <delete id="deleteDataPermission">
+        delete from mw_datapermission where type_id=#{screenId,jdbcType=VARCHAR} and `type`=#{screen,jdbcType=VARCHAR}
+    </delete>
+    <delete id="deleteAssetsFilter">
+        delete from mw_filter_assets where model_data_id = #{modelDataId,jdbcType=VARCHAR}
+    </delete>
+
+    <insert id="insertFilterAssets" parameterType="cn.mw.monitor.screen.model.FilterAssetsParam" useGeneratedKeys="true"
+            keyProperty="id">
+    insert into mw_filter_assets(model_data_id,model_id,user_id,assets_name,in_band_ip,assets_type_id,assets_type_sub_id,monitor_mode,polling_engine,manufacturer,specifications,time_lag,`type`,filter_label_id,filter_org_id)
+    values(
+    #{modelDataId,jdbcType=VARCHAR},
+    #{modelId,jdbcType=INTEGER},
+    #{userId,jdbcType=INTEGER},
+    #{assetsName,jdbcType=VARCHAR},
+    #{inBandIp,jdbcType=VARCHAR},
+    #{assetsTypeId,jdbcType=INTEGER},
+    #{assetsTypeSubId,jdbcType=INTEGER},
+    #{monitorMode,jdbcType=VARCHAR},
+    #{pollingEngine,jdbcType=VARCHAR},
+    #{manufacturer,jdbcType=VARCHAR},
+    #{specifications,jdbcType=VARCHAR},
+    #{timeLag,jdbcType=INTEGER},
+    #{type,jdbcType=VARCHAR},
+    #{filterLabelId,jdbcType=VARCHAR},
+    #{filterOrgId,jdbcType=VARCHAR}
+    )
+    </insert>
+    <insert id="insertFilterTimeLag" useGeneratedKeys="true" >
+    insert into mw_filter_assets(model_data_id,model_id,time_lag,user_id,`type`)
+    value(
+    #{modelDataId,jdbcType=VARCHAR},
+    #{modelId,jdbcType=INTEGER},
+    #{timeLag,jdbcType=INTEGER},
+    #{userId,jdbcType=INTEGER},
+    #{type,jdbcType=VARCHAR}
+    )
+    </insert>
+    <insert id="insertLargeScreenLayoutMapper">
+        insert mw_large_screen_layout_mapper(screen_id,layout_data_id) values (#{screenId,jdbcType=VARCHAR},#{layoutDataId,jdbcType=VARCHAR})
+    </insert>
+    <insert id="insertLinkFilter">
+        insert into mw_filter_assets(model_data_id,user_id,type,linkInterfaces,time_lag) values (
+        #{modelDataId,jdbcType=VARCHAR},#{userId,jdbcType=INTEGER},#{type,jdbcType=VARCHAR},#{linkInterfaces,jdbcType=VARCHAR},#{timeLag,jdbcType=INTEGER}
+        )
+    </insert>
+    <update id="updateLinkFilter">
+        update mw_filter_assets set linkInterfaces=#{linkInterfaces,jdbcType=VARCHAR} where model_data_id=#{modelDataId,jdbcType=VARCHAR}
+        <if test="userId != '' and userId != null">
+            and user_id=#{userId,jdbcType=INTEGER}
+        </if>
+         and type=#{type,jdbcType=VARCHAR}
+    </update>
+    <select id="getLinkEdit" resultType="string">
+        select linkInterfaces from mw_filter_assets where user_id=#{userId,jdbcType=INTEGER} and model_data_id=#{modelDataId,jdbcType=VARCHAR}
+    </select>
+    <select id="getLinkInterfaces" resultType="string">
+        select DISTINCT linkInterfaces from mw_filter_assets where 1= 1
+        <if test="userId != '' and userId != null">
+            and user_id=#{userId,jdbcType=INTEGER}
+        </if>
+        and type=#{type,jdbcType=VARCHAR} and model_data_id=#{modelDataId,jdbcType=VARCHAR}
+    </select>
+    <select id="getfilterLinkCount" resultType="int">
+        select count(0) from mw_filter_assets where type=#{type,jdbcType=VARCHAR}
+        <if test="userId != '' and userId != null">
+            and user_id=#{userId,jdbcType=INTEGER}
+        </if>
+        and model_data_id=#{modelDataId,jdbcType=VARCHAR}
+    </select>
+
+    <update id="updateFilterAssets" parameterType="cn.mw.monitor.screen.model.FilterAssetsParam">
+     update mw_filter_assets set
+     assets_name=#{assetsName,jdbcType=VARCHAR},
+     in_band_ip=#{inBandIp,jdbcType=VARCHAR},
+     assets_type_id=#{assetsTypeId,jdbcType=INTEGER},
+     assets_type_sub_id=#{assetsTypeSubId,jdbcType=INTEGER},
+     monitor_mode=#{monitorMode,jdbcType=VARCHAR},
+     polling_engine=#{pollingEngine,jdbcType=VARCHAR},
+     manufacturer=#{manufacturer,jdbcType=VARCHAR},
+     specifications=#{specifications,jdbcType=VARCHAR},
+     time_lag=#{timeLag,jdbcType=VARCHAR},
+     filter_label_id=#{filterLabelId,jdbcType=VARCHAR},
+     filter_org_id=#{filterOrgId,jdbcType=VARCHAR}
+     where model_data_id=#{modelDataId,jdbcType=VARCHAR}
+     and user_id=#{userId,jdbcType=INTEGER}
+    </update>
+
+    <select id="getFilterAssets" resultType="cn.mw.monitor.service.assets.model.MwCommonAssetsDto">
+        select
+        user_id as userId,
+        assets_name as assetsName,
+        in_band_ip as inBandIp,
+        assets_type_id as assetsTypeId,
+        assets_type_sub_id as assetsTypeSubId,
+        monitor_mode as monitorMode,
+        polling_engine as pollingEngine,
+        manufacturer ,
+        specifications,
+        time_lag as timeLag,
+        model_data_id as modelDataId,
+        model_id as modelId,
+        `type`,
+        filter_label_id,
+        filter_org_id
+        from mw_filter_assets where user_id=#{userId,jdbcType=INTEGER} and model_id=#{modelId,jdbcType=INTEGER} and
+        `type`=#{type,jdbcType=VARCHAR}
+<!--        <if test="type=='SCREEN'">-->
+            and model_data_id=#{modelDataId,jdbcType=VARCHAR}
+<!--        </if>-->
+    </select>
+    <select id="getModelAssetsTypeId" resultType="cn.mw.monitor.screen.model.ModelBaseTable">
+        select  id,
+        model_name  as modelName,
+        model_desc as modelDesc,
+        model_content as modelContent,
+        model_type as modelType
+        from mw_model_base where model_type=#{moduleType,jdbcType=VARCHAR}
+    </select>
+    <select id="getModelTypeById" resultType="java.lang.String">
+        select model_type from mw_model_base where id=#{moduleId,jdbcType=INTEGER}
+    </select>
+    <select id="getLagerScreenById" resultType="cn.mw.monitor.screen.dto.LagerScreenDataDto" resultMap="ModelDto">
+        SELECT
+        <include refid="Base_Column_List1"></include>
+        FROM (
+        SELECT DISTINCT
+        <include refid="Base_Column_List2"></include>
+        FROM
+        mw_large_screen_table t1
+        LEFT JOIN mw_layout_data t3 ON t1.screen_id = t3.screen_id
+        WHERE t1.delete_flag = FALSE
+        AND t1.screen_id=#{screenId,jdbcType=VARCHAR}
+        ) t1
+
+    </select>
+    <select id="getBulkDataTimeCount" resultType="java.lang.Integer">
+        select count(0) from mw_filter_assets where model_data_id=#{modelDataId,jdbcType=VARCHAR} and user_id=#{userId,jdbcType=INTEGER}
+    </select>
+    <select id="getBulkDataTime" resultType="java.lang.Integer">
+        select time_lag from mw_filter_assets where model_data_id=#{modelDataId,jdbcType=VARCHAR} and user_id=#{userId,jdbcType=INTEGER}
+    </select>
+    <select id="getFilterAssetsCount" resultType="java.lang.Integer">
+        select count(0) from mw_filter_assets where model_id=#{modelId,jdbcType=INTEGER}
+        and `type`=#{type,jdbcType=VARCHAR} and user_id=#{userId,jdbcType=INTEGER}
+            and model_data_id=#{modelDataId,jdbcType=VARCHAR}
+
+    </select>
+    <update id="updateModelBase">
+     update mw_model_base set
+     model_name=#{assetsTypeName,jdbcType=VARCHAR},
+     model_content=#{assetsTypeId,jdbcType=VARCHAR}
+     where id=#{moduleId,jdbcType=INTEGER}
+    </update>
+
+    <select id="getIcmpLinkAssetIds" resultType="cn.mw.monitor.screen.dto.TargetAssetsIdDto">
+    SELECT
+	t1.link_id
+	,t2.id
+	,t2.assets_id linkHostId
+    FROM
+	( SELECT link_id, link_target_ip FROM mw_network_link WHERE scan_type = "ICMP" AND delete_flag = 0 ) t1
+	LEFT JOIN mw_tangibleassets_table t2 ON t1.link_target_ip = t2.in_band_ip
+	AND t2.delete_flag = 0
+	AND t2.monitor_mode =4
+    </select>
+
+    <select id="getTargetLinkAssetIds" resultType="cn.mw.monitor.screen.dto.TargetAssetsIdDto">
+    SELECT
+	t1.link_id,
+	t2.id
+    FROM
+	( SELECT link_id, target_assets_id, target_server_id, target_ip_address, link_target_ip, scan_type FROM mw_network_link WHERE scan_type = "ICMP" AND delete_flag = 0 ) t1,
+	mw_tangibleassets_table t2
+    WHERE
+	t1.target_assets_id = t2.assets_id
+	AND t2.delete_flag = 0
+    </select>
+
+    <select id="getIcmpLinkAssetIdsByIp" parameterType="java.util.List" resultType="cn.mw.monitor.screen.dto.TargetAssetsIdDto">
+    SELECT
+	t1.link_id linkId
+	,t2.id
+	,t3.id targetAssetsId
+    ,t1.link_target_ip linkTargetIp
+    FROM mw_network_link t1
+        LEFT JOIN mw_tangibleassets_table t2 ON t1.link_target_ip = t2.in_band_ip
+        AND t2.delete_flag = 0
+        AND t2.monitor_mode =4
+        LEFT JOIN mw_tangibleassets_table t3 ON t1.target_assets_id = t3.assets_id
+        AND t2.delete_flag = 0
+        AND t2.monitor_mode =4
+    WHERE t1.scan_type = "ICMP"
+    AND t1.delete_flag = 0
+    AND t1.link_target_ip in
+        <foreach collection="list" item="ip" index="index" separator="," open="(" close=")">
+            #{ip}
+        </foreach>
+    </select>
+
+</mapper>

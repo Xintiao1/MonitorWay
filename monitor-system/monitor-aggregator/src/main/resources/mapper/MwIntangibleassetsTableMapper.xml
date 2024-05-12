@@ -1,0 +1,570 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.mw.monitor.assets.dao.MwIntangibleassetsTableDao">
+    <resultMap id="ParentMap" type="cn.mw.monitor.assets.model.MwIntangibleassetsTable">
+        <id column="id" jdbcType="VARCHAR" property="id"/>
+        <result column="assets_number" jdbcType="VARCHAR" property="assetsNumber"/>
+        <result column="assets_name" jdbcType="VARCHAR" property="assetsName"/>
+        <result column="assets_type_id" jdbcType="INTEGER" property="assetsTypeId"/>
+        <result column="sub_assets_type_id" jdbcType="INTEGER" property="subAssetsTypeId" />
+        <result column="assets_content" jdbcType="VARCHAR" property="assetsContent"/>
+        <result column="enable" jdbcType="VARCHAR" property="enable"/>
+        <result column="remarks" jdbcType="VARCHAR" property="remarks"/>
+        <result column="delete_flag" jdbcType="BIT" property="deleteFlag"/>
+        <result column="creator" jdbcType="VARCHAR" property="creator"/>
+        <result column="create_date" jdbcType="TIMESTAMP" property="createDate"/>
+        <result column="modifier" jdbcType="VARCHAR" property="modifier"/>
+        <result column="modification_date" jdbcType="TIMESTAMP" property="modificationDate"/>
+    </resultMap>
+
+    <resultMap id="BaseResultMap" type="cn.mw.monitor.assets.dto.MwIntangibleassetsDTO" extends="ParentMap" >
+        <collection property="assetsLabel" ofType="cn.mw.monitor.service.assets.model.MwAssetsLabelDTO" select="selectLabelForId"
+                    column="id">
+            <result column="labelName" jdbcType="VARCHAR" property="labelName"/>
+            <result column="tagboard" jdbcType="VARCHAR" property="tagboard"/>
+            <result column="drop_id" jdbcType="INTEGER" property="dropId"/>
+            <result column="date_tagboard" jdbcType="DATE" property="dateTagboard"/>
+            <result column="choose_add" jdbcType="BIT" property="chooseAdd"/>
+        </collection>
+        <collection property="principal" ofType="cn.mw.monitor.service.assets.model.UserDTO" select="selectUser" column="id">
+            <id column="user_id" jdbcType="INTEGER" property="userId"/>
+        </collection>
+        <collection property="department" ofType="cn.mw.monitor.service.assets.model.OrgDTO" select="selectOrg" column="id">
+            <result column="nodes" jdbcType="VARCHAR" property="nodes"/>
+        </collection>
+        <collection property="group" ofType="cn.mw.monitor.service.assets.model.GroupDTO" select="selectGroup" column="id">
+            <id column="group_id" property="groupId"/>
+        </collection>
+    </resultMap>
+
+    <resultMap id="ListResultMap" type="cn.mw.monitor.assets.dto.MwIntangibleassetsDTO" extends="ParentMap">
+        <association property="assetsTypeName" javaType="java.lang.String" select="selectTypeName"
+                     column="assets_type_id">
+        </association>
+        <association property="subAssetsTypeName" javaType="java.lang.String" select="selectTypeName"
+                     column="sub_assets_type_id">
+        </association>
+        <collection property="assetsLabel" ofType="cn.mw.monitor.service.assets.model.MwAssetsLabelDTO" select="selectLabel"
+                    column="id">
+            <result column="labelName" jdbcType="VARCHAR" property="labelName"/>
+            <result column="labelValue" jdbcType="VARCHAR" property="labelValue"/>
+        </collection>
+        <collection property="principal" ofType="cn.mw.monitor.service.assets.model.UserDTO" select="selectUser" column="id">
+            <id column="user_id" jdbcType="INTEGER" property="userId"/>
+            <result column="user_name" jdbcType="VARCHAR" property="userName"/>
+            <result column="login_name" jdbcType="VARCHAR" property="loginName"/>
+            <result column="user_state" jdbcType="VARCHAR" property="userState"/>
+        </collection>
+        <collection property="department" ofType="cn.mw.monitor.service.assets.model.OrgDTO" select="selectOrg" column="id">
+            <id column="org_id" jdbcType="VARCHAR" property="orgId"/>
+            <result column="org_name" jdbcType="VARCHAR" property="orgName"/>
+            <result column="nodes" jdbcType="VARCHAR" property="nodes"/>
+        </collection>
+        <collection property="group" ofType="cn.mw.monitor.service.assets.model.GroupDTO" select="selectGroup" column="id">
+            <id column="group_id" property="groupId"/>
+            <result column="group_name" property="groupName"/>
+        </collection>
+    </resultMap>
+
+    <select id="selectTypeName" parameterType="java.lang.Integer" resultType="java.lang.String">
+  select type_name from mw_assetssubtype_table where id = #{id,jdbcType=INTEGER}
+</select>
+
+    <select id="selectUser" parameterType="java.lang.String" resultType="cn.mw.monitor.service.assets.model.UserDTO">
+    select
+    t2.user_id userId,t2.user_name userName,t2.login_name loginName,t2.user_state userState
+    from mw_user_mapper t1
+    left join mw_sys_user t2 on t1.user_id = t2.user_id
+    where t1.type_id = #{id,jdbcType=VARCHAR} and t1.type='INASSETS'
+  </select>
+
+    <select id="selectOrg" parameterType="java.lang.String" resultType="cn.mw.monitor.service.assets.model.OrgDTO">
+    select
+    t2.org_id orgId,t2.org_name orgName,t2.nodes
+    from mw_org_mapper t1
+    left join mw_sys_org t2 on t1.org_id = t2.org_id
+    where t1.type_id = #{id,jdbcType=VARCHAR} and t1.type='INASSETS'
+  </select>
+
+    <select id="selectGroup" parameterType="java.lang.String" resultType="cn.mw.monitor.service.assets.model.GroupDTO">
+    select
+    t2.group_id groupId,t2.group_name groupName
+    from mw_group_mapper t1
+    left join mw_group_table t2 on t1.group_id = t2.group_id
+    where t1.type_id = #{id,jdbcType=VARCHAR} and t1.type='INASSETS'
+  </select>
+
+    <select id="selectLabel" parameterType="java.lang.String" resultType="cn.mw.monitor.service.assets.model.MwAssetsLabelDTO">
+    SELECT
+    labelName, GROUP_CONCAT(labelValue) labelValue
+    FROM (
+    SELECT
+    t2.label_name labelName,
+    CASE
+    t2.input_format
+    WHEN 1 THEN
+    t1.tagboard
+    WHEN 2 THEN
+    date_format(t1.date_tagboard, '%Y-%m-%d %H:%i:%s')
+    WHEN 3 THEN
+    t3.drop_value
+    END labelValue
+    FROM
+    mw_assetslabel_table t1
+    LEFT JOIN mw_labelmanage_table t2 ON t1.label_id = t2.label_id
+    LEFT JOIN mw_dropdown_table t3 ON t2.dropdown_value = t3.drop_code
+    AND t1.tagboard = t3.drop_key
+    where t1.assets_id = #{id,jdbcType=VARCHAR}
+    ) t
+    GROUP BY  labelName
+  </select>
+
+    <select id="selectLabelForId" parameterType="java.lang.String"
+            resultType="cn.mw.monitor.service.assets.model.MwAssetsLabelDTO">
+    select
+    t1.label_id labelId,
+    t1.tagboard,
+    t1.date_tagboard dateTagboard,
+    t3.drop_key dropId,
+    t3.drop_value dropValue,
+    t2.choose_add chooseAdd,
+    t2.label_code prop,
+    t2.dropdown_value url,
+    t1.assets_id,
+    t2.input_format inputFormat,
+    t2.label_name labelName
+    from mw_assetslabel_table t1
+    left join mw_labelmanage_table t2 on t1.label_id = t2.label_id
+    left join mw_dropdown_table t3 on t2.dropdown_value = t3.drop_code and t1.tagboard = t3.drop_key
+    where t1.assets_id = #{id,jdbcType=VARCHAR}
+  </select>
+
+    <sql id="Base_Column_List_alias">
+    ${alias}id,
+    ${alias}assets_number,
+    ${alias}assets_name,
+    ${alias}assets_type_id,
+    ${alias}sub_assets_type_id,
+    ${alias}assets_content,
+    ${alias}`enable`,
+    ${alias}remarks,
+    ${alias}delete_flag,
+    ${alias}creator,
+    ${alias}create_date,
+    ${alias}modifier,
+    ${alias}modification_date
+  </sql>
+
+    <sql id="Base_Column_List1_alias">
+    ${alias}assets_number,
+    ${alias}assets_name,
+    ${alias}assets_type_id,
+    ${alias}sub_assets_type_id,
+    ${alias}assets_content,
+    ${alias}`enable`,
+    ${alias}remarks,
+    ${alias}delete_flag,
+    ${alias}creator,
+    ${alias}create_date,
+    ${alias}modifier,
+    ${alias}modification_date
+  </sql>
+
+  <sql id="Base_Column_List">
+    id, assets_number, assets_name, assets_type_id, sub_assets_type_id,assets_content, `enable`, remarks, delete_flag, creator, create_date, modifier, modification_date
+  </sql>
+
+  <sql id="Base_Column_List1">
+    assets_number, assets_name, assets_type_id, sub_assets_type_id,assets_content, `enable`, remarks, delete_flag, creator, create_date, modifier, modification_date
+  </sql>
+
+    <sql id="Add_Column_List">
+    id,  assets_number, assets_name, assets_type_id, sub_assets_type_id,assets_content, `enable`, remarks, delete_flag, creator, create_date, modifier, modification_date
+  </sql>
+
+    <sql id="tb">
+     mw_intangibleassets_table
+  </sql>
+
+    <sql id="criteria">
+        <if test="assetsIds !=null ">
+            and ${alias}id in
+            <foreach collection="assetsIds" item="item" index="index"  separator="," open="(" close=")">
+                #{item}
+            </foreach>
+        </if>
+        <if test="assetsNumber != null and assetsNumber != ''">
+            and ${alias}assets_number like CONCAT('%',#{assetsNumber,jdbcType=VARCHAR},'%')
+        </if>
+        <if test="assetsName != null  and assetsName !=''">
+            and ${alias}assets_name like CONCAT('%',#{assetsName,jdbcType=VARCHAR},'%')
+        </if>
+        <if test="assetsTypeId != null">
+            and ${alias}assets_type_id = #{assetsTypeId,jdbcType=INTEGER}
+        </if>
+        <if test="subAssetsTypeId != null">
+            and ${alias}sub_assets_type_id = #{subAssetsTypeId,jdbcType=INTEGER}
+        </if>
+        <if test="assetsContent != null">
+            and ${alias}assets_content like CONCAT('%',#{assetsContent,jdbcType=VARCHAR},'%')
+        </if>
+        <if test="enable != null and remarks != ''">
+            and ${alias}enable = #{enable,jdbcType=VARCHAR}
+        </if>
+        <if test="remarks != null and remarks != ''">
+            and ${alias}remarks like CONCAT('%',#{remarks,jdbcType=VARCHAR},'%')
+        </if>
+        <if test="creator != null and creator != ''">
+            and ${alias}creator like CONCAT('%',#{creator,jdbcType=VARCHAR},'%')
+        </if>
+        <if test="createDateStart != null">
+            AND  <![CDATA[#{createDateStart,jdbcType=TIMESTAMP} <= ${alias}create_date ]]>
+        </if>
+        <if test="createDateEnd != null">
+            AND <![CDATA[#{createDateEnd,jdbcType=TIMESTAMP} >= ${alias}create_date ]]>
+        </if>
+        <if test="modifier != null and modifier != ''">
+            AND ${alias}modifier LIKE CONCAT('%',#{modifier,jdbcType=VARCHAR},'%')
+        </if>
+        <if test="modificationDateStart != null">
+            AND  <![CDATA[#{modificationDateStart,jdbcType=TIMESTAMP} <= ${alias}modification_date ]]>
+        </if>
+        <if test="modificationDateEnd != null">
+            AND <![CDATA[#{modificationDateEnd,jdbcType=TIMESTAMP} >= ${alias}modification_date ]]>
+        </if>
+    </sql>
+    <select id="selectById" parameterType="java.lang.String" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List"/>
+        from
+        <include refid="tb"></include>
+        where id = #{assetsId,jdbcType=VARCHAR}
+    </select>
+
+    <update id="delete" parameterType="java.util.List">
+        update
+        <include refid="tb"></include>
+        set delete_flag = true
+        where id in (
+        <foreach collection="list" item="id" separator=",">
+            #{id,jdbcType=VARCHAR}
+        </foreach>)
+    </update>
+
+    <insert id="insertBatch" parameterType="java.util.List">
+        insert into
+        <include refid="tb"></include>
+        (<include refid="Add_Column_List"></include>)
+        values
+        <foreach collection="list" item="assetsList" separator=",">
+            ( #{assetsList.id,jdbcType=VARCHAR},#{assetsList.assetsNumber,jdbcType=VARCHAR},
+            #{assetsList.assetsName,jdbcType=VARCHAR},
+            #{assetsList.assetsTypeId,jdbcType=INTEGER},#{assetsList.subAssetsTypeId,jdbcType=INTEGER},
+            #{assetsList.assetsContent,jdbcType=VARCHAR}, #{assetsList.enable,jdbcType=VARCHAR},
+            #{assetsList.remarks,jdbcType=VARCHAR}, #{assetsList.creator,jdbcType=VARCHAR},
+            #{assetsList.createDate,jdbcType=TIMESTAMP},
+            #{assetsList.modifier,jdbcType=VARCHAR}, #{assetsList.modificationDate,jdbcType=TIMESTAMP})
+        </foreach>
+    </insert>
+
+    <insert id="insert" parameterType="cn.mw.monitor.assets.api.param.assets.AddUpdateIntangAssetsParam"
+            useGeneratedKeys="false" keyProperty="id">
+        insert into
+        <include refid="tb"></include>
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="id != null">
+                id,
+            </if>
+            <if test="assetsNumber != null and assetsNumber != ''">
+                assets_number,
+            </if>
+            <if test="assetsName != null and assetsName != ''">
+                assets_name,
+            </if>
+            <if test="assetsTypeId != null">
+                assets_type_id,
+            </if>
+            <if test="subAssetsTypeId != null">
+                sub_assets_type_id,
+            </if>
+            <if test="assetsContent != null and assetsContent != ''">
+                assets_content,
+            </if>
+            <if test="enable != null">
+                enable,
+            </if>
+            <if test="remarks != null">
+                remarks,
+            </if>
+            <if test="creator != null">
+                creator,
+            </if>
+            create_date,
+            <if test="modifier != null">
+                modifier,
+            </if>
+            modification_date
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="id != null">
+                #{id,jdbcType=VARCHAR},
+            </if>
+            <if test="assetsNumber != null and assetsNumber != ''">
+                #{assetsNumber,jdbcType=VARCHAR},
+            </if>
+            <if test="assetsName != null and assetsName != ''">
+                #{assetsName,jdbcType=VARCHAR},
+            </if>
+            <if test="assetsTypeId != null">
+                #{assetsTypeId,jdbcType=INTEGER},
+            </if>
+            <if test="subAssetsTypeId != null">
+                #{subAssetsTypeId,jdbcType=INTEGER},
+            </if>
+            <if test="assetsContent != null and assetsContent != ''">
+                #{assetsContent,jdbcType=VARCHAR},
+            </if>
+            <if test="enable != null">
+                #{enable,jdbcType=VARCHAR},
+            </if>
+            <if test="remarks != null">
+                #{remarks,jdbcType=VARCHAR},
+            </if>
+            <if test="creator != null">
+                #{creator,jdbcType=VARCHAR},
+            </if>
+            now(),
+            <if test="modifier != null">
+                #{modifier,jdbcType=VARCHAR},
+            </if>
+            now()
+        </trim>
+    </insert>
+
+    <update id="update" parameterType="cn.mw.monitor.assets.api.param.assets.AddUpdateIntangAssetsParam">
+        update
+        <include refid="tb"></include>
+        <set>
+            assets_number = #{assetsNumber,jdbcType=VARCHAR},
+            assets_name = #{assetsName,jdbcType=VARCHAR},
+            assets_type_id = #{assetsTypeId,jdbcType=INTEGER},
+            sub_assets_type_id = #{subAssetsTypeId,jdbcType=INTEGER},
+            assets_content = #{assetsContent,jdbcType=VARCHAR},
+            enable = #{enable,jdbcType=VARCHAR},
+            remarks = #{remarks,jdbcType=VARCHAR},
+            modifier = #{modifier,jdbcType=VARCHAR},
+            modification_date = now()
+        </set>
+        where id = #{id,jdbcType=VARCHAR}
+    </update>
+
+    <update id="updateBatch" parameterType="java.util.List">
+        <foreach collection="list" item="updateList" separator=",">
+            update
+            <include refid="tb"></include>
+            update mw_intangibleassets_table
+            set assets_number = #{updateList.assetsNumber,jdbcType=VARCHAR},
+            assets_name = #{updateList.assetsName,jdbcType=VARCHAR},
+            assets_type_id = #{updateList.assetsTypeId,jdbcType=INTEGER},
+            sub_assets_type_id = #{updateList.subAssetsTypeId,jdbcType=INTEGER},
+            assets_content = #{updateList.assetsContent,jdbcType=VARCHAR},
+            enable = #{updateList.enable,jdbcType=VARCHAR},
+            remarks = #{updateList.remarks,jdbcType=VARCHAR},
+            modifier = #{updateList.modifier,jdbcType=VARCHAR},
+            modification_date = #{updateList.modificationDate,jdbcType=TIMESTAMP}
+            where id = #{updateList.id,jdbcType=VARCHAR}
+        </foreach>
+    </update>
+    <sql id="union_group">
+        <if test="groupIds!=null">
+            UNION
+            SELECT
+            t1.assetsTypeName,
+            t1.subAssetsTypeName,
+            <include refid="Base_Column_List_alias"><property name="alias" value="t1."/></include>
+            FROM (SELECT
+            a1.id,
+            d4.type_name as assetsTypeName,
+            d5.type_name as subAssetsTypeName,
+            <include refid="Base_Column_List1_alias"><property name="alias" value="a1."/></include>
+            FROM mw_intangibleassets_table a1
+            LEFT JOIN mw_datapermission t2 ON a1.id = t2.type_id
+            left join mw_assetssubtype_table d4 on a1.assets_type_id = d4.id
+            left join mw_assetssubtype_table d5 on a1.sub_assets_type_id = d5.id
+            WHERE
+            t2.is_group =1 AND a1.delete_flag = FALSE ) t1
+            LEFT JOIN
+            (SELECT type_id,group_id FROM mw_group_mapper where type='INASSETS') t2 ON t1.id = t2.type_id
+            where group_id IN
+            <foreach collection="groupIds" item="item" index="index" open="(" separator="," close=")">
+                #{item.value,jdbcType=INTEGER}
+            </foreach>
+          <include refid="criteria"></include>
+        </if>
+    </sql>
+    <select id="selectPriList" parameterType="cn.mw.monitor.assets.api.param.assets.QueryIntangAssetsParam"
+            resultMap="ListResultMap">
+        select
+        o1.assetsTypeName,
+        o1.subAssetsTypeName,
+        <include refid="Base_Column_List_alias"><property name="alias" value="o1."/></include>
+        from (
+        select
+        t1.assetsTypeName,
+        t1.subAssetsTypeName,
+        <include refid="Base_Column_List_alias"><property name="alias" value="t1."/></include>
+        from (
+        select
+        distinct a1.id,
+        t4.type_name as assetsTypeName,
+        t5.type_name as subAssetsTypeName,
+        <include refid="Base_Column_List1_alias"><property name="alias" value="a1."/></include> from mw_intangibleassets_table a1
+        left join mw_datapermission t2 ON a1.id = t2.type_id
+        left join mw_assetssubtype_table t4 on a1.assets_type_id = t4.id
+        left join mw_assetssubtype_table t5 on a1.sub_assets_type_id = t5.id
+        WHERE t2.is_user = 1 AND a1.delete_flag = FALSE ) t1
+        LEFT JOIN
+        (SELECT type_id,user_id FROM mw_user_mapper where type='INASSETS') t2 ON t1.id = t2.type_id
+        WHERE
+        user_id =#{userId,jdbcType=INTEGER}
+        <include refid="criteria"></include>
+        <include refid="union_group"></include>
+        ) as o1 ORDER BY o1.create_date desc
+    </select>
+    <select id="selectPubList" parameterType="cn.mw.monitor.assets.api.param.assets.QueryIntangAssetsParam"
+            resultMap="ListResultMap">
+        <choose>
+            <when test="isAdmin==false">
+                select
+                o1.assetsTypeName,
+                o1.subAssetsTypeName,
+                <include refid="Base_Column_List_alias"><property name="alias" value="o1."/></include>
+                from (
+            </when>
+            <otherwise>
+            </otherwise>
+        </choose>
+        select
+        t3.assetsTypeName,
+        t3.subAssetsTypeName,
+        <include refid="Base_Column_List_alias"><property name="alias" value="t3."/></include>
+        from (
+        select distinct t1.id,
+        t4.type_name as assetsTypeName,
+        t5.type_name as subAssetsTypeName,
+        <include refid="Base_Column_List1_alias"><property name="alias" value="t1."/></include> from  mw_intangibleassets_table t1
+        left join mw_assetssubtype_table t4 on t1.assets_type_id = t4.id
+        left join mw_assetssubtype_table t5 on t1.sub_assets_type_id = t5.id
+        <choose>
+            <when test="isAdmin==false">
+                LEFT JOIN
+                (SELECT type_id,org_id FROM mw_org_mapper where type='INASSETS') t2 ON t1.id = t2.type_id
+                WHERE t1.delete_flag = FALSE
+                AND org_id IN
+                <foreach collection="orgIds" item="item" index="index" open="(" separator="," close=")">
+                    #{item.value,jdbcType=INTEGER}
+                </foreach>) t3
+                where 1=1
+                <include refid="criteria"></include>
+                <include refid="union_group"></include>
+                ) as o1 ORDER BY o1.create_date desc
+            </when>
+            <otherwise>
+                WHERE t1.delete_flag = FALSE
+                <include refid="criteria"><property name="alias" value="t1."/></include>
+                ) t3 ORDER BY t3.create_date desc
+            </otherwise>
+        </choose>
+
+    </select>
+
+    <select id="selectLabelList" parameterType="cn.mw.monitor.assets.api.param.assets.QueryIntangAssetsParam"
+            resultMap="ListResultMap">
+        select t.* from (SELECT
+        t1.*
+        <foreach collection="allLabelList" item="allList" separator="," open=",">
+            (case t2.labelCode when #{allList.prop,jdbcType=VARCHAR} then t2.labelValue end ) as
+            #{allList.prop,jdbcType=VARCHAR}
+        </foreach>
+        FROM
+        mw_intangibleassets_table t1
+        left join
+        (select
+        t1.assets_id,
+        t2.label_code labelCode,
+        t2.choose_add chooseAdd,
+        case t2.input_format
+        when 1 then t1.tagboard
+        when 2 then t1.date_tagboard
+        when 3 then t3.drop_key
+        end labelValue
+        from mw_assetslabel_table t1
+        left join mw_labelmanage_table t2 on t1.label_id = t2.label_id
+        left join mw_dropdown_table t3 on t2.dropdown_value = t3.drop_code and t1.tagboard = t3.drop_key) t2 on t1.id =
+        t2.assets_id
+        where 1=1
+        and t1.delete_flag = FALSE
+        group by t1.id)t
+        where 1=1
+        and delete_flag = false
+        <include refid="criteria"></include>
+        <if test="labelList != null &amp;&amp; labelList.size() >0">
+            <foreach collection="labelList" item="queryList">
+                <if test="queryList.labelCode != null &amp;&amp; queryList.labelCode != ''">
+                    <choose>
+                        <when test="queryList.formatValue == 2">
+                            and <![CDATA[#{queryList.labelDateStart,jdbcType=TIMESTAMP} =< ${queryList.labelCode}  ]]>
+                            and <![CDATA[#{queryList.labelDateEnd,jdbcType=TIMESTAMP} => ${queryList.labelCode}  ]]>
+                        </when>
+                        <when test="queryList.formatValue == 3">
+                            and ${queryList.labelCode} = #{queryList.selectValue,jdbcType=VARCHAR}
+                        </when>
+                        <otherwise>and ${queryList.labelCode} like
+                            CONCAT('%',#{queryList.labelValue,jdbcType=VARCHAR},'%')
+                        </otherwise>
+                    </choose>
+                </if>
+            </foreach>
+        </if>
+    </select>
+
+    <select id="checkAdd" parameterType="cn.mw.monitor.assets.api.param.assets.QueryIntangAssetsParam"
+            resultType="cn.mw.monitor.assets.dto.MwIntangibleassetsDTO">
+        select * from
+        <include refid="tb"></include>
+        where 1=1
+        and delete_flag = false
+        <if test="assetsNumber != null  ">
+            and assets_number = #{assetsNumber,jdbcType=INTEGER}
+        </if>
+        <if test="assetsName != null and assetsName !=''">
+            and assets_name = #{assetsName,jdbcType=VARCHAR}
+        </if>
+        <if test="assetsContent != null and assetsContent !=''">
+            and assets_content = #{assetsContent,jdbcType=VARCHAR}
+        </if>
+    </select>
+
+    <delete id="updateAssetsState" parameterType="cn.mw.monitor.service.assets.param.UpdateAssetsStateParam">
+        update
+        <include refid="tb"/>
+        set enable = #{enable,jdbcType=VARCHAR}
+        where id in
+        <foreach collection="idList" item="ids" separator="," open="(" close=")">
+            #{ids,jdbcType=VARCHAR}
+        </foreach>
+    </delete>
+
+
+<!--    <select id="getDropdown" resultType="cn.mw.monitor.assets.api.param.assets.AssetsStatesParam">-->
+<!--        select-->
+<!--            drop_val as dropKey,-->
+<!--            drop_value as dropValue-->
+<!--        from-->
+<!--            mw_dropdown_table-->
+<!--        where-->
+<!--        delete_flag = false-->
+<!--        and drop_code = "enable"-->
+<!--    </select>-->
+
+</mapper>

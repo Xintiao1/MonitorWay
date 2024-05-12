@@ -1,0 +1,708 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.mw.monitor.assets.dao.MwOutbandAssetsTableDao">
+
+    <resultMap id="ParentMap" type="cn.mw.monitor.assets.model.MwOutbandAssetsTable">
+        <id column="id" jdbcType="VARCHAR" property="id" />
+        <result column="assets_id" jdbcType="VARCHAR" property="assetsId" />
+        <result column="assets_name" jdbcType="VARCHAR" property="assetsName" />
+        <result column="host_name" jdbcType="VARCHAR" property="hostName" />
+        <result column="ip_address" jdbcType="VARCHAR" property="ipAddress" />
+        <result column="assets_type_id" jdbcType="INTEGER" property="assetsTypeId" />
+        <result column="assetsTypeName" jdbcType="VARCHAR" property="assetsTypeName" />
+        <result column="assets_type_sub_id" jdbcType="INTEGER" property="assetsTypeSubId" />
+        <result column="assetsTypeSubName" jdbcType="VARCHAR" property="assetsTypeSubName" />
+        <result column="polling_engine" jdbcType="VARCHAR" property="pollingEngine" />
+        <result column="monitor_mode" jdbcType="INTEGER" property="monitorMode" />
+        <result column="monitorModeName" jdbcType="VARCHAR" property="monitorModeName" />
+        <result column="manufacturer" jdbcType="VARCHAR" property="manufacturer" />
+        <result column="specifications" jdbcType="VARCHAR" property="specifications" />
+        <result column="description" jdbcType="VARCHAR" property="description" />
+        <result column="enable" jdbcType="VARCHAR" property="enable" />
+        <result column="delete_flag" jdbcType="BIT" property="deleteFlag" />
+        <result column="monitor_flag" jdbcType="BIT" property="monitorFlag" />
+        <result column="setting_flag" jdbcType="BIT" property="settingFlag" />
+        <result column="creator" jdbcType="VARCHAR" property="creator" />
+        <result column="create_date" jdbcType="TIMESTAMP" property="createDate" />
+        <result column="modifier" jdbcType="VARCHAR" property="modifier" />
+        <result column="modification_date" jdbcType="TIMESTAMP" property="modificationDate" />
+        <result column="monitor_server_id" jdbcType="INTEGER" property="monitorServerId" />
+        <result column="monitorServerName" jdbcType="VARCHAR" property="monitorServerName" />
+        <result column="pollingEngineName" jdbcType="VARCHAR" property="pollingEngineName" />
+        <result column="vendor_small_icon" jdbcType="VARCHAR" property="vendorSmallIcon"/>
+        <result column="scan_success_id" jdbcType="INTEGER" property="scanSuccessId" />
+        <result column="template_id" jdbcType="VARCHAR" property="templateId"/>
+        <result column="tp_server_host_name" jdbcType="VARCHAR" property="tpServerHostName"/>
+    </resultMap>
+
+    <resultMap id="LabelResultMap" type="cn.mw.monitor.assets.dto.MwOutbandAssetsDTO" extends="ParentMap" >
+        <association property="monitorModeName" javaType="java.lang.String" select="selectMonitorModeName" column="monitor_mode">
+        </association>
+        <association property="pollingEngineName" javaType="java.lang.String" select="selectPollingEngineName" column="polling_engine">
+        </association>
+        <association property="assetsTypeSubName" javaType="java.lang.String" select="selectTypeName" column="assets_type_sub_id">
+        </association>
+        <association property="assetsTypeName" javaType="java.lang.String" select="selectTypeName" column="assets_type_id">
+        </association>
+        <association property="monitorServerName" javaType="java.lang.String" select="selectMonitorServerName" column="monitor_server_id">
+        </association>
+        <collection property="assetsLabel" ofType="cn.mw.monitor.service.assets.model.MwAssetsLabelDTO" select="selectLabel" column="id">
+            <result column="labelName" jdbcType="VARCHAR" property="labelName"/>
+            <result column="labelValue" jdbcType="VARCHAR" property="labelValue"/>
+        </collection>
+    </resultMap>
+
+    <resultMap id="BaseResultMap" type="cn.mw.monitor.assets.dto.MwOutbandAssetsDTO" extends="ParentMap" >
+        <association property="mwIPMIAssetsDTO" javaType="cn.mw.monitor.service.assets.param.MwIPMIAssetsDTO" select="selectIPMI" column="id">
+            <result column="port" property="port"/>
+        </association>
+        <collection property="principal" ofType="cn.mw.monitor.service.assets.model.UserDTO" select="selectUser" column="id">
+            <id column="user_id" jdbcType="INTEGER" property="userId"/>
+            <result column="user_name" jdbcType="VARCHAR" property="userName"/>
+            <result column="login_name" jdbcType="VARCHAR" property="loginName"/>
+            <result column="user_state" jdbcType="VARCHAR" property="userState"/>
+        </collection>
+        <collection property="department" ofType="cn.mw.monitor.service.assets.model.OrgDTO" select="selectOrg" column="id">
+            <id column="org_id" jdbcType="VARCHAR" property="orgId"/>
+            <result column="org_name" jdbcType="VARCHAR" property="orgName"/>
+            <result column="nodes" jdbcType="VARCHAR" property="nodes"/>
+        </collection>
+        <collection property="group" ofType="cn.mw.monitor.service.assets.model.GroupDTO" select="selectGroup" column="id" >
+            <id column="group_id" property="groupId"/>
+            <result column="group_name" property="groupName"/>
+        </collection>
+    </resultMap>
+
+    <select id="selectTypeName" parameterType="java.lang.Integer" resultType="java.lang.String">
+        select type_name from mw_assetssubtype_table where id = #{id,jdbcType=INTEGER}
+    </select>
+
+    <select id="selectMonitorModeName" parameterType="java.lang.Integer" resultType="java.lang.String">
+        select drop_value from mw_dropdown_table where name = 'monitor_mode' and drop_id = #{id,jdbcType=INTEGER}
+    </select>
+
+    <select id="selectMonitorServerName" parameterType="java.lang.Integer" resultType="java.lang.String">
+        select monitoring_server_name from mw_thirdparty_server_table where id = #{id,jdbcType=INTEGER}
+    </select>
+
+    <select id="selectPollingEngineName" parameterType="java.lang.Integer" resultType="java.lang.String">
+        select engine_name from mw_enginemanage_table where id = #{id,jdbcType=INTEGER}
+    </select>
+
+    <select id="selectUser" parameterType="java.lang.String" resultType="cn.mw.monitor.service.assets.model.UserDTO">
+        select
+        t2.user_id userId,t2.user_name userName,t2.login_name loginName,t2.user_state userState
+        from mw_user_mapper t1
+        left join mw_sys_user t2 on t1.user_id = t2.user_id
+        where t1.type_id = #{id,jdbcType=VARCHAR} and t1.type='OUTBANDASSETS'
+    </select>
+
+    <select id="selectOrg" parameterType="java.lang.String" resultType="cn.mw.monitor.service.assets.model.OrgDTO">
+        select
+        t2.org_id orgId,t2.org_name orgName,t2.nodes
+        from mw_org_mapper t1
+        left join mw_sys_org t2 on t1.org_id = t2.org_id
+        where t1.type_id = #{id,jdbcType=VARCHAR} and t1.type='OUTBANDASSETS'
+    </select>
+
+    <select id="selectGroup" parameterType="java.lang.String" resultType="cn.mw.monitor.service.assets.model.GroupDTO">
+        select
+        t2.group_id groupId,t2.group_name groupName
+        from mw_group_mapper t1
+        left join mw_group_table t2 on t1.group_id = t2.group_id
+        where t1.type_id = #{id,jdbcType=VARCHAR} and t1.type='OUTBANDASSETS'
+    </select>
+
+    <select id = "selectIPMI" parameterType="java.lang.String" resultType="cn.mw.monitor.service.assets.param.MwIPMIAssetsDTO">
+        select
+        port
+        from mw_agentassets_table
+        where assets_id = #{id,jdbcType=VARCHAR}
+    </select>
+
+<!--    <select id="selectPort" parameterType="java.lang.String" resultType="cn.mw.monitor.service.assets.model.MwPortAssetsDTO">-->
+<!--        select-->
+<!--        port,-->
+<!--        protocol_type-->
+<!--        from mw_portassets_table-->
+<!--        where assets_id = #{id,jdbcType=VARCHAR}-->
+<!--    </select>-->
+
+    <select id="selectLabel" parameterType="java.lang.String" resultType="cn.mw.monitor.service.assets.model.MwAssetsLabelDTO">
+        SELECT
+        labelName, GROUP_CONCAT(labelValue) labelValue
+        FROM (
+        SELECT
+        t2.label_name labelName,
+        CASE
+        t2.input_format
+        WHEN 1 THEN
+        t1.tagboard
+        WHEN 2 THEN
+        date_format(t1.date_tagboard, '%Y-%m-%d %H:%i:%s')
+        WHEN 3 THEN
+        t3.drop_value
+        END labelValue
+        FROM
+        mw_assetslabel_table t1
+        LEFT JOIN mw_labelmanage_table t2 ON t1.label_id = t2.id
+        LEFT JOIN mw_dropdown_table t3 ON t2.dropdown_value = t3.NAME
+        AND t1.tagboard = t3.drop_id
+        where t1.assets_id = #{id,jdbcType=VARCHAR}
+        ) t
+        GROUP BY  labelName
+    </select>
+
+    <select id="selectLabelForId" parameterType="java.lang.String" resultType="cn.mw.monitor.service.assets.model.MwAssetsLabelDTO">
+        select
+        t1.label_id labelId,
+        t1.tagboard,
+        t1.date_tagboard dateTagboard,
+        t3.drop_id dropId,
+        t3.drop_value dropValue,
+        t2.choose_add chooseAdd,
+        t2.id,
+        t2.label_code prop,
+        t2.dropdown_value url,
+        t1.assets_id,
+        t2.input_format inputFormat,
+        t2.label_name labelName
+        from mw_assetslabel_table t1
+        left join mw_labelmanage_table t2 on t1.label_id = t2.id
+        left join mw_dropdown_table t3 on t2.dropdown_value = t3.name and t1.tagboard = t3.drop_id
+        where t1.assets_id = #{id,jdbcType=VARCHAR}
+    </select>
+
+    <sql id="Base_Column_List">
+    ${alias}id,
+    ${alias}ip_address,
+    ${alias}assets_id,
+    ${alias}assets_name,
+    ${alias}host_name,
+    ${alias}assets_type_id,
+    ${alias}assets_type_sub_id,
+    ${alias}polling_engine,
+    ${alias}monitor_mode,
+    ${alias}manufacturer,
+    ${alias}specifications,
+    ${alias}description,
+    ${alias}enable,
+    ${alias}delete_flag,
+    ${alias}monitor_flag,
+    ${alias}setting_flag,
+    ${alias}creator,
+    ${alias}create_date,
+    ${alias}modifier,
+    ${alias}modification_date,
+    ${alias}scan_success_id,
+    ${alias}monitor_server_id,
+    ${alias}template_id,
+    ${alias}tp_server_host_name
+  </sql>
+
+    <sql id="Base_Column_List1">
+     ${alias}ip_address,
+     ${alias}assets_id,
+     ${alias}assets_name,
+     ${alias}host_name,
+     ${alias}assets_type_id,
+     ${alias}assets_type_sub_id,
+     ${alias}polling_engine,
+     ${alias}monitor_mode,
+     ${alias}manufacturer,
+     ${alias}specifications,
+     ${alias}description,
+     ${alias}enable,
+     ${alias}delete_flag,
+     ${alias}monitor_flag,
+     ${alias}setting_flag,
+     ${alias}creator,
+     ${alias}create_date,
+     ${alias}modifier,
+     ${alias}modification_date,
+     ${alias}scan_success_id,
+     ${alias}monitor_server_id,
+     ${alias}template_id,
+     ${alias}tp_server_host_name
+  </sql>
+
+    <sql id="Add_Column_List">
+     id, assets_id, assets_name, host_name, ip_address, assets_type_id,
+    assets_type_sub_id, polling_engine, monitor_mode, manufacturer, specifications, description,
+    `enable`, delete_flag, monitor_flag, setting_flag,
+    creator, create_date, modifier, modification_date, scan_success_id, monitor_server_id, tp_server_host_name, template_id
+  </sql>
+
+    <sql id="union_group">
+        <if test="groupIds!=null">
+            UNION
+            SELECT
+            t1.monitorModeName,
+            t1.assetsTypeName,
+            t1.assetsTypeSubName,
+            t1.monitorServerName,
+            t1.vendor_small_icon,
+            t1.vendorCustomFlag,
+            t1.pollingEngineName,
+            <include refid="Base_Column_List"><property name="alias" value="t1."/></include>
+            FROM (SELECT
+            a1.id,
+            d3.drop_value as monitorModeName,
+            d4.type_name as assetsTypeName,
+            d5.type_name as assetsTypeSubName,
+            d6.monitoring_server_name as monitorServerName,
+            vendor1.vendor_small_icon,
+            vendor1.custom_flag as vendorCustomFlag,
+            engine1.engine_name as pollingEngineName,
+            <include refid="Base_Column_List1"><property name="alias" value="a1."/></include>
+            FROM mw_outbandassets_table a1
+            left join mw_dropdown_table d3 on d3.drop_code = 'monitor_mode' and d3.drop_id = a1.monitor_mode
+            left join mw_assetssubtype_table d4 on a1.assets_type_id = d4.id
+            left join mw_assetssubtype_table d5 on a1.assets_type_sub_id = d5.id
+            left join mw_thirdparty_server_table d6 on a1.monitor_server_id = d6.id
+            LEFT JOIN mw_datapermission t2 ON a1.id = t2.type_id
+            left join mw_base_vendor_icon vendor1 on a1.manufacturer = vendor1.vendor
+            left join mw_enginemanage_table engine1 on a1.polling_engine = engine1.id
+            WHERE
+            t2.is_group =1 AND a1.delete_flag = FALSE ) t1
+            LEFT JOIN
+            (SELECT type_id,group_id FROM mw_group_mapper where type='OUTBANDASSETS') t2 ON t1.id = t2.type_id
+            where group_id IN
+            <foreach collection="groupIds" item="item" index="index" open="(" separator="," close=")">
+                #{item.value,jdbcType=INTEGER}
+            </foreach>
+            <include refid="criteria_other1"><property name="alias" value="t1."/></include>
+            <include refid="criteria_other1"><property name="alias" value="t1."/></include>
+            <include refid="criteria_base"><property name="alias" value="t1."/></include>
+        </if>
+    </sql>
+
+    <sql id ="tb">
+     mw_outbandassets_table
+  </sql>
+    <sql id="criteria_base">
+        <if test="ids !=null ">
+            and ${alias}id in
+            <foreach collection="ids" item="item" index="index" open="(" close=")" separator=",">
+                #{item}
+            </foreach>
+        </if>
+        <if test="assetsId != null and assetsId !='' " >
+            and ${alias}assets_id = #{assetsId,jdbcType=VARCHAR}
+        </if>
+        <if test="hostName != null and hostName !=''">
+            and ${alias}host_name like  concat ('%' ,#{hostName,jdbcType=VARCHAR},'%')
+        </if>
+        <if test="assetsName != null and assetsName !=''">
+            and ${alias}assets_name like  concat ('%' ,#{assetsName,jdbcType=VARCHAR},'%')
+        </if>
+        <if test="ipAddress != null">
+            and ${alias}ip_address  like  concat ('%' ,#{ipAddress,jdbcType=VARCHAR},'%')
+        </if>
+        <if test="assetsTypeId != null">
+            and ${alias}assets_type_id = #{assetsTypeId,jdbcType=INTEGER}
+        </if>
+        <if test="assetsTypeSubId != null">
+            and ${alias}assets_type_sub_id = #{assetsTypeSubId,jdbcType=INTEGER}
+        </if>
+        <if test="pollingEngine != null and pollingEngine == 'localhost'">
+            and ${alias}polling_engine = ''
+        </if>
+        <if test="pollingEngine != null and pollingEngine != 'localhost'">
+            and ${alias}polling_engine = #{pollingEngine,jdbcType=VARCHAR}
+        </if>
+        <if test="monitorMode != null">
+            and ${alias}monitor_mode = #{monitorMode,jdbcType=INTEGER}
+        </if>
+        <if test="manufacturer != null and manufacturer != ''">
+            and ${alias}manufacturer like CONCAT('%',#{manufacturer,jdbcType=VARCHAR},'%')
+        </if>
+        <if test="specifications != null and specifications !=''">
+            and ${alias}specifications like CONCAT('%',#{specifications,jdbcType=VARCHAR},'%')
+        </if>
+        <if test="description != null and description !=''">
+            and ${alias}description  like CONCAT('%',#{description,jdbcType=VARCHAR},'%')
+        </if>
+        <if test="enable != null">
+            and ${alias}enable = #{enable,jdbcType=VARCHAR}
+        </if>
+        <if test="monitorFlag != null">
+            and  ${alias}monitor_flag = #{monitorFlag,jdbcType=BIT}
+        </if>
+        <if test="settingFlag != null">
+            and  ${alias}setting_flag = #{settingFlag,jdbcType=BIT}
+        </if>
+        <if test="creator != null and creator != ''">
+            and ${alias}creator like CONCAT('%',#{creator,jdbcType=VARCHAR},'%')
+        </if>
+        <if test="createDateStart != null">
+            and <![CDATA[#{createDateStart,jdbcType=TIMESTAMP} <= ${alias}create_date ]]>
+        </if>
+        <if test="createDateEnd != null">
+            and <![CDATA[#{createDateEnd,jdbcType=TIMESTAMP} >= ${alias}create_date ]]>
+        </if>
+        <if test="modifier != null and modifier != ''">
+            and  ${alias}modifier like CONCAT('%',#{modifier,jdbcType=VARCHAR},'%')
+        </if>
+        <if test="modificationDateStart != null">
+            and  <![CDATA[#{modificationDateStart,jdbcType=TIMESTAMP} <= ${alias}modification_date ]]>
+        </if>
+        <if test="modificationDateEnd != null">
+            and  <![CDATA[#{modificationDateEnd,jdbcType=TIMESTAMP} >= ${alias}modification_date ]]>
+        </if>
+        <if test="monitorServerId != null">
+            and ${alias}monitor_server_id = #{monitorServerId,jdbcType=INTEGER}
+        </if>
+    </sql>
+
+    <sql id="criteria_other1">
+        <if test="assetsTypeName != null and assetsTypeName != '' ">
+            and ${alias}type_name = #{assetsTypeName,jdbcType=VARCHAR}
+        </if>
+    </sql>
+    <sql id="criteria_other2">
+        <if test="assetsTypeSubName != null and assetsTypeSubName != '' ">
+            and ${alias}type_name = #{assetsTypeSubName,jdbcType=VARCHAR}
+        </if>
+    </sql>
+
+    <!--  根据主键查找-->
+    <select id="selectById" parameterType="java.lang.String" resultMap="BaseResultMap">
+        select
+        t4.type_name assetsTypeName,
+        t5.type_name assetsTypeSubName,
+        <include refid="Base_Column_List" ><property name="alias" value="t."/></include>
+        from mw_outbandassets_table t
+        left join mw_assetssubtype_table t4 on t.assets_type_id = t4.id
+        left join mw_assetssubtype_table t5 on t.assets_type_sub_id = t5.id
+        where t.id = #{id,jdbcType=VARCHAR}
+    </select>
+
+    <!--  批量删除-->
+    <update id="delete" parameterType="java.util.List">
+        update
+        <include refid="tb"></include>
+        set delete_flag = true
+        where id in (
+        <foreach collection="list" item="id" separator=",">
+            #{id ,jdbcType=VARCHAR}
+        </foreach>)
+    </update>
+
+    <!--  批量添加-->
+    <insert id="insertBatch" parameterType="java.util.List">
+        insert into <include refid="tb" />
+        ( <include refid="Add_Column_List" />)
+        values
+        <foreach collection="list" item="assetsList" separator=",">
+            (#{assetsList.id,jdbcType=VARCHAR}, #{assetsList.assetsId,jdbcType=VARCHAR}, #{assetsList.assetsName,jdbcType=VARCHAR},
+            #{assetsList.engineName,jdbcType=VARCHAR}, #{assetsList.ipAddress,jdbcType=VARCHAR},
+            #{assetsList.assetsTypeId,jdbcType=INTEGER}, #{assetsList.assetsTypeSubId,jdbcType=INTEGER}, #{assetsList.pollingEngine,jdbcType=INTEGER},
+            #{assetsList.monitorMode,jdbcType=INTEGER}, #{assetsList.manufacturer,jdbcType=VARCHAR}, #{assetsList.specifications,jdbcType=VARCHAR},
+            #{assetsList.description,jdbcType=VARCHAR},
+            #{assetsList.enable,jdbcType=VARCHAR}, #{assetsList.deleteFlag,jdbcType=BIT}, #{assetsList.monitorFlag,jdbcType=BIT},
+            #{assetsList.settingFlag,jdbcType=BIT}, #{assetsList.creator,jdbcType=VARCHAR}, #{assetsList.createDate,jdbcType=TIMESTAMP},
+            #{assetsList.modifier,jdbcType=VARCHAR}, #{assetsList.modificationDate,jdbcType=TIMESTAMP})
+        </foreach>
+    </insert>
+
+    <!--单个添加-->
+    <insert id="insert" parameterType="cn.mw.monitor.service.assets.param.AddUpdateOutbandAssetsParam" useGeneratedKeys="true" keyProperty="id">
+        insert into <include refid="tb" />
+        ( <include refid="Add_Column_List" />)
+        values
+        (#{id,jdbcType=VARCHAR}
+        , #{assetsId,jdbcType=VARCHAR}
+        , #{assetsName,jdbcType=VARCHAR}
+        , #{hostName,jdbcType=VARCHAR}
+        , #{ipAddress,jdbcType=VARCHAR}
+        , #{assetsTypeId,jdbcType=INTEGER}
+        , #{assetsTypeSubId,jdbcType=INTEGER}
+        , #{pollingEngine,jdbcType=VARCHAR}
+        , #{monitorMode,jdbcType=INTEGER}
+        , #{manufacturer,jdbcType=VARCHAR}
+        , #{specifications,jdbcType=VARCHAR}
+        , #{description,jdbcType=VARCHAR}
+        , #{enable,jdbcType=VARCHAR}
+        , #{deleteFlag,jdbcType=BIT}
+        , #{monitorFlag,jdbcType=BIT}
+        , #{settingFlag,jdbcType=BIT}
+        , #{creator,jdbcType=VARCHAR}
+        , #{createDate,jdbcType=TIMESTAMP}
+        , #{modifier,jdbcType=VARCHAR}
+        , #{modificationDate,jdbcType=TIMESTAMP}
+        , #{scanSuccessId,jdbcType=INTEGER}
+        , #{monitorServerId,jdbcType=INTEGER}
+        , #{TPServerHostName,jdbcType=VARCHAR}
+        , #{templateId,jdbcType=VARCHAR}
+        )
+    </insert>
+
+    <!--  单个修改-->
+    <update id="update" parameterType="cn.mw.monitor.service.assets.param.AddUpdateOutbandAssetsParam">
+        update mw_outbandassets_table
+        <set>
+            polling_engine = #{pollingEngine,jdbcType=VARCHAR},
+            assets_name = #{assetsName,jdbcType=VARCHAR},
+            description = #{description,jdbcType=VARCHAR},
+            modifier = #{modifier,jdbcType=VARCHAR},
+            <if test="ipAddress != null and ipAddress != ''">
+                ip_address = #{ipAddress,jdbcType=VARCHAR},
+            </if>
+            modification_date = now()
+        </set>
+        where id = #{id,jdbcType=VARCHAR}
+    </update>
+
+    <update id="updateBatch" parameterType="cn.mw.monitor.service.assets.param.AddUpdateOutbandAssetsParam">
+        update
+        <include refid="tb"></include>
+        set
+        <if test="pollingEnginecheckbox != null and pollingEnginecheckbox == true">
+            polling_engine = #{pollingEngine,jdbcType=VARCHAR},
+        </if>
+        <if test="descriptioncheckbox == true">
+            description = #{description,jdbcType=VARCHAR},
+        </if>
+        <if test="monitorFlagcheckbox == true">
+            monitor_flag = #{monitorFlag},
+        </if>
+        modifier = #{modifier,jdbcType=VARCHAR},
+        modification_date = now()
+        where
+            id in (
+            <foreach collection="ids" item="id" separator=",">
+                #{id ,jdbcType=VARCHAR}
+            </foreach>)
+    </update>
+
+    <select id="selectPriList" parameterType="java.util.HashMap" resultMap="ParentMap">
+        select
+        t3.monitorModeName,
+        t3.assetsTypeName,
+        t3.assetsTypeSubName,
+        t3.monitorServerName,
+        t3.vendor_small_icon,
+        t3.vendorCustomFlag,
+        t3.pollingEngineName,
+        <include refid="Base_Column_List"><property name="alias" value="t3."/></include>
+        from (
+        select distinct t1.id, d4.drop_value as monitorModeName,
+        t4.type_name as assetsTypeName,
+        t5.type_name as assetsTypeSubName,
+        t6.monitoring_server_name as monitorServerName,
+        engine1.engine_name as pollingEngineName,
+        vendor1.vendor_small_icon,
+        vendor1.custom_flag as vendorCustomFlag,
+        <include refid="Base_Column_List1"><property name="alias" value="t1."/></include>
+        from mw_outbandassets_table t1
+        left join mw_datapermission t2 ON t1.id = t2.type_id
+        left join mw_dropdown_table d4 on d4.drop_code = 'monitor_mode' and d4.drop_id = t1.monitor_mode
+        left join mw_assetssubtype_table t4 on t1.assets_type_id = t4.id
+        left join mw_assetssubtype_table t5 on t1.assets_type_sub_id = t5.id
+        left join mw_thirdparty_server_table t6 on t1.monitor_server_id = t6.id
+        left join mw_enginemanage_table engine1 on t1.polling_engine = engine1.id
+        left join mw_base_vendor_icon vendor1 on t1.manufacturer = vendor1.vendor
+        WHERE t2.is_user = 1 AND t1.delete_flag = FALSE ) t3
+        LEFT JOIN
+        (SELECT type_id,user_id FROM mw_user_mapper where type='OUTBANDASSETS') o2 ON t3.id = o2.type_id
+        WHERE
+        user_id =#{userId,jdbcType=INTEGER}
+        <include refid="criteria_base"><property name="alias" value="t3."/></include>
+        <include refid="criteria_other1"><property name="alias" value="t3."/></include>
+        <include refid="criteria_other2"><property name="alias" value="t3."/></include>
+        <include refid="union_group"></include>
+    </select>
+    <select id="selectPubList" parameterType="java.util.HashMap" resultMap="ParentMap">
+        select
+        t3.monitorModeName
+        ,t3.assetsTypeName
+        ,t3.assetsTypeSubName,
+        t3.monitorServerName,
+        t3.vendor_small_icon,
+        t3.vendorCustomFlag,
+        t3.pollingEngineName,
+        <include refid="Base_Column_List"><property name="alias" value="t3."/></include>
+        from (
+        select  distinct t1.id,
+        d4.drop_value as monitorModeName,
+        t4.type_name as assetsTypeName,
+        t5.type_name as assetsTypeSubName,
+        t6.monitoring_server_name as monitorServerName,
+        engine1.engine_name as pollingEngineName,
+        vendor1.vendor_small_icon,
+        vendor1.custom_flag as vendorCustomFlag,
+        <include refid="Base_Column_List1"><property name="alias" value="t1."/></include>
+        from mw_outbandassets_table t1
+        left join mw_dropdown_table d4 on d4.drop_code = 'monitor_mode' and d4.drop_id = t1.monitor_mode
+        left join mw_assetssubtype_table t4 on t1.assets_type_id = t4.id
+        left join mw_assetssubtype_table t5 on t1.assets_type_sub_id = t5.id
+        left join mw_thirdparty_server_table t6 on t1.monitor_server_id = t6.id
+        left join mw_enginemanage_table engine1 on t1.polling_engine = engine1.id
+        left join mw_base_vendor_icon vendor1 on t1.manufacturer = vendor1.vendor
+        <choose>
+        <when test="isAdmin==false">
+            LEFT JOIN
+            (SELECT type_id,org_id FROM mw_org_mapper where type='OUTBANDASSETS') t2 ON t1.id = t2.type_id
+            WHERE t1.delete_flag = FALSE
+            AND org_id IN
+            <foreach collection="orgIds" item="item" index="index" open="(" separator="," close=")">
+                #{item.value,jdbcType=INTEGER}
+            </foreach>) t3 where 1=1
+            <include refid="criteria_base"><property name="alias" value="t3."/></include>
+            <include refid="criteria_other1"><property name="alias" value="t3."/></include>
+            <include refid="criteria_other2"><property name="alias" value="t3."/></include>
+            <include refid="union_group"></include>
+        </when>
+        <otherwise>
+            WHERE t1.delete_flag = FALSE
+            <include refid="criteria_base"><property name="alias" value="t1."/></include>
+            <include refid="criteria_other1"><property name="alias" value="t4."/></include>
+            <include refid="criteria_other2"><property name="alias" value="t5."/></include>
+            ) t3
+        </otherwise>
+        </choose>
+        <if test="fuzzyQuery != null and fuzzyQuery != ''">
+            WHERE
+            CONCAT(
+            IFNULL( t3.assets_name, '' ),
+            IFNULL( t3.ip_address, '' ),
+            IFNULL( t3.specifications, '' ),
+            IFNULL( t3.creator, '' ),
+            IFNULL( t3.modifier, '' ),
+            IFNULL( t3.assetsTypeName, '' ),
+            IFNULL( t3.description, '' ),
+            IFNULL( t3.assetsTypeSubName, '' )
+            ) LIKE CONCAT( '%',#{fuzzyQuery,jdbcType=VARCHAR}, '%' )
+            ORDER BY
+            ( CASE WHEN INSTR( t3.assets_name, #{fuzzyQuery}) > 0 THEN 0 ELSE 1 END ),
+            ( CASE WHEN INSTR( t3.ip_address, #{fuzzyQuery}) > 0 THEN 0 ELSE 1 END ),
+            ( CASE WHEN INSTR( t3.specifications, #{fuzzyQuery} ) > 0 THEN 0 ELSE 1 END ),
+            ( CASE WHEN INSTR( t3.creator, #{fuzzyQuery} ) > 0 THEN 0 ELSE 1 END ),
+            ( CASE WHEN INSTR( t3.modifier, #{fuzzyQuery} ) > 0 THEN 0 ELSE 1 END ),
+            ( CASE WHEN INSTR( t3.assetsTypeName, #{fuzzyQuery} ) > 0 THEN 0 ELSE 1 END ),
+            ( CASE WHEN INSTR( t3.description, #{fuzzyQuery} ) > 0 THEN 0 ELSE 1 END ),
+            ( CASE WHEN INSTR( t3.assetsTypeSubName, #{fuzzyQuery}) > 0 THEN 0 ELSE 1 END )
+        </if>
+    </select>
+
+    <select id="check" parameterType="cn.mw.monitor.service.assets.param.QueryOutbandAssetsParam"
+            resultType="cn.mw.monitor.assets.dto.MwOutbandAssetsDTO">
+        select * from
+        <include refid="tb"></include>
+        where 1=1
+        and delete_flag = false
+        <if test="ipAddress != null">
+            and ip_address = #{ipAddress,jdbcType=VARCHAR}
+        </if>
+    </select>
+
+    <select id="selectAllLabel" resultType="cn.mw.monitor.service.assets.model.MwAllLabelDTO" parameterType="cn.mw.monitor.assets.api.param.assets.QueryLabelParam">
+        select
+        t1.id,
+        t1.label_code prop,
+        t1.label_name label,
+        t1.input_format inputFormat,
+        t1.dropdown_value url
+        from mw_labelmanage_table t1
+        left join mw_label_assetstype_mapper t2 on t1.id = t2.label_id
+        where 1=1
+        and t2.assets_type_id =  #{assetsTypeId,jdbcType=INTEGER}
+        <if test="labelName != null and labelName != ''">
+            and t1.label_name LIKE CONCAT('%',#{labelName,jdbcType=VARCHAR},'%')
+        </if>
+    </select>
+
+    <update id="updateAssetsState" parameterType="cn.mw.monitor.service.assets.param.UpdateAssetsStateParam">
+        update <include refid="tb"/>
+        set enable = #{enable,jdbcType=VARCHAR}
+        where id in (
+        <foreach collection="idList" item="list" separator=",">
+            #{list ,jdbcType=VARCHAR}
+        </foreach>)
+    </update>
+    <update id="updateAssetsMonState" parameterType="cn.mw.monitor.assets.api.param.assets.UpdateMonStateParam">
+        update <include refid="tb"/>
+        set monitor_flag = #{monitorFlag,jdbcType=BIT}
+        where id in (
+        <foreach collection="idList" item="list" separator=",">
+            #{list ,jdbcType=VARCHAR}
+        </foreach>)
+    </update>
+
+    <update id="updateAssetsSetState" parameterType="cn.mw.monitor.assets.api.param.assets.UpdateSetStateParam">
+        update <include refid="tb"/>
+        set setting_flag = #{settingFlag,jdbcType=BIT}
+        where id in (
+        <foreach collection="idList" item="list" separator=",">
+            #{list ,jdbcType=VARCHAR}
+        </foreach>)
+    </update>
+
+    <select id="selectIPDropdownList" resultType="java.lang.String">
+        select
+        ip_address
+        from mw_outbandassets_table
+        where delete_flag = false
+    </select>
+
+    <update id="updateTemplateId" >
+        update <include refid="tb"/>
+        set template_id = #{templateId,jdbcType=VARCHAR}
+        where id =  #{id,jdbcType=VARCHAR}
+    </update>
+    <update id="updateTemplateIdBatch">
+        <foreach collection="list" item="updateList" separator=";">
+            update mw_outbandassets_table
+            set template_id = #{updateList.templateId,jdbcType=VARCHAR}
+            where assets_id = #{updateList.hostId,jdbcType=INTEGER}
+        </foreach>
+    </update>
+
+    <select id="selectTopoAssetsList" parameterType="java.util.HashMap" resultMap="ParentMap">
+        select
+        <include refid="Base_Column_List"><property name="alias" value=""/></include>
+        from
+        <include refid="tb"></include>
+        where delete_flag = false
+<!--        <include refid="criteria"/>-->
+    </select>
+
+    <resultMap id="OutResultMap" type="cn.mw.monitor.assets.dto.OutbandWithAssetsDTO">
+        <id column="outbandId" jdbcType="INTEGER" property="outbandId"/>
+        <result column="outbandAssetsName" jdbcType="VARCHAR" property="outbandAssetsName"/>
+        <collection property="assetsList" resultMap="StringResultMap"/>
+    </resultMap>
+    <resultMap id="StringResultMap" type="cn.mw.monitor.assets.dto.AssetsDTO">
+        <id column="assetsId" jdbcType="VARCHAR" property="id"/>
+        <result column="assetsName" jdbcType="VARCHAR" property="assetsName"/>
+        <result column="hostId" jdbcType="VARCHAR" property="assetsId"/>
+        <result column="monitorServerId" jdbcType="VARCHAR" property="monitorServerId"/>
+    </resultMap>
+
+    <select id="selectRelevanceByOBIds" parameterType="java.util.HashMap" resultMap="OutResultMap">
+    SELECT
+	    t1.id outbandId,
+	    t1.assets_name outbandAssetsName,
+	    t2.id,
+	    t2.assets_name assetsName
+    FROM
+	( SELECT id, assets_name, ip_address FROM mw_outbandassets_table WHERE delete_flag = FALSE AND id = #{id,jdbcType=VARCHAR}
+	 ) t1
+	LEFT JOIN ( SELECT id, assets_name, out_band_ip FROM mw_tangibleassets_table WHERE delete_flag = FALSE ) t2 ON t2.out_band_ip = t1.ip_address
+    </select>
+    <select id="selectTangibleAssetsByIps" resultType="java.lang.String">
+        select
+            id
+        from
+            mw_tangibleassets_table
+        where delete_flag = false
+        <if test="ips != null and ips.size > 0">
+            and out_band_ip in (
+            <foreach collection="ips" item="ip" separator=",">
+                #{ip}
+            </foreach>)
+        </if>
+    </select>
+
+</mapper>

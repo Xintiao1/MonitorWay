@@ -1,0 +1,239 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.mw.monitor.accountmanage.dao.MwAccountManageTableDao">
+
+  <resultMap id="BaseMap" type="cn.mw.monitor.accountmanage.entity.MwAccountManageTable">
+    <id column="id" jdbcType="VARCHAR" property="id"/>
+    <result column="account" jdbcType="VARCHAR" property="account"/>
+    <result column="enable" jdbcType="BIT" property="enable"/>
+    <result column="protocol" jdbcType="VARCHAR" property="protocol"/>
+    <result column="port" jdbcType="VARCHAR" property="port"/>
+    <result column="username" jdbcType="VARCHAR" property="username"/>
+    <result column="password" jdbcType="VARCHAR" property="password"/>
+    <result column="enable_cmd" jdbcType="VARCHAR" property="enableCmd"/>
+    <result column="enable_password" jdbcType="VARCHAR" property="enablePassword"/>
+    <result column="creator" jdbcType="VARCHAR" property="creator"/>
+    <result column="create_date" jdbcType="TIMESTAMP" property="createDate"/>
+    <result column="modifier" jdbcType="VARCHAR" property="modifier"/>
+    <result column="modification_date" jdbcType="TIMESTAMP" property="modificationDate"/>
+    <result column="system_type" jdbcType="VARCHAR" property="systemType"/>
+    <result column="pid" jdbcType="INTEGER" property="pid"/>
+    <result column="ip_down" jdbcType="VARCHAR" property="ipDown"/>
+    <result column="tftp_type" jdbcType="INTEGER" property="tftpType"/>
+  </resultMap>
+
+  <resultMap id="BaseMap1" type="cn.mw.monitor.accountmanage.entity.MwQueryAccountManageTable">
+    <id column="id" jdbcType="VARCHAR" property="id"/>
+    <result column="account" jdbcType="VARCHAR" property="account"/>
+    <result column="enable" jdbcType="BIT" property="enable"/>
+    <result column="protocol" jdbcType="VARCHAR" property="protocol"/>
+    <result column="port" jdbcType="VARCHAR" property="port"/>
+    <result column="username" jdbcType="VARCHAR" property="username"/>
+    <result column="password" jdbcType="VARCHAR" property="password"/>
+    <result column="enable_cmd" jdbcType="VARCHAR" property="enableCmd"/>
+    <result column="enable_password" jdbcType="VARCHAR" property="enablePassword"/>
+    <result column="creator" jdbcType="VARCHAR" property="creator"/>
+    <result column="create_date" jdbcType="TIMESTAMP" property="createDate"/>
+    <result column="modifier" jdbcType="VARCHAR" property="modifier"/>
+    <result column="modification_date" jdbcType="TIMESTAMP" property="modificationDate"/>
+    <result column="system_type" jdbcType="VARCHAR" property="systemType"/>
+    <result column="pid" jdbcType="INTEGER" property="pid"/>
+  </resultMap>
+
+  <sql id="Base_Column_List">
+    a1.id,account,enable,protocol,port,username,password,enable_cmd,enable_password,
+    creator, create_date, modifier, modification_date,'device' as system_type,pid,tftp_type,ip_down
+  </sql>
+
+  <sql id="criteria">
+    <if test="account !=null and account != ''">
+      and account=#{account,jdbcType=VARCHAR}
+    </if>
+    <if test="enable != null ">
+      and enable =#{enable,jdbcType=BIT}
+    </if>
+    <if test="protocol != null and protocol != ''">
+      and protocol like CONCAT('%',#{protocol,jdbcType=VARCHAR},'%')
+    </if>
+    <if test="port !=null and port != ''">
+      and port=#{port,jdbcType=VARCHAR}
+    </if>
+    <if test="username != null and username != ''">
+      and username like CONCAT('%',#{username,jdbcType=VARCHAR},'%')
+    </if>
+    <if test="enableCmd != null and enableCmd != ''">
+      and enable_cmd like CONCAT('%',#{enableCmd,jdbcType=VARCHAR},'%')
+    </if>
+    <if test="creator != null and creator != ''">
+      and creator = #{creator,jdbcType=VARCHAR}
+    </if>
+    <if test="createDateStart != null">
+      and <![CDATA[#{createDateStart,jdbcType=TIMESTAMP}<= create_date ]]>
+    </if>
+    <if test="createDateEnd != null">
+      and <![CDATA[#{createDateEnd,jdbcType=TIMESTAMP}>= create_date ]]>
+    </if>
+    <if test="modifier != null and modifier != ''">
+      and modifier = #{modifier,jdbcType=VARCHAR}
+    </if>
+    <if test="modificationDateStart != null">
+      and  <![CDATA[#{modificationDateStart,jdbcType=TIMESTAMP}<= modification_date ]]>
+    </if>
+    <if test="modificationDateEnd != null">
+      and  <![CDATA[#{modificationDateEnd,jdbcType=TIMESTAMP}>= modification_date ]]>
+    </if>
+    <if test="systemType != null and systemType != ''">
+      and system_type = #{systemType}
+    </if>
+    <if test="pid != null">
+      and pid = #{pid}
+    </if>
+    <if test="fuzzyQuery != null and fuzzyQuery != ''">
+      and  (
+          account like CONCAT('%',#{fuzzyQuery,jdbcType=VARCHAR},'%')
+          or
+          username like CONCAT('%',#{fuzzyQuery,jdbcType=VARCHAR},'%')
+      )
+    </if>
+    <if test="isSystem == false">
+      and FIND_IN_SET(id,#{listSet})
+    </if>
+  </sql>
+
+  <select id="selectList" resultMap="BaseMap">
+    select
+    <include refid="Base_Column_List"></include>
+    from
+    mw_accountmanage_table a1
+    where 1=1
+    <include refid="criteria"></include>
+    order by create_date
+  </select>
+
+  <select id="selectOne" resultMap="BaseMap1" parameterType="cn.mw.monitor.accountmanage.entity.QueryAccountManageParam">
+    select
+    <include refid="Base_Column_List"></include>
+    from
+    mw_accountmanage_table a1
+    where
+    <if test="id !=null">
+      a1.id = #{id,jdbcType=INTEGER}
+    </if>
+  </select>
+
+  <delete id="deleteBatch" parameterType="java.util.List">
+    delete from
+    mw_accountmanage_table
+    where id in (
+    <foreach collection="list" item="deleteList" separator=",">
+      #{deleteList.value,jdbcType=INTEGER}
+    </foreach>
+    )
+  </delete>
+
+  <update id="update" parameterType="cn.mw.monitor.accountmanage.entity.AddAccountManageParam">
+    update mw_accountmanage_table
+    <set>
+      <if test="account != null and account != ''">
+        account = #{account,jdbcType=VARCHAR},
+      </if>
+      <if test="enable != null">
+        enable = #{enable,jdbcType=VARCHAR},
+      </if>
+        protocol = #{protocol,jdbcType=VARCHAR},
+        port = #{port,jdbcType=VARCHAR},
+      <if test="username != null and username != ''">
+        username = #{username,jdbcType=VARCHAR},
+      </if>
+      <if test="password != null and password != ''">
+        password = #{password,jdbcType=VARCHAR},
+      </if>
+      <if test="enableCmd != null and enableCmd != ''">
+        enable_cmd = #{enableCmd,jdbcType=VARCHAR},
+      </if>
+      <if test="enablePassword != null and enablePassword != ''">
+        enable_password = #{enablePassword,jdbcType=VARCHAR},
+      </if>
+      <if test="modifier != null">
+        modifier = #{modifier,jdbcType=VARCHAR},
+      </if>
+      <if test="systemType != null and systemType != ''">
+        system_type = #{systemType},
+      </if>
+      <if test="pid != null">
+        pid = #{pid},
+      </if>
+      <if test="tftpType != 1">
+        tftp_type = 0,
+      </if>
+      <if test="ipDown != null and ipDown != ''">
+        ip_down = #{ipDown}
+      </if>
+    </set>
+    where id = #{id,jdbcType=INTEGER}
+  </update>
+
+  <insert id="insert" parameterType="cn.mw.monitor.accountmanage.entity.AddAccountManageParam" useGeneratedKeys="true" keyProperty="id">
+    insert into mw_accountmanage_table
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+      <if test="account != null and account != ''">account,</if>
+      <if test="enable != null ">enable,</if>
+      <if test="protocol != null and protocol != ''">protocol,</if>
+      <if test="port != null and port != ''">port,</if>
+      <if test="username != null and username != ''">username,</if>
+      <if test="password != null and password != ''">password,</if>
+      <if test="enableCmd != null and enableCmd != ''">enable_cmd,</if>
+      <if test="enablePassword != null and enablePassword != ''">enable_password,</if>
+      <if test="creator != null">creator,</if>
+      <if test="createDate != null">create_date,</if>
+      <if test="modifier != null">modifier,</if>
+      <if test="systemType != null and systemType != ''">system_type,</if>
+      <if test="pid != null">pid,</if>
+      <if test="modificationDate != null">modification_date,</if>
+      <if test="tftpType != null">tftp_type,</if>
+      <if test="ipDown != null">ip_down</if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+      <if test="account != null and account != ''">#{account,jdbcType=VARCHAR},</if>
+      <if test="enable != null ">#{enable,jdbcType=BIT},</if>
+      <if test="protocol != null and protocol != ''">#{protocol,jdbcType=VARCHAR},</if>
+      <if test="port != null and port != ''">#{port,jdbcType=VARCHAR},</if>
+      <if test="username != null and username != ''">#{username,jdbcType=VARCHAR},</if>
+      <if test="password != null and password != ''">#{password,jdbcType=VARCHAR},</if>
+      <if test="enableCmd != null and enableCmd != ''">#{enableCmd,jdbcType=VARCHAR},</if>
+      <if test="enablePassword != null and enablePassword != ''">#{enablePassword,jdbcType=VARCHAR},</if>
+      <if test="creator != null">#{creator,jdbcType=VARCHAR},</if>
+      <if test="createDate != null"> #{createDate,jdbcType=TIMESTAMP},</if>
+      <if test="modifier != null">#{modifier,jdbcType=VARCHAR},</if>
+      <if test="systemType != null and systemType != ''">#{systemType},</if>
+      <if test="pid != null">#{pid},</if>
+      <if test="modificationDate != null"> #{modificationDate,jdbcType=TIMESTAMP},</if>
+      <if test="tftpType != null"> #{tftpType},</if>
+      <if test="ipDown != null">#{ipDown}</if>
+    </trim>
+  </insert>
+
+   <select id="selectDrop" resultType="java.util.HashMap">
+    select "OFF" as dropValue,"false" as dropKey from dual
+    union all
+     select "ON" as dropValue,"true" as dropKey from dual
+  </select>
+
+  <select id="checkAccountNameRepeat" resultType="java.lang.Boolean">
+    SELECT
+        count( 1 )
+    FROM
+        mw_accountmanage_table
+    WHERE
+        account = #{accountName}
+  </select>
+
+  <select id="getInfoByAccountName" resultMap="BaseMap1">
+    select
+        <include refid="Base_Column_List"></include>
+    from
+        mw_accountmanage_table a1
+    where
+        a1.account = #{accountName}
+  </select>
+</mapper>

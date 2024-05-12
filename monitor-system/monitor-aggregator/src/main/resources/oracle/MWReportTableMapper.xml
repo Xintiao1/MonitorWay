@@ -1,0 +1,1191 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.mw.monitor.report.dao.MwReportDao">
+    <sql id="date_time">
+        <if test="startTime!=null and startTime !=''and endTime != null and endTime !=''">
+            and "date_time" between #{startTime,jdbcType=VARCHAR} and
+            #{endTime,jdbcType=VARCHAR}
+        </if>
+    </sql>
+
+    <sql id="union_group">
+        <if test="groupIds!=null">
+            UNION
+            select
+            <include refid="Base_Column_List"></include>
+            from
+            ${TBSNAME}."mw_report_table" a1
+            left join ${TBSNAME}."mw_report_type_table" a2 on a1."report_type_id"=a2."id"
+            left join ${TBSNAME}."mw_time_task_table" a3 on a1."report_time_id"=a3."id"
+            left join ${TBSNAME}."mw_datapermission" a4 ON a1."id" = a4."type_id"
+            left join
+            (
+            SELECT a."type_id",a."group_id" FROM ${TBSNAME}."mw_group_mapper" a LEFT JOIN ${TBSNAME}."mw_datapermission" b ON a."type_id" = b."type_id"
+            WHERE b."type" = 'REPORT' and b."is_group" = 1) t2 ON a1."id" = t2."type_id"
+            where a1."delete_flag" = 0
+            and a4."is_group"=1
+            and "group_id" IN
+            <foreach collection="groupIds" item="item" index="index" open="(" separator="," close=")">
+                #{item.value,jdbcType=INTEGER}
+            </foreach>
+            <include refid="criteria"></include>
+        </if>
+    </sql>
+
+    <sql id="union_group_count">
+        <if test="groupIds!=null">
+            union
+            select distinct
+            a1."id",a1."report_type_id" "reportTypeId",a2."type_name" "reportTypeName","icon"
+            from
+            "mw_report_table" a1
+            left join ${TBSNAME}."mw_report_type_table" a2 on a1."report_type_id"=a2."id"
+            left join ${TBSNAME}."mw_datapermission" a4 ON a1."id" = a4."type_id"
+            left join
+            (
+            SELECT a."type_id",a."group_id" FROM ${TBSNAME}."mw_group_mapper" a LEFT JOIN ${TBSNAME}."mw_datapermission" b ON a."type_id" = b."type_id"
+            WHERE b."type" = 'REPORT' and b."is_group" = 1) t2 ON a1."id" = t2."type_id"
+            where a1."delete_flag" = 0
+            and a4."is_group"=1
+            and "group_id" IN
+            <foreach collection="groupIds" item="item" index="index" open="(" separator="," close=")">
+                #{item.value,jdbcType=INTEGER}
+            </foreach>
+        </if>
+    </sql>
+    <resultMap id="BaseMap" type="cn.mw.monitor.report.dto.MwReportTable">
+        <id column="id" jdbcType="VARCHAR" property="reportId"/>
+        <result column="report_name" jdbcType="VARCHAR" property="reportName"/>
+        <result column="report_desc" jdbcType="VARCHAR" property="reportDesc"/>
+        <result column="report_time_id" jdbcType="INTEGER" property="timeTagId"/>
+        <result column="report_type_id" jdbcType="INTEGER" property="typeNameId"/>
+
+        <result column="creator" jdbcType="VARCHAR" property="creator"/>
+        <result column="create_date" jdbcType="TIMESTAMP" property="createDate"/>
+        <result column="modifier" jdbcType="VARCHAR" property="modifier"/>
+        <result column="send_time" jdbcType="INTEGER" property="sendTime"/>
+        <result column="modification_date" jdbcType="TIMESTAMP" property="modificationDate"/>
+
+        <association property="timeTag" javaType="java.lang.String" select="selectTimeName" column="report_time_id">
+        </association>
+        <association property="typeName" javaType="java.lang.String" select="selectTypeName" column="report_type_id">
+        </association>
+
+        <collection property="actionName" ofType="java.lang.String" select="selectActionName" column="id">
+            <result column="action_name" jdbcType="VARCHAR"/>
+        </collection>
+        <collection property="actionNameIds" ofType="java.lang.Integer" select="selectActionIds" column="id">
+            <id column="id" jdbcType="VARCHAR"/>
+        </collection>
+        <collection property="ruleName" ofType="java.lang.String" select="selectRuleName" column="id">
+            <result column="rule_name" jdbcType="VARCHAR"/>
+        </collection>
+        <collection property="ruleIds" ofType="java.lang.String" select="selectRuleIds" column="id">
+            <id column="id" jdbcType="VARCHAR"/>
+        </collection>
+        <collection property="principal" ofType="cn.mw.monitor.report.dto.UserDTO" select="selectUser" column="id">
+            <result property="userId" jdbcType="INTEGER" column="userId"/>
+            <result property="userName" jdbcType="VARCHAR" column="userName"/>
+            <result property="loginName" jdbcType="VARCHAR" column="loginName"/>
+        </collection>
+        <collection property="department" ofType="cn.mw.monitor.report.dto.OrgDTO" select="selectOrg" column="id">
+            <result property="orgId" jdbcType="INTEGER" column="orgId"/>
+            <result property="orgName" jdbcType="VARCHAR" column="orgName"/>
+            <result property="nodes" jdbcType="VARCHAR" column="nodes"/>
+        </collection>
+        <collection property="groups" ofType="cn.mw.monitor.report.dto.GroupDTO" select="selectGroup" column="id">
+            <result property="groupId" jdbcType="INTEGER" column="groupId"/>
+            <result property="groupName" jdbcType="VARCHAR" column="groupName"/>
+        </collection>
+    </resultMap>
+
+
+    <select id="selectTypeName" parameterType="java.lang.Integer" resultType="java.lang.String">
+        select "type_name" from ${TBSNAME}."mw_report_type_table" where "id" = #{report_type_id,jdbcType=INTEGER}
+    </select>
+    <select id="selectTimeName" parameterType="java.lang.Integer" resultType="java.lang.String">
+        select "time_tag" from ${TBSNAME}."mw_time_task_table" where "id" = #{report_time_id,jdbcType=INTEGER}
+    </select>
+    <select id="selectActionName" parameterType="java.lang.Integer" resultType="java.lang.String">
+         select  "action_name"  from ${TBSNAME}."mw_report_table" a
+         left join ${TBSNAME}."mw_report_action_mapper" b on a."id"=b."report_id"
+         left join ${TBSNAME}."mw_tag_action_table" c on b."action_id"=c."id"
+         where a."id" = #{id,jdbcType=INTEGER}
+    </select>
+    <select id="selectActionIds" parameterType="java.lang.Integer" resultType="java.lang.Integer">
+         select c."id"  from "mw_report_table" a
+         left join ${TBSNAME}."mw_report_action_mapper" b on a."id"=b."report_id"
+         left join ${TBSNAME}."mw_tag_action_table" c on b."action_id"=c."id"
+         where a."id" = #{id,jdbcType=INTEGER}
+    </select>
+
+    <select id="selectRuleName" parameterType="java.lang.Integer" resultType="java.lang.String">
+         select  c."rule_name"  from ${TBSNAME}."mw_report_table" a
+         left join ${TBSNAME}."mw_report_rule_mapper" b on a."id"=b."report_id"
+         left join ${TBSNAME}."mw_alert_rule" c on b."rule_id"=c."rule_id"
+         where a."id" = #{id,jdbcType=INTEGER}
+    </select>
+    <select id="selectRuleIds" parameterType="java.lang.Integer" resultType="java.lang.String">
+         select c."rule_id"  from ${TBSNAME}."mw_report_table" a
+         left join ${TBSNAME}."mw_report_rule_mapper" b on a."id"=b."report_id"
+         left join ${TBSNAME}."mw_alert_rule" c on b."rule_id"=c."rule_id"
+         where a."id" = #{id,jdbcType=INTEGER}
+    </select>
+
+    <select id="selectUser" parameterType="java.lang.String" resultType="cn.mw.monitor.report.dto.UserDTO">
+    select
+    t1."user_id" "userId",
+    t1."login_name" "loginName",
+    t1."user_name" "userName"
+    from
+    ${TBSNAME}."mw_sys_user" t1
+    left join  ${TBSNAME}."mw_user_mapper" t2 on t1."user_id" = t2."user_id"
+    where t2."type"='REPORT' and t2."type_id" = #{id,jdbcType=VARCHAR}
+  </select>
+
+    <select id="selectOrg" parameterType="java.lang.String" resultType="cn.mw.monitor.report.dto.OrgDTO">
+    select
+    t1."org_id" "orgId",
+    t1."org_name" "orgName",
+    t1."nodes"
+    from ${TBSNAME}."mw_sys_org" t1
+    left join ${TBSNAME}."mw_org_mapper" t2  on t1."org_id" = t2."org_id"
+    where t2."type"='REPORT' and t2."type_id" = #{id,jdbcType=VARCHAR}
+  </select>
+
+    <select id="selectGroup" parameterType="java.lang.String" resultType="cn.mw.monitor.report.dto.GroupDTO">
+    select
+    t1."group_id"  "groupId",
+    t1."group_name" "groupName"
+    from ${TBSNAME}."mw_group_table"  t1
+    left join ${TBSNAME}."mw_group_mapper" t2 on t1."group_id" = t2."group_id"
+    where t2."type"='REPORT' and t2."type_id" = #{id,jdbcType=VARCHAR}
+  </select>
+
+
+    <sql id="Base_Column_List">
+    a1."id","report_name","report_time_id","report_type_id","report_desc","type_name","time_tag", "creator", "create_date", "modifier", "modification_date",a1."send_time"
+  </sql>
+    <sql id="tb">
+    ${TBSNAME}."mw_report_table"
+  </sql>
+    <sql id="criteria">
+        <if test="reportTypeId !=null ">
+            and "report_type_id"=#{reportTypeId,jdbcType=INTEGER}
+        </if>
+        <if test="reportName != null and reportName != ''">
+            and "report_name" like ('%'||#{reportName,jdbcType=VARCHAR}||'%')
+        </if>
+        <if test="reportDesc != null and reportDesc != ''">
+            and "report_desc" like ('%'||#{reportDesc,jdbcType=VARCHAR}||'%')
+        </if>
+        <if test="timeTaskId != null ">
+            and "report_time_id" =#{timeTaskId,jdbcType=INTEGER}
+        </if>
+        <if test="creator != null and creator != ''">
+            and "creator" = #{creator,jdbcType=VARCHAR}
+        </if>
+        <if test="createDateStartStart != null">
+            and <![CDATA[#{createDateStartStart,jdbcType=TIMESTAMP} <= "create_date" ]]>
+        </if>
+        <if test="createDateStartEnd != null">
+            and <![CDATA[#{createDateStartEnd,jdbcType=TIMESTAMP}>= "create_date" ]]>
+        </if>
+        <if test="modifier != null and modifier != ''">
+            and "modifier" = #{modifier,jdbcType=VARCHAR}
+        </if>
+        <if test="createDateEndStart != null">
+            and  <![CDATA[#{createDateEndStart,jdbcType=TIMESTAMP}<= "modification_date" ]]>
+        </if>
+        <if test="createDateEndEnd != null">
+            and  <![CDATA[#{createDateEndEnd,jdbcType=TIMESTAMP}>= "modification_date" ]]>
+        </if>
+    </sql>
+
+    <update id="deleteTime">
+     update ${TBSNAME}."mw_solar_time" set "delete_flag"=1 where "id"=#{id,jdbcType=INTEGER} and "type"=#{type,jdbcType=INTEGER}
+    </update>
+    <select id="selectTime" resultType="cn.mw.monitor.report.dto.SolarTimeDto" parameterType="java.lang.Integer">
+        select
+        "id",
+        "start_hour_time" as "startHourTime",
+        "end_hour_time" as "endHourTime",
+        "start_minute_time" as "startMinuteTime",
+        "end_minute_time" as "endMinuteTime"
+        from ${TBSNAME}."mw_solar_time"  where  "delete_flag"=0 and type=#{type,jdbcType=INTEGER} order by "modification_date" desc rownum = 1;
+    </select>
+    <insert id="insertTime" useGeneratedKeys="true" keyProperty="id"
+            parameterType="cn.mw.monitor.report.dto.SolarTimeDto">
+        <selectKey keyProperty="id" order="BEFORE" resultType="java.lang.Integer">
+            select ${TBSNAME}.SEQ_MW_SOLAR_TIME.NEXTVAL as "id" from DUAL
+        </selectKey>
+        insert into ${TBSNAME}."mw_solar_time"("id","user_id","creator","create_date","modifier","modification_date","start_hour_time","end_hour_time","start_minute_time","end_minute_time","type")
+        values (#{id},#{userId,jdbcType=INTEGER},
+        #{creator,jdbcType=VARCHAR},
+        SYSDATE,
+        #{modifier,jdbcType=VARCHAR},
+        SYSDATE,
+        #{startHourTime,jdbcType=INTEGER},
+        #{endHourTime,jdbcType=INTEGER},
+        #{startMinuteTime,jdbcType=INTEGER},
+        #{endMinuteTime,jdbcType=INTEGER},
+        #{type,jdbcType=INTEGER}
+        )
+    </insert>
+    <insert id="insertReportTable" parameterType="cn.mw.monitor.report.dto.CreatAndUpdateReportParam"
+    >
+        insert into
+        <include refid="tb"></include>
+        ("id","report_name","report_desc","report_type_id","report_time_id", "isuser","isgroup","creator", "create_date","send_time")
+        values (#{id,jdbcType=VARCHAR},#{reportName,jdbcType=VARCHAR},#{reportDesc,jdbcType=VARCHAR},
+        #{reportTypeId,jdbcType=INTEGER},
+        #{reportTimeId,jdbcType=INTEGER},
+        #{creator,jdbcType=VARCHAR}, SYSDATE,#{sendTime})
+    </insert>
+
+    <insert id="insertReportTimeActionMapper" parameterType="java.util.List">
+        insert into ${TBSNAME}."mw_report_action_mapper"
+        ("report_id","action_id")
+        values
+        <foreach collection="list" item="insertList" separator=",">
+            (#{insertList.reportId,jdbcType=VARCHAR},#{insertList.actionId,jdbcType=INTEGER})
+        </foreach>
+    </insert>
+
+    <insert id="insertReportRuleMapper" parameterType="java.util.List">
+        insert into ${TBSNAME}."mw_report_rule_mapper"
+        ("report_id","rule_id","rule_type")
+        values
+        <foreach collection="list" item="insertList" separator=",">
+            (#{insertList.reportId,jdbcType=VARCHAR},#{insertList.ruleId,jdbcType=VARCHAR},#{insertList.ruleType,jdbcType=VARCHAR})
+        </foreach>
+    </insert>
+
+    <update id="updateReportTable" parameterType="cn.mw.monitor.report.dto.CreatAndUpdateReportParam">
+        update
+        <include refid="tb"></include>
+        set
+        "report_name"=#{reportName,jdbcType=VARCHAR},
+        "report_desc"=#{reportDesc,jdbcType=VARCHAR},
+        "report_type_id"=#{typeNameId,jdbcType=INTEGER},
+        "report_time_id"=#{timeTagId,jdbcType=INTEGER},
+        "modifier"= #{modifier,jdbcType=VARCHAR},
+        "modification_date"=SYSDATE,
+        "send_time"=#{sendTime}
+        where "id" = #{reportId,jdbcType=VARCHAR}
+    </update>
+
+    <delete id="deleteReportTimeActionMapper" parameterType="java.lang.String">
+    delete from ${TBSNAME}."mw_report_action_mapper" where "report_id" = #{reportId,jdbcType=VARCHAR}
+    </delete>
+
+
+    <delete id="deleteReportTimeRuleMapper" parameterType="java.lang.String">
+    delete from ${TBSNAME}."mw_report_rule_mapper" where "report_id" = #{reportId,jdbcType=VARCHAR}
+    </delete>
+
+    <!--    <delete id="deleteReportUserListMapper" parameterType="java.util.List">-->
+    <!--        delete from mw_report_user_mapper where report_id-->
+    <!--        in-->
+    <!--        <foreach collection="list" item="deleteList" separator="," open="(" close=")">-->
+    <!--            #{deleteList.value,jdbcType=VARCHAR}-->
+    <!--        </foreach>-->
+    <!--    </delete>-->
+    <!--    <delete id="deleteReportGroupListMapper" parameterType="java.util.List">-->
+    <!--        delete from mw_report_group_mapper where report_id-->
+    <!--        in-->
+    <!--        <foreach collection="list" item="deleteList" separator="," open="(" close=")">-->
+    <!--            #{deleteList.value,jdbcType=VARCHAR}-->
+    <!--        </foreach>-->
+    <!--    </delete>-->
+    <delete id="deleteReportTimeActionListMapper" parameterType="java.util.List">
+        delete from ${TBSNAME}."mw_report_action_mapper" where "report_id"
+        in
+        <foreach collection="list" item="deleteList" separator="," open="(" close=")">
+            #{deleteList.value,jdbcType=VARCHAR}
+        </foreach>
+
+    </delete>
+    <update id="deleteReportTable" parameterType="java.util.List">
+        update
+        <include refid="tb"></include>
+        set
+        "delete_flag"=1
+        where "id" in
+        <foreach collection="reportIds" item="deleteList" separator="," open="(" close=")">
+            #{deleteList,jdbcType=VARCHAR}
+        </foreach>
+    </update>
+
+    <select id="getReportType" resultType="cn.mw.monitor.report.dto.ReportTypeDto">
+        select "id","type_name" as "typeName" from ${TBSNAME}."mw_report_type_table"
+    </select>
+    <select id="getReportTimeTask" resultType="cn.mw.monitor.report.dto.ReportTimeTaskDto">
+        select "id" as "dropKey","time_tag" as "dropValue" from ${TBSNAME}."mw_time_task_table"
+    </select>
+    <select id="getReportAction" resultType="cn.mw.monitor.report.dto.ReportActionDto">
+        select "id","action_name" as "actionName"  from ${TBSNAME}."mw_tag_action_table"
+    </select>
+
+    <select id="selectPriReport" resultMap="BaseMap">
+        select
+        <include refid="Base_Column_List"></include>
+        from
+        ${TBSNAME}."mw_report_table" a1
+        left join ${TBSNAME}."mw_report_type_table" a2 on a1."report_type_id"=a2."id"
+        left join ${TBSNAME}."mw_time_task_table" a3 on a1."report_time_id"=a3."id"
+        left join ${TBSNAME}."mw_datapermission" a4 ON a1."id" = a4."type_id"
+        left join
+        (select "type_id","user_id" from ${TBSNAME}."mw_user_mapper" where "type"='REPORT') a5 ON a1."id" = a5."type_id"
+        where a1."delete_flag" = 0 and a4."is_user" = 1
+        and "user_id" =#{userId,jdbcType=INTEGER}
+        <include refid="criteria"></include>
+        <include refid="union_group"></include>
+    </select>
+    <select id="selectPubReport" resultMap="BaseMap">
+        select
+        <include refid="Base_Column_List"></include>
+        from
+        ${TBSNAME}."mw_report_table" a1
+        left join ${TBSNAME}."mw_report_type_table" a2 on a1."report_type_id"=a2."id"
+        left join ${TBSNAME}."mw_time_task_table" a3 on a1."report_time_id"=a3."id"
+        <choose>
+            <when test="isAdmin==false">
+                left join
+                (select "type_id","org_id" from ${TBSNAME}."mw_org_mapper" where "type"='REPORT') t2 ON a1."id" = t2."type_id"
+                where a1."delete_flag" = 0
+                and "org_id" in
+                <foreach collection="orgIds" item="item" index="index" open="(" separator="," close=")">
+                    #{item.value,jdbcType=INTEGER}
+                </foreach>
+                <include refid="criteria"></include>
+                <include refid="union_group"></include>
+            </when>
+            <otherwise>
+                where a1."delete_flag" = 0
+                <include refid="criteria"></include>
+            </otherwise>
+        </choose>
+    </select>
+    <select id="selectPriReportCount" resultType="cn.mw.monitor.report.dto.ReportCountDto"
+            parameterType="cn.mw.monitor.report.param.ReportCountParam">
+        select
+        a1."id",a1."report_type_id" as "reportTypeId",a2."type_name" as "reportTypeName","icon"
+        from
+        ${TBSNAME}."mw_report_table" a1
+        left join ${TBSNAME}."mw_report_type_table" a2 on a1."report_type_id"=a2."id"
+        left join ${TBSNAME}."mw_datapermission" a4 ON a1."id" = a4."type_id"
+        left join
+        (select "type_id","user_id" from ${TBSNAME}."mw_user_mapper" where "type"='REPORT') a5 ON a1."id" = a5."type_id"
+        where a1."delete_flag" = 0 and a4."is_user" = 1
+        and "user_id" =#{userId,jdbcType=INTEGER}
+        <include refid="union_group_count"></include>
+    </select>
+    <select id="selectPubReportCount" resultType="cn.mw.monitor.report.dto.ReportCountDto"
+            parameterType="cn.mw.monitor.report.param.ReportCountParam">
+        select
+        a1."id", a1."report_type_id" "reportTypeId",a2."type_name" "reportTypeName","icon"
+        from
+        ${TBSNAME}."mw_report_table" a1
+        left join ${TBSNAME}."mw_report_type_table" a2 on a1."report_type_id"=a2."id"
+        <choose>
+            <when test="isAdmin==false">
+                left join
+                (select "type_id","org_id" from ${TBSNAME}."mw_org_mapper" where "type"='REPORT') t2 ON a1."id" = t2."type_id"
+                where a1."delete_flag" = 0
+                and "org_id" in
+                <foreach collection="orgIds" item="item" index="index" open="(" separator="," close=")">
+                    #{item.value,jdbcType=INTEGER}
+                </foreach>
+            </when>
+            <otherwise>
+                where a1."delete_flag" = 0
+            </otherwise>
+        </choose>
+        <include refid="union_group_count"></include>
+    </select>
+
+    <select id="selectTimeIds" resultType="java.lang.Integer" parameterType="java.util.List">
+        select "report_time_id" from ${TBSNAME}."mw_report_table"
+        where "id" in
+        <foreach collection="list" item="deleteList" separator="," open="(" close=")">
+            #{deleteList.value,jdbcType=VARCHAR}
+        </foreach>
+    </select>
+    <select id="selectById" resultMap="BaseMap" parameterType="java.lang.String">
+        select
+        <include refid="Base_Column_List"></include>
+        from
+        ${TBSNAME}."mw_report_table" a1
+        left join ${TBSNAME}."mw_report_type_table" a2 on a1."report_type_id"=a2."id"
+        left join ${TBSNAME}."mw_time_task_table" a3 on a1."report_time_id"=a3."id"
+        where a1."id"=#{assetsId,jdbcType=VARCHAR}
+    </select>
+    <select id="selectDiskList" resultType="cn.mw.monitor.report.dto.DiskDto" parameterType="cn.mw.monitor.report.dto.linkdto.QueryDto">
+        select
+        "assets_ip" as "ipAddress",
+        "assets_name" as "assetsName",
+        "disk_name" as "typeName",
+        "disk_total" as "diskTotal",
+        round(AVG("disk_free"),2) as "diskFree",
+        MIN( "disk_utillization_min" ) as "diskMinValue",
+        MAX( "disk_utillization_max" ) as "diskMaxValue" ,
+        round(AVG("disk_utillization_avg"),2) as "diskAvgValue"
+        from ${TBSNAME}."${tableName}"
+        where "assets_id" in
+        <foreach collection="objectIds" index="index" item="item" open="(" separator="," close=")">
+            #{item}
+        </foreach>
+        <include refid="date_time"></include>
+        group by "assets_id","assets_ip","assets_name","disk_name","disk_total"
+    </select>
+
+    <select id="selectCpuAndMemoryList" resultType="cn.mw.monitor.report.dto.CpuAndMemoryDtos" parameterType="cn.mw.monitor.report.dto.linkdto.QueryDto">
+        select
+        "assets_ip" as "ipAddress",
+        "assets_name" as "assetsName",
+        MAX( "cpu_utillization_max" ) as "cpuMaxValue",
+        MIN( "cpu_utillization_min" ) as "cpuMinValue",
+        round(AVG("cpu_utillization_avg"),2) as "cpuAvgValue" ,
+        MAX( "memory_utillization_max" ) as "memoryMaxValue",
+        MIN( "memory_utillization_min" ) as "memoryMinValue",
+        round(AVG("memory_utillization_avg"),2) as "memoryAvgValue"
+        from ${TBSNAME}."${tableName}"
+        where "assets_id" in
+        <foreach collection="objectIds" index="index" item="item" open="(" separator="," close=")">
+            #{item}
+        </foreach>
+        <include refid="date_time"></include>
+        group by "assets_id","assets_ip","assets_name"
+    </select>
+
+    <select id="selectNetWorkList" resultType="cn.mw.monitor.report.dto.NetWorkDto" parameterType="cn.mw.monitor.report.dto.linkdto.QueryDto">
+        select
+        "assets_ip" as "ipAddress",
+        "assets_name" as "assetsName",
+        "network_name" as "netName",
+        MAX( "in_max" ) as "netInBpsMaxValue",
+        MIN( "in_min" ) as "netInBpsMinValue",
+        round(AVG("in_avg"),2) as "netInBpsAvgValue" ,
+        MAX( "out_max" ) as "netOutBpsMaxValue",
+        MIN( "out_min" ) as "netOutBpsMinValue",
+        round(AVG("out_avg"),2) as "netOutBpsAvgValue"
+        from ${TBSNAME}."${tableName}"
+        where "assets_id" in
+        <foreach collection="objectIds" index="index" item="item" open="(" separator="," close=")" >
+            #{item}
+        </foreach>
+        <include refid="date_time"></include>
+        group by "assets_id","assets_ip","assets_name","network_name"
+    </select>
+
+    <select id="selectLinkList" resultType="cn.mw.monitor.report.dto.linkdto.InterfaceReportDtos" parameterType="cn.mw.monitor.report.dto.linkdto.QueryDto">
+        select
+        "interface_id" "interfaceID","caption","in_bandwidth","out_bandwidth","band_unit",
+        MAX("in_max_bps") "inMaxbps",
+        MIN("in_min_bps") "inMinbps",
+        round(AVG("in_average_bps"),2)  "inAveragebps",
+        MAX("in_max_use") "inMaxUse",
+        round(AVG("in_avg_use"),2)  "inAvgUse",
+
+        round(AVG("in_proportion_ten"),2)  "inProportionTen",
+        round(AVG("in_proportion_fifty"),2)  "inProportionFifty",
+        round(AVG("in_proportion_eighty"),2)  "inProportionEighty",
+        round(AVG("in_proportion_hundred"),2)  "inProportionHundred",
+
+        MAX("out_max_bps") "outMaxbps",
+        MIN("out_min_bps") "outMinbps",
+        round(AVG("out_average_bps"),2)  "outAveragebps",
+        MAX("out_max_use") "outMaxUse",
+        round(AVG("out_avg_use"),2)  "outAvgUse",
+
+        round(AVG("out_proportion_ten"),2)  "outProportionTen",
+        round(AVG("out_proportion_fifty"),2)  "outProportionFifty",
+        round(AVG("out_proportion_eighty"),2)  "outProportionEighty",
+        round(AVG("out_proportion_hundred"),2)  "outProportionHundred"
+
+        from ${TBSNAME}."${tableName}"
+        where "interface_id" in
+        <foreach collection="objectIds" index="index" item="item" open="(" separator="," close=")">
+            #{item}
+        </foreach>
+        <include refid="date_time"></include>
+        group by "interface_id","caption","in_bandwidth","out_bandwidth","band_unit"
+    </select>
+    <select id="getTimeDateCount" resultType="java.lang.Integer">
+        select count(0) from ${TBSNAME}."mw_solar_day_detail_allday" where  "date_time" between #{allDayStartTime,jdbcType=VARCHAR} and  #{allDayStartTime,jdbcType=VARCHAR}
+    </select>
+
+    <select id="getReportTimeDateCount" resultType="java.lang.Integer">
+        select count(0) from ${TBSNAME}."${tableName}" where  "date_time" between #{allDayStartTime,jdbcType=VARCHAR} and  #{allDayStartTime,jdbcType=VARCHAR}
+    </select>
+
+    <sql id="network_column">
+    "assets_id","assets_ip","assets_name","date_time","network_name","in_max" ,"in_min","in_avg","out_max","out_min","out_avg"
+    </sql>
+    <sql id="disk_column">
+    "assets_id","assets_ip","assets_name","date_time","disk_name","disk_total" ,"disk_free","disk_utillization_max","disk_utillization_min","disk_utillization_avg"
+    </sql>
+    <sql id="cpu_memory_column">
+    "assets_id","assets_ip","assets_name","date_time","cpu_free_rage","memory_free_rage","cpu_utillization_max","cpu_utillization_min","cpu_utillization_avg","memory_utillization_max","memory_utillization_min","memory_utillization_avg"
+    </sql>
+    <sql id="link_column">
+     "interface_id","caption","date_time","in_bandwidth","out_bandwidth","band_unit",
+     "in_max_bps","in_average_bps","in_min_bps","in_max_use","in_avg_use","in_proportion_ten","in_proportion_fifty","in_proportion_eighty","in_proportion_hundred",
+     "out_max_bps","out_average_bps","out_min_bps","out_max_use","out_avg_use","out_proportion_ten","out_proportion_fifty","out_proportion_eighty","out_proportion_hundred"
+     </sql>
+
+    <sql id="insert_network_values">
+    (
+     #{item.assetsId,jdbcType=VARCHAR},
+     #{item.ipAddress,jdbcType=VARCHAR},
+     #{item.assetsName,jdbcType=VARCHAR},
+     #{dateTime,jdbcType=DATE},
+     #{item.netName,jdbcType=VARCHAR},
+     #{item.netInBpsMaxValue,jdbcType=DOUBLE},
+     #{item.netInBpsMinValue,jdbcType=DOUBLE},
+     #{item.netInBpsAvgValue,jdbcType=DOUBLE},
+     #{item.netOutBpsMaxValue,jdbcType=DOUBLE},
+     #{item.netOutBpsMinValue,jdbcType=DOUBLE},
+     #{item.netOutBpsAvgValue,jdbcType=DOUBLE}
+    )
+    </sql>
+
+
+    <sql id="insert_disk_values">
+    (
+     #{item.assetsId,jdbcType=VARCHAR},
+     #{item.ipAddress,jdbcType=VARCHAR},
+     #{item.assetsName,jdbcType=VARCHAR},
+     #{dateTime,jdbcType=DATE},
+     #{item.typeName,jdbcType=VARCHAR},
+     #{item.diskTotal,jdbcType=DOUBLE},
+     #{item.diskFree,jdbcType=DOUBLE},
+     #{item.diskMaxValue,jdbcType=DOUBLE},
+     #{item.diskMinValue,jdbcType=DOUBLE},
+     #{item.diskAvgValue,jdbcType=DOUBLE}
+    )
+    </sql>
+
+    <sql id="insert_cpu_memory_values">
+    (
+     #{item.assetsId,jdbcType=VARCHAR},
+     #{item.ipAddress,jdbcType=VARCHAR},
+     #{item.assetsName,jdbcType=VARCHAR},
+     #{dateTime,jdbcType=DATE},
+     #{item.cpuFreeRage,jdbcType=DOUBLE},
+     #{item.memoryFreeRage,jdbcType=DOUBLE},
+     #{item.cpuMaxValue,jdbcType=DOUBLE},
+     #{item.cpuMinValue,jdbcType=DOUBLE},
+     #{item.cpuAvgValue,jdbcType=DOUBLE},
+     #{item.memoryMaxValue,jdbcType=DOUBLE},
+     #{item.memoryMinValue,jdbcType=DOUBLE},
+     #{item.memoryAvgValue,jdbcType=DOUBLE}
+    )
+    </sql>
+
+    <sql id="insert_link_values">
+    (
+     #{item.interfaceID,jdbcType=VARCHAR},
+     #{item.caption,jdbcType=VARCHAR},
+     #{dateTime,jdbcType=DATE},
+
+     #{item.inBandwidth,jdbcType=DOUBLE},
+     #{item.outBandwidth,jdbcType=DOUBLE},
+     #{item.bandUnit,jdbcType=VARCHAR},
+
+     #{item.inMaxbps,jdbcType=DOUBLE},
+     #{item.inAveragebps,jdbcType=DOUBLE},
+     #{item.inMinbps,jdbcType=DOUBLE},
+
+     #{item.inMaxUse,jdbcType=DOUBLE},
+     #{item.inAvgUse,jdbcType=DOUBLE},
+
+     #{item.inProportionTen,jdbcType=DOUBLE},
+     #{item.inProportionFifty,jdbcType=DOUBLE},
+     #{item.inProportionEighty,jdbcType=DOUBLE},
+     #{item.inProportionHundred,jdbcType=DOUBLE},
+
+     #{item.outMaxbps,jdbcType=DOUBLE},
+     #{item.outAveragebps,jdbcType=DOUBLE},
+     #{item.outMinbps,jdbcType=DOUBLE},
+
+     #{item.outMaxUse,jdbcType=DOUBLE},
+     #{item.outAvgUse,jdbcType=DOUBLE},
+
+     #{item.outProportionTen,jdbcType=DOUBLE},
+     #{item.outProportionFifty,jdbcType=DOUBLE},
+     #{item.outProportionEighty,jdbcType=DOUBLE},
+     #{item.outProportionHundred,jdbcType=DOUBLE}
+    )
+    </sql>
+
+    <insert id="insertReportNetWork">
+        insert into ${TBSNAME}."${tableName}"
+        (<include refid="network_column"></include>)
+        values
+        <foreach collection="trendNetDtos" item="item" separator=",">
+            <include refid="insert_network_values"></include>
+        </foreach>
+    </insert>
+
+    <insert id="insertReportDisk">
+        insert into ${TBSNAME}."${tableName}"
+        (<include refid="disk_column"></include>)
+        values
+        <foreach collection="diskTrends" item="item" separator=",">
+            <include refid="insert_disk_values"></include>
+        </foreach>
+    </insert>
+    <insert id="insertReportCpuAndMemory">
+        insert into ${TBSNAME}."${tableName}"
+        (<include refid="cpu_memory_column"></include>)
+        values
+        <foreach collection="cpuAndMemoryTrends" item="item" separator=",">
+            <include refid="insert_cpu_memory_values"></include>
+        </foreach>
+    </insert>
+
+    <insert id="insertReportLink">
+        insert into ${TBSNAME}."${tableName}"
+        (<include refid="link_column"></include>)
+        values
+        <foreach collection="links" item="item" separator=",">
+            <include refid="insert_link_values"></include>
+        </foreach>
+    </insert>
+
+    <select id="selectSolarDayCount" resultType="java.lang.Integer">
+        select count(0)  from ${TBSNAME}."mw_solar_day" where "date"=#{date,jdbcType=VARCHAR}
+    </select>
+
+    <select id="selectOneDayReport" resultMap="BaseMap">
+        select
+        <include refid="Base_Column_List"></include>
+        from
+        ${TBSNAME}."mw_report_table" a1
+        left join ${TBSNAME}."mw_report_type_table" a2 on a1."report_type_id"=a2."id"
+        left join ${TBSNAME}."mw_time_task_table" a3 on a1."report_time_id"=a3."id"
+        where a1."delete_flag" = 0 and a1."report_time_id" = 1
+    </select>
+
+    <select id="selectMessageMapperReport" resultType="cn.mw.monitor.report.param.ReportMessageMapperParam"
+            parameterType="java.lang.String">
+        select
+            "report_id" "reportId",
+            "rule_id" "ruleId",
+            "rule_type" "ruleType"
+        from ${TBSNAME}."mw_report_rule_mapper"
+        where "report_id" = #{id,jdbcType=VARCHAR}
+    </select>
+
+    <select id="selectPriLists" resultType="cn.mw.monitor.report.param.ReportUserParam">
+        select
+        "user_id" as "userId",
+        "user_name" as "userName",
+        "login_name" as "loginName",
+        "email" as "email"
+        from ${TBSNAME}."mw_sys_user"
+        where "user_id" in
+        <foreach collection="lists" index="index" item="item" open="(" separator="," close=")">
+            #{item}
+        </foreach>
+    </select>
+
+    <select id="selectInHistoryList" resultType="cn.mw.monitor.report.dto.linkdto.MwHistoryDto">
+         select "date_time" as "date","${inColumn}" as "value" from ${TBSNAME}."${tableName}" where "interface_id"=#{interfaceID,jdbcType=VARCHAR} and "date_time" between #{startTime,jdbcType=VARCHAR} and
+        #{endTime,jdbcType=VARCHAR} order by date asc
+    </select>
+
+    <select id="selectOutHistoryList" resultType="cn.mw.monitor.report.dto.linkdto.MwHistoryDto">
+         select "date_time" as "date","${outColumn}" as "value" from ${TBSNAME}."${tableName}" where "interface_id"=#{interfaceID,jdbcType=VARCHAR} and "date_time" between #{startTime,jdbcType=VARCHAR} and
+        #{endTime,jdbcType=VARCHAR} order by date asc
+    </select>
+
+    <sql id="interfaceIDs">
+        <if test="interfaceIDs!=null and interfaceIDs.size()!=0">
+            and "interface_id" in
+            <foreach collection="interfaceIDs" index="index" item="item" separator="," open="(" close=")">
+                #{item}
+            </foreach>
+        </if>
+    </sql>
+
+    <resultMap id="linkReportMap" type="cn.mw.monitor.report.dto.linkdto.LinkDetailDto">
+        <id column="interface_id" jdbcType="INTEGER" property="interfaceID"/>
+        <result column="inBandwidth" jdbcType="FLOAT" property="inBandwidth"/>
+        <result column="outBandwidth" jdbcType="FLOAT" property="outBandwidth"/>
+        <result column="bandUnit" jdbcType="VARCHAR" property="bandUnit"/>
+        <result column="caption" jdbcType="VARCHAR" property="caption"/>
+        <result column="inMinbps" jdbcType="FLOAT" property="inMinbps"/>
+        <result column="inMaxbps" jdbcType="FLOAT" property="inMaxbps"/>
+        <result column="inAveragebps" jdbcType="FLOAT" property="inAveragebps"/>
+        <result column="outMaxbps" jdbcType="FLOAT" property="outMaxbps"/>
+        <result column="outMinbps" jdbcType="FLOAT" property="outMinbps"/>
+        <result column="outAveragebps" jdbcType="FLOAT" property="outAveragebps"/>
+
+        <result column="inAvgUse" jdbcType="FLOAT" property="inAvgUse"/>
+        <result column="outAvgUse" jdbcType="FLOAT" property="outAvgUse"/>
+        <result column="inMaxUse" jdbcType="FLOAT" property="inMaxUse"/>
+        <result column="outMaxUse" jdbcType="FLOAT" property="outMaxUse"/>
+
+        <association property="proportionDto" javaType="cn.mw.monitor.report.dto.linkdto.ProportionDtos">
+            <result column="inProportionTen" jdbcType="FLOAT" property="inProportionTen"/>
+            <result column="inProportionFifty" jdbcType="FLOAT" property="inProportionFifty"/>
+            <result column="inProportionEighty" jdbcType="FLOAT" property="inProportionEighty"/>
+            <result column="inProportionHundred" jdbcType="FLOAT" property="inProportionHundred"/>
+            <result column="outProportionTen" jdbcType="FLOAT" property="outProportionTen"/>
+            <result column="outProportionFifty" jdbcType="FLOAT" property="outProportionFifty"/>
+            <result column="outProportionEighty" jdbcType="FLOAT" property="outProportionEighty"/>
+            <result column="outProportionHundred" jdbcType="FLOAT" property="outProportionHundred"/>
+        </association>
+    </resultMap>
+
+    <select id="groupSelectList" resultMap="linkReportMap">
+        select
+        "interface_id" ,
+        "caption" ,
+        "in_bandwidth" "inBandwidth" ,
+        "out_bandwidth" "outBandwidth",
+        band_unit "bandUnit",
+        round(AVG("in_average_bps"),2) "inAveragebps" ,
+        MIN( "in_min_bps" ) "inMinbps" ,
+        MAX( "in_max_bps" ) "inMaxbps" ,
+        MIN( "out_min_bps" ) "outMinbps" ,
+        round(AVG("out_average_bps"),2) "outAveragebps" ,
+        MAX( "out_max_bps" ) "outMaxbps" ,
+
+        round("in_average_bps"/"in_bandwidth"*100,2 ) AS "inAvgUse",
+        round("out_average_bps"/"out_bandwidth"*100,2) AS "outAvgUse",
+        round("in_max_bps"/"in_bandwidth"*100,2 ) AS "inMaxUse",
+        round("out_max_bps"/"out_bandwidth"*100,2 ) AS "outMaxUse",
+
+        round(AVG("in_proportion_ten"),2) "inProportionTen" ,
+        round(AVG("in_proportion_fifty"),2) "inProportionFifty",
+        round(AVG("in_proportion_eighty" ),2) "inProportionEighty",
+        round(AVG("in_proportion_hundred"),2) "inProportionHundred",
+        round(AVG("out_proportion_ten"),2) "outProportionTen",
+        round(AVG("out_proportion_fifty"),2) "outProportionFifty",
+        round(AVG("out_proportion_eighty"),2) "outProportionEighty",
+        round(AVG("out_proportion_hundred"),2) "outProportionHundred"
+        from ${TBSNAME}."${tableName}" where 1=1
+        <include refid="interfaceIDs"></include>
+        and
+        (
+        <choose>
+            <when test='percentFront==0f'>
+                (
+                ${inColumn}>="in_bandwidth"*#{percentFront,jdbcType=FLOAT}
+                and
+                ${inColumn} &lt;"out_bandwidth"*#{percentBack,jdbcType=FLOAT}
+                )
+                and
+                (
+                ${outColumn}>="in_bandwidth"*#{percentFront,jdbcType=FLOAT}
+                and
+                ${outColumn} &lt;"out_bandwidth"*#{percentBack,jdbcType=FLOAT}
+                )
+            </when>
+            <when test='percentFront==0.1f'>
+                (
+                ${inColumn}>="in_bandwidth"*#{percentFront,jdbcType=FLOAT}
+                or
+                ${outColumn}>="out_bandwidth"*#{percentFront,jdbcType=FLOAT}
+                )
+                and
+                (
+                ${inColumn} &lt;"in_bandwidth"*#{percentBack,jdbcType=FLOAT}
+                and
+                ${outColumn} &lt;"out_bandwidth"*#{percentBack,jdbcType=FLOAT}
+                )
+            </when>
+            <otherwise>
+                (
+                ${inColumn}>="in_bandwidth"*#{percentFront,jdbcType=FLOAT}
+                and
+                ${inColumn} &lt;"in_bandwidth"*#{percentBack,jdbcType=FLOAT}
+                )
+                and
+                (
+                ${outColumn}>="out_bandwidth"*#{percentFront,jdbcType=FLOAT}
+                and
+                ${outColumn} &lt;"out_bandwidth"*#{percentBack,jdbcType=FLOAT}
+                )
+            </otherwise>
+        </choose>
+        )
+        <include refid="date_time"></include>
+        group by "interface_id"
+    </select>
+
+    <select id="selectAeestInfo" resultType="cn.mw.monitor.report.dto.assetsdto.AssetByTypeDto">
+        SELECT
+        t1."id",
+        t1."assets_id",
+        t1."assets_name",
+        t1."in_band_ip",
+        t1."assets_type_id",
+        t1."create_date",
+        t1."monitor_server_id",
+        t2."type_name"
+        FROM
+        ( SELECT "id", "assets_id", "assets_name", "in_band_ip", "assets_type_id", "create_date", "monitor_server_id"
+        FROM ${TBSNAME}."mw_tangibleassets_table" WHERE "delete_flag" = 0 ) t1
+        LEFT JOIN ${TBSNAME}."mw_assetssubtype_table" t2 ON t1."assets_type_id" = t2."id"
+        <where>
+            <if test="dateStart!=null">
+                and <![CDATA[#{dateStart,jdbcType=TIMESTAMP} >t1."create_date" ]]>
+            </if>
+            <if test="dateEnd!=null">
+                and <![CDATA[#{dateEnd,jdbcType=TIMESTAMP} >=t1."create_date" ]]>
+            </if>
+        </where>
+    </select>
+
+    <delete id="deleteRunTimeStatus">
+       DELETE FROM ${TBSNAME}."mw_report_run_time_status" WHERE  "date_type" = #{param}
+    </delete>
+
+    <insert id="insertRunTimeStatus" parameterType="cn.mw.monitor.report.dto.assetsdto.RunTimeItemValue">
+        INSERT INTO ${TBSNAME}."mw_report_run_time_status"("id","host_id", "asset_name", "ip", "item_name", "max_value", "min_value", "avg_value", "out_interface_avg_value", "sort_last_avg_value","date_type","interface_name","disk_name","assetsId","belong_time")
+        select ${TBSNAME}.SEQ_MW_REPORT_RUN_TIME_STATUS.NEXTVAL as id,t.* from
+        <foreach collection="list" index="index" item="item" separator="union all" >
+            (
+            #{item.hostId} as "host_id",
+            #{item.assetName} as "asset_name",
+            #{item.ip} as "ip",
+            #{item.itemName} as "item_name",
+            #{item.maxValue} as "max_value",
+            #{item.minValue} as "min_value",
+            #{item.avgValue} as "avg_value",
+            #{item.outInterfaceAvgValue} as "out_interface_avg_value",
+            #{item.sortLastAvgValue} as "sort_last_avg_value",
+            #{param} as "date_type",
+            #{item.interfaceName} as "interface_name",
+            #{item.diskName} as "disk_name",
+            #{item.assetsId} as "assetsId",
+            #{date} as "belong_time"
+            )
+        </foreach>
+    </insert>
+    <insert id="insertRecord" useGeneratedKeys="true" keyProperty="id" keyColumn="id">
+        <selectKey keyProperty="id" order="BEFORE" resultType="java.lang.Integer">
+            select ${TBSNAME}.SEQ_MW_ALERT_RECORD_TABLE.NEXTVAL as "id" from DUAL
+        </selectKey>
+        insert into  ${TBSNAME}."mw_alert_record_table"
+        ("id","date",method,text,is_success,hostid,error,title,ip,is_alarm)
+        values (
+        #{id},
+        #{date,jdbcType=TIMESTAMP}
+        ,#{method,jdbcType=VARCHAR}
+        ,#{text,jdbcType=VARCHAR}
+        ,#{isSuccess,jdbcType=INTEGER}
+        ,#{hostid,jdbcType=VARCHAR}
+        ,#{error,jdbcType=VARCHAR}
+        ,#{title,jdbcType=VARCHAR}
+        ,#{ip,jdbcType=VARCHAR}
+        ,#{isAlarm}
+        )
+    </insert>
+
+    <select id="selectRuntimeByTypeAndName" resultType="cn.mw.monitor.report.dto.assetsdto.RunTimeItemValue">
+        SELECT * FROM  ${TBSNAME}."mw_report_run_time_status" where "item_name" = #{name} and "date_type" =#{type}
+    </select>
+    <select id="getAllRunTimeItemValue" resultType="cn.mw.monitor.report.dto.assetsdto.RunTimeItemValue">
+        SELECT * FROM  ${TBSNAME}."mw_report_run_time_status" where "item_name" = #{name} and "belong_time" BETWEEN  #{startTime} and #{endTime} and "assetsId" is not null
+    </select>
+    <select id="selectTimeData" resultMap="BaseMap">
+        select
+        <include refid="Base_Column_List"></include>
+        from
+        ${TBSNAME}."mw_report_table" a1
+        left join  ${TBSNAME}."mw_report_type_table" a2 on a1."report_type_id"=a2."id"
+        left join  ${TBSNAME}."mw_time_task_table" a3 on a1."report_time_id"=a3."id"
+        where a1."delete_flag" = 0 and a1."send_time" = true and a1."id" = #{reportId}
+    </select>
+    <select id="selectEmailFromReport" resultType="cn.mw.monitor.util.entity.EmailFrom">
+         select
+            "is_ssl" as "isSsl",
+            "email_server_address" as "hostName",
+            "email_server_port" as "port",
+            "email_send_username" as "username",
+            "email_send_password" as "password",
+            "personal" as "personal"
+        from  ${TBSNAME}."mw_alert_email_rule"
+        where rule_id = #{id,jdbcType=INTEGER}
+    </select>
+
+    <delete id="deleteReportSendUser">
+        delete from "mw_report_senduser" where "report_id" = #{reportId}
+    </delete>
+
+    <insert id="insertReportSendUser">
+        INSERT INTO  ${TBSNAME}."mw_report_senduser"
+        ( "report_id", "user_id", "group_id", "type" )
+        VALUES
+        <foreach collection="dto" index="index" item="list" separator="," >
+            (
+            #{list.reportId},
+            #{list.userId},
+            #{list.groupId},
+            #{list.type}
+            )
+        </foreach>
+    </insert>
+
+    <select id="selectReportSendUser" resultType="cn.mw.monitor.report.dto.MWReportSendUserDto">
+        select "report_id" "reportId", "user_id" "userId", "group_id" "groupId", "type" from ${TBSNAME}."mw_report_senduser" where "report_id" = #{reportId}
+    </select>
+    <select id="selectUserNews" resultType="cn.mw.monitor.report.dto.UserDTO">
+        select "user_id" "userId","user_name" "userName","login_name" "loginName" from ${TBSNAME}."mw_sys_user" where "delete_flag" = 0 and "user_id"  in
+        <foreach collection="ids" index="index" item="item" open="(" separator="," close=")">
+            #{item}
+        </foreach>
+    </select>
+    <select id="selectUserGroupNews" resultType="cn.mw.monitor.report.dto.GroupDTO">
+        select "group_id" "groupId","group_name" "groupName" from ${TBSNAME}."mw_group_table" where "delete_flag" = 0 and "group_id" in
+        <foreach collection="ids" index="index" item="item" open="(" separator="," close=")">
+            #{item}
+        </foreach>
+    </select>
+    <select id="selectLabelAssets" resultType="java.util.Map">
+        SELECT
+            t1."type_id" "typeId",
+            t2."drop_value" "valueName"
+        FROM
+            (
+            SELECT
+                "type_id",
+                "drop_tagboard"
+            FROM
+                ${TBSNAME}."mw_label_drop_mapper"
+            WHERE
+            "label_id" = ( SELECT "label_id" FROM ${TBSNAME}."mw_labelmanage_table" WHERE "label_name" = '月度报表' )
+            ) t1 left join ${TBSNAME}."mw_dropdown_table" t2 on t1.drop_tagboard = t2."drop_id"
+    </select>
+    <select id="selectSendEmailUserGroup" resultType="java.lang.Integer">
+        SELECT DISTINCT
+            "user_id"
+        FROM
+            ${TBSNAME}."mw_user_group_mapper"
+        WHERE
+            "group_id" IN (
+            SELECT DISTINCT
+                "group_id"
+            FROM
+                ${TBSNAME}."mw_report_senduser"
+        WHERE
+            "type" = 'GROUP' and "report_id" = #{reportId})
+    </select>
+
+    <select id="selectAssetsByLabel" resultType="cn.mw.monitor.report.dto.PatrolInspectionDto">
+       SELECT DISTINCT
+            t3."assets_id" "assetsId",
+            t2."drop_value" "dropValue",
+            t3."assets_name" "assetsName",
+            t3."in_band_ip" "assetsIp",
+            t3."monitor_server_id" "serverId",
+            t3."in_band_ip" ip
+        FROM
+            ${TBSNAME}."mw_label_drop_mapper" t1
+            LEFT JOIN ${TBSNAME}."mw_dropdown_table" t2 ON t1."drop_tagboard" = t2."drop_id"
+            LEFT JOIN ${TBSNAME}."mw_tangibleassets_table" t3 ON t1."type_id" = t3."id"
+        WHERE
+            t1."module_type" = 'ASSETS'
+            AND t3."delete_flag" = 0
+            AND "label_id" = (
+            SELECT
+                "label_id"
+            FROM
+                ${TBSNAME}."mw_labelmanage_table"
+            WHERE
+                "input_format" = 3
+                AND "label_name" = #{labelName}
+            AND "delete_flag" = 0
+            )
+    </select>
+    <select id="getLinkReportHistory" resultType="cn.mw.monitor.report.dto.linkdto.InterfaceReportDtos">
+        select
+            "interface_id" "interfaceID","caption","in_bandwidth","out_bandwidth","band_unit",
+            "in_max_bps" "inMaxbps",
+            "in_min_bps" "inMinbps",
+            "in_average_bps"  "inAveragebps",
+            "in_max_use" "inMaxUse",
+            "in_avg_use"  "inAvgUse",
+            "in_proportion_ten"  "inProportionTen",
+            "in_proportion_fifty"  "inProportionFifty",
+            "in_proportion_eighty"  "inProportionEighty",
+            "in_proportion_hundred"  "inProportionHundred",
+            "out_max_bps" "outMaxbps",
+            "out_min_bps" "outMinbps",
+            "out_average_bps"  "outAveragebps",
+            "out_max_use" "outMaxUse",
+            "out_avg_use"  "outAvgUse",
+            "out_proportion_ten"  "outProportionTen",
+            "out_proportion_fifty"  "outProportionFifty",
+            "out_proportion_eighty"  outProportionEighty,
+            "out_proportion_hundred"  "outProportionHundred"
+        from  ${TBSNAME}."mw_report_link_allday"
+    </select>
+    <delete id="deleteLinkReportHistory">
+        delete from ${TBSNAME}."mw_report_link_allday"
+    </delete>
+    <insert id="insertLinkReportHistory">
+        insert into mw_report_link_allday
+        interface_id,caption,date_time,in_bandwidth,out_bandwidth,band_unit,
+        in_max_bps,in_average_bps,in_min_bps,in_max_use,in_avg_use,in_proportion_ten,in_proportion_fifty,in_proportion_eighty,in_proportion_hundred,
+        out_max_bps,out_average_bps,out_min_bps,out_max_use,out_avg_use,out_proportion_ten,out_proportion_fifty,out_proportion_eighty,out_proportion_hundred
+        values
+        <foreach collection="links" item="item" separator=",">
+            (
+            #{item.interfaceID,jdbcType=VARCHAR},
+            #{item.caption,jdbcType=VARCHAR},
+            #{item.dateTime,jdbcType=DATE},
+            #{item.inBandwidth,jdbcType=DOUBLE},
+            #{item.outBandwidth,jdbcType=DOUBLE},
+            #{item.bandUnit,jdbcType=VARCHAR},
+            #{item.inMaxbps,jdbcType=DOUBLE},
+            #{item.inAveragebps,jdbcType=DOUBLE},
+            #{item.inMinbps,jdbcType=DOUBLE},
+            #{item.inMaxUse,jdbcType=DOUBLE},
+            #{item.inAvgUse,jdbcType=DOUBLE},
+            #{item.inProportionTen,jdbcType=DOUBLE},
+            #{item.inProportionFifty,jdbcType=DOUBLE},
+            #{item.inProportionEighty,jdbcType=DOUBLE},
+            #{item.inProportionHundred,jdbcType=DOUBLE},
+            #{item.outMaxbps,jdbcType=DOUBLE},
+            #{item.outAveragebps,jdbcType=DOUBLE},
+            #{item.outMinbps,jdbcType=DOUBLE},
+            #{item.outMaxUse,jdbcType=DOUBLE},
+            #{item.outAvgUse,jdbcType=DOUBLE},
+            #{item.outProportionTen,jdbcType=DOUBLE},
+            #{item.outProportionFifty,jdbcType=DOUBLE},
+            #{item.outProportionEighty,jdbcType=DOUBLE},
+            #{item.outProportionHundred,jdbcType=DOUBLE}
+            )
+        </foreach>
+    </insert>
+    <select id="selectReportIndex" resultType="cn.mw.monitor.report.dto.MwReportIndexDto">
+        select
+            "id",
+            "item_name" as "itemName",
+            "chn_name" as "chnName"
+        from
+            ${TBSNAME}."mw_report_index_table"
+    </select>
+    <insert id="insertReportHistoryData">
+        INSERT INTO ${TBSNAME}."mw_report_cache_history_table"("id","assets_name","assets_ip","assets_id", "server_id", "host_id", "value_avg", "value_max", "value_min", "units", "item_name", "partition_name","clock","date","save_time")
+        select t.* from (
+        <foreach collection="dtos" item="list" separator="union all">
+            (select
+            #{list.id,jdbcType=VARCHAR} as "id",
+            #{list.assetsName,jdbcType=VARCHAR} as "assets_name",
+            #{list.assetIp,jdbcType=VARCHAR} as "assets_ip",
+            #{list.assetsId,jdbcType=VARCHAR} as "assets_id",
+            #{list.serverId,jdbcType=VARCHAR} as "server_id",
+            #{list.hostId,jdbcType=VARCHAR} as "host_id",
+            #{list.avgValue,jdbcType=VARCHAR} as "value_avg",
+            #{list.maxValue,jdbcType=VARCHAR} as "value_max",
+            #{list.minValue,jdbcType=VARCHAR} as "value_min",
+            #{list.units,jdbcType=VARCHAR} as "units",
+            #{list.itemName,jdbcType=VARCHAR} as "item_name",
+            #{list.partitionName,jdbcType=VARCHAR} as "partition_name",
+            #{list.clock,jdbcType=VARCHAR} as "clock",
+            #{list.date,jdbcType=DATE} as "date",
+            #{list.saveTime,jdbcType=DATE} as "save_time"
+            from dual
+            )
+        </foreach>
+        ) t
+    </insert>
+    <insert id="insertReportLatestData">
+        INSERT INTO ${TBSNAME}."mw_report_cache_latest_table"("id","assets_name","assets_ip","assets_id", "server_id", "host_id", "last_value", "units", "item_name", "partition_name","clock","date","save_time")
+        select t.* from (
+        <foreach collection="dtos" item="list" separator="union all">
+            (select
+            #{list.id,jdbcType=VARCHAR} as "id",
+            #{list.assetsName,jdbcType=VARCHAR} as "assets_name",
+            #{list.assetIp,jdbcType=VARCHAR} as "assets_ip",
+            #{list.assetsId,jdbcType=VARCHAR} as "assets_id",
+            #{list.serverId,jdbcType=VARCHAR} as "server_id",
+            #{list.hostId,jdbcType=VARCHAR} as "host_id",
+            #{list.lastValue,jdbcType=VARCHAR} as "last_value",
+            #{list.units,jdbcType=VARCHAR} as "units",
+            #{list.itemName,jdbcType=VARCHAR} as "item_name",
+            #{list.partitionName,jdbcType=VARCHAR} as "partition_name",
+            #{list.clock,jdbcType=VARCHAR} as "clock",
+            #{list.date,jdbcType=DATE} as "date",
+            #{list.saveTime,jdbcType=DATE} as "save_time"
+            from dual
+            )
+        </foreach>
+        ) t
+    </insert>
+    <delete id="deleteReportLatestData">
+        delete from
+            ${TBSNAME}."mw_report_cache_latest_table"
+    </delete>
+    <select id="selectReportLatestData" resultType="cn.mw.monitor.report.dto.MwReportTrendCacheDto">
+        select
+        "id" as "id",
+        "assets_name" as "assetsName",
+        "assets_ip" as "assetIp",
+        "assets_id" as "assetsId",
+        "server_id" as "serverId",
+        "host_id" as "hostId",
+        "last_value" as "lastValue",
+        "units" as "units",
+        "item_name" as "itemName",
+        "partition_name" as "partitionName",
+        "clock" as "clock",
+        "date" as "date",
+        "save_time" as "saveTime"
+        from  ${TBSNAME}."mw_report_cache_latest_table" where 1 = 1
+        <if test="assetsIds != null and assetsIds.size > 0">
+            and "assets_id" in
+            <foreach collection="assetsIds" item="item" index="index" open="(" separator="," close=")">
+                #{item,jdbcType=VARCHAR}
+            </foreach>
+        </if>
+        <if test="itemNames != null and itemNames.size > 0">
+            and
+            <foreach collection="itemNames" item="name" index="index" open="(" separator=" or " close=")">
+                "item_name" like  CONCAT('%',#{name})
+            </foreach>
+        </if>
+    </select>
+
+    <select id="selectReporHistoryData" resultType="cn.mw.monitor.report.dto.MwReportTrendCacheDto">
+        select
+        "id" as "id",
+        "assets_name" as "assetsName",
+        "assets_ip" as "assetIp",
+        "assets_id" as "assetsId",
+        "server_id" as "serverId",
+        "host_id" as "hostId",
+        "value_avg" as "avgValue",
+        "value_max" as "maxValue",
+        "value_min" as "minValue",
+        "units" as "units",
+        "item_name" as "itemName",
+        "partition_name" as "partitionName",
+        "clock" as "clock",
+        "date" as "date",
+        "save_time" as "saveTime"
+        from  ${TBSNAME}."mw_report_cache_history_table" where 1 = 1
+            and <![CDATA[#{startTime} <= "clock" ]]>
+            and <![CDATA[#{endTime} >= "clock" ]]>
+        <if test="assetsIds != null and assetsIds.size > 0">
+            and "assets_id" in
+            <foreach collection="assetsIds" item="item" index="index" open="(" separator="," close=")">
+                #{item,jdbcType=VARCHAR}
+            </foreach>
+        </if>
+        <if test="itemNames != null and itemNames.size > 0">
+            and
+            <foreach collection="itemNames" item="name" index="index" open="(" separator=" or " close=")">
+                "item_name" like  CONCAT('%',#{name})
+            </foreach>
+        </if>
+    </select>
+</mapper>

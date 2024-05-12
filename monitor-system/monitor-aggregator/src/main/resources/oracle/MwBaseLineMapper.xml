@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.mw.monitor.timetask.dao.MwBaseLineDao">
+
+    <resultMap id="BaseMap" type="cn.mw.monitor.timetask.entity.MwBaseLineManageDto">
+        <id column="id" jdbcType="INTEGER" property="id"/>
+        <result column="date_type" jdbcType="INTEGER" property="dateType"/>
+        <result column="enable" jdbcType="INTEGER" property="enable"/>
+        <result column="name" jdbcType="VARCHAR" property="name"/>
+        <result column="item_id" jdbcType="VARCHAR" property="itemIdStr"/>
+        <result column="unit" jdbcType="VARCHAR" property="unit"/>
+        <result column="creator" jdbcType="VARCHAR" property="creator"/>
+        <result column="create_date" jdbcType="TIMESTAMP" property="createDate"/>
+        <result column="modifier" jdbcType="VARCHAR" property="modifier"/>
+        <result column="modification_date" jdbcType="TIMESTAMP" property="modificationDate"/>
+    </resultMap>
+
+
+    <select id="getItemNames" resultType="cn.mw.monitor.timetask.entity.MwBaseLineItemNameDto">
+        select "id","name","item_name" "itemName","macro" from ${TBSNAME}."mw_baseline_item"
+    </select>
+
+    <insert id="insertBaseLine" parameterType="cn.mw.monitor.timetask.entity.MwBaseLineManageDto" useGeneratedKeys="true" keyProperty="id">
+        <selectKey keyProperty="id" order="BEFORE" resultType="java.lang.Integer">
+            select ${TBSNAME}.SEQ_MW_BASELINE_TABLE.NEXTVAL as "id" from DUAL
+        </selectKey>
+        insert into ${TBSNAME}."mw_baseline_table"
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            "id",
+            <if test="dateType != null">"date_type",</if>
+            <if test="enable != null">"enable",</if>
+            <if test="name != null and name != ''">"name",</if>
+            <if test="itemIdStr != null and itemIdStr != ''">"item_id",</if>
+            <if test="unit != null and unit != ''">"unit",</if>
+            <if test="creator != null and creator != ''">"creator",</if>
+            <if test="createDate != null">"create_date",</if>
+            <if test="modifier != null and modifier != ''">"modifier",</if>
+            <if test="modificationDate != null">"modification_date",</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            #{id},
+            <if test="dateType != null">#{dateType,jdbcType=INTEGER},</if>
+            <if test="enable != null">#{enable,jdbcType=INTEGER},</if>
+            <if test="name != null and name != ''">#{name,jdbcType=VARCHAR},</if>
+            <if test="itemIdStr != null and itemIdStr != ''">#{itemIdStr,jdbcType=VARCHAR},</if>
+            <if test="unit != null and unit != ''">#{unit,jdbcType=VARCHAR},</if>
+            <if test="creator != null and creator != ''">#{creator,jdbcType=VARCHAR},</if>
+            <if test="createDate != null"> #{createDate,jdbcType=TIMESTAMP},</if>
+            <if test="modifier != null and modifier != ''">#{modifier,jdbcType=VARCHAR},</if>
+            <if test="modificationDate != null"> #{modificationDate,jdbcType=TIMESTAMP},</if>
+        </trim>
+    </insert>
+
+    <update id="updateBaseLine" parameterType="cn.mw.monitor.timetask.entity.MwBaseLineManageDto">
+        update ${TBSNAME}."mw_baseline_table"
+        <set>
+            <if test="dateType != null">
+                "date_type" = #{dateType,jdbcType=INTEGER},
+            </if>
+            <if test="enable != null">
+                "enable" = #{enable,jdbcType=INTEGER},
+            </if>
+            <if test="name != null and name != ''">
+                "name" = #{name,jdbcType=VARCHAR},
+            </if>
+            "item_id" = #{itemIdStr,jdbcType=VARCHAR},
+            <if test="unit != null and unit != ''">
+                "unit" = #{unit,jdbcType=VARCHAR},
+            </if>
+            <if test="modifier != null">
+                "modifier" = #{modifier,jdbcType=VARCHAR},
+            </if>
+            "modification_date" = SYSDATE
+        </set>
+        where "id" = #{id,jdbcType=INTEGER}
+    </update>
+
+    <delete id="deleteBaseLine" parameterType="java.util.List">
+        delete from
+        ${TBSNAME}."mw_baseline_table"
+        where "id" in (
+        <foreach collection="ids" item="id" separator=",">
+            #{id,jdbcType=INTEGER}
+        </foreach>
+        )
+    </delete>
+    <delete id="deleteBaseLineHealthData">
+        delete from ${TBSNAME}."mw_baseline_health_value"
+    </delete>
+
+    <select id="selectBaseLine" resultMap="BaseMap">
+        select "id","date_type","item_id","unit","creator","create_date","modifier","modification_date","name","enable" from ${TBSNAME}."mw_baseline_table"
+        where 1 = 1
+        <if test="dateType != null">
+            and "date_type" = #{dateType,jdbcType=INTEGER}
+        </if>
+        <if test="unit != null and unit != ''">
+            and "unit" = #{unit,jdbcType=VARCHAR}
+        </if>
+    </select>
+    <select id="getItemNamesByIds" resultType="cn.mw.monitor.timetask.entity.MwBaseLineItemNameDto">
+         select "id","name","item_name" "itemName","macro" from ${TBSNAME}."mw_baseline_item" where 1= 1
+         <if test="itemIds != null and itemIds.size > 0">
+             and "id" in (
+             <foreach collection="itemIds" item="id" separator=",">
+                 #{id,jdbcType=INTEGER}
+             </foreach>
+             )
+         </if>
+    </select>
+    <select id="getItemIds" resultType="java.lang.String">
+        select "item_id" from ${TBSNAME}."mw_baseline_table"
+    </select>
+
+    <insert id="insertBaseLineHealthData">
+        INSERT INTO ${TBSNAME}."mw_baseline_health_value"("id","assets_id", "item_name", "value")
+        select ${TBSNAME}.SEQ_MW_BASELINE_HEALTH_VALUE.NEXTVAL as "id",t.* from
+        <foreach collection="list" item="item" separator="union all">
+            (select
+            #{item.assetsId,jdbcType=VARCHAR},
+            #{item.itemName,jdbcType=VARCHAR},
+            #{item.value,jdbcType=VARCHAR}
+            from dual
+            ) t
+        </foreach>
+    </insert>
+
+    <select id="getHealthValue" resultType="cn.mw.monitor.timetask.entity.MwBaseLineHealthValueDto">
+        select t."id",t."assets_id" "assetsId",t."item_name" "itemName",t."value"
+        from ${TBSNAME}."mw_baseline_health_value" t
+        where 1 = 1
+        <if test="assetsId != null and assetsId != ''">
+            and t."assets_id" = #{assetsId}
+        </if>
+        <if test="names != null and names.size > 0">
+            and t."item_name" in (
+            <foreach collection="names" item="name" separator=",">
+                #{name,jdbcType=INTEGER}
+            </foreach>
+            )
+        </if>
+    </select>
+    <select id="getAllHealthValue" resultType="java.util.Map">
+        select t."assets_id" "assetsId",t."item_name" "itemName",t."value" from ${TBSNAME}."mw_baseline_health_value" t
+    </select>
+</mapper>

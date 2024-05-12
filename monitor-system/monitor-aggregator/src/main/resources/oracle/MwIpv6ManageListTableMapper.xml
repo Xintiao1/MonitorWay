@@ -1,0 +1,394 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.mw.monitor.ipaddressmanage.dao.MwIpv6ManageListDao">
+
+  <resultMap id="BaseResultMap" type="cn.mw.monitor.ipaddressmanage.param.AddUpdateIpAddressManageListParam">
+    <id column="id" jdbcType="INTEGER" property="id" />
+    <id column="link_id" jdbcType="INTEGER" property="linkId" />
+    <result column="ip_address" jdbcType="VARCHAR" property="ipAddress" />
+    <result column="ip_type" jdbcType="VARCHAR" property="ipType" />
+    <result column="ip_state" jdbcType="INTEGER" property="ipState" />
+    <result column="remarks" jdbcType="VARCHAR" property="remarks" />
+    <result column="interval" jdbcType="INTEGER" property="interval" />
+    <result column="creator" jdbcType="VARCHAR" property="creator" />
+    <result column="create_date" jdbcType="TIMESTAMP" property="createDate" />
+    <result column="modifier" jdbcType="VARCHAR" property="modifier" />
+    <result column="modification_date" jdbcType="TIMESTAMP" property="modificationDate" />
+
+    <result column="assets_id" jdbcType="VARCHAR" property="assetsId" />
+    <result column="assets_name" jdbcType="VARCHAR" property="assetsName" />
+    <result column="assets_type" jdbcType="VARCHAR" property="assetsType" />
+    <result column="online" jdbcType="INTEGER" property="online" />
+    <result column="mac" jdbcType="VARCHAR" property="mac" />
+    <result column="vendor" jdbcType="VARCHAR" property="vendor" />
+    <result column="access_equip" jdbcType="VARCHAR" property="accessEquip" />
+    <result column="access_port" jdbcType="VARCHAR" property="accessPort" />
+    <result column="access_port_name" jdbcType="VARCHAR" property="accessPortName" />
+    <result column="last_date" jdbcType="TIMESTAMP" property="lastDate" />
+    <result column="update_date" jdbcType="TIMESTAMP" property="updateDate" />
+    <result column="distribution_status" jdbcType="INTEGER" property="distributionStatus"/>
+    <association property="vendorIconDTO" javaType="cn.mw.monitor.service.vendor.model.VendorIconDTO"
+                 select="selectVendorIcon" column="vendor">
+      <result column="vendor_small_icon" jdbcType="VARCHAR" property="vendorSmallIcon"/>
+      <result column="vendor_large_icon" jdbcType="VARCHAR" property="vendorLargeIcon"/>
+    </association>
+    <collection property="assetsDetail"  javaType="java.util.ArrayList" ofType="cn.mw.monitor.ipaddressmanage.dto.AssetsDto"
+                select="selectAllAssets" column="ip_address">
+
+    </collection>
+  </resultMap>
+
+  <select id="selectVendorIcon" resultType="cn.mw.monitor.service.vendor.model.VendorIconDTO">
+        select "vendor_small_icon", "vendor_large_icon" from "mw_base_vendor_icon" where "vendor" = #{vendor}
+   </select>
+
+  <select id="selectAllAssets" resultType="cn.mw.monitor.ipaddressmanage.dto.AssetsDto">
+        select "id", "assets_name",'in' as "assets_type" from
+         "mw_tangibleassets_table"
+        where 1=1
+        and "delete_flag" = false
+        and ( "in_band_ip" = #{ip_address} or "out_band_ip" = #{ip_address} )
+        and "assets_type_id" in (69,1,2,3,4)
+        union all
+        select "id","assets_name" ,'out' as "assets_type" from "mw_outbandassets_table"
+		where "ip_address"=#{ip_address}
+   </select>
+
+  <select id="selectSonList" resultMap="BaseResultMap">
+    select * from
+    "mw_ipv6managelist_table"
+    where
+    <if test="linkId !=null">
+      "link_id" = #{linkId,jdbcType=INTEGER}
+    </if>
+    <if test="ipAddress !=null and ipAddress != ''">
+      and "ip_address" = #{ipAddress,jdbcType=VARCHAR}
+    </if>
+    <if test="ipState !=null">
+      and "ip_state" = #{ipState,jdbcType=INTEGER}
+    </if>
+    <if test="online !=null">
+      and "online" = #{online,jdbcType=INTEGER}
+    </if>
+    <if test="mac !=null and mac != ''">
+      and "mac" = #{mac,jdbcType=VARCHAR}
+    </if>
+    <if test="creator !=null and creator != ''">
+      and "creator" like concat('%',#{creator,jdbcType=VARCHAR},'%')
+    </if>
+    <if test="createDateStart !=null">
+      and <![CDATA[#{createDateStart,jdbcType=TIMESTAMP} <= "create_date" ]]>
+    </if>
+    <if test="createDateEnd !=null">
+      and <![CDATA[#{createDateEnd,jdbcType=TIMESTAMP} > "create_date" ]]>
+    </if>
+    <if test="modifier !=null and modifier != ''">
+      and "modifier" like concat('%',#{modifier,jdbcType=VARCHAR},'%')
+    </if>
+    <if test="modificationDateStart !=null">
+      and <![CDATA[#{modificationDateStart,jdbcType=TIMESTAMP} <= "modification_date"]]>
+    </if>
+    <if test="modificationDateEnd !=null">
+      and <![CDATA[#{modificationDateEnd,jdbcType=TIMESTAMP} > "modification_date"]]>
+    </if>
+    <if test="distributionStatus !=null">
+      and "distribution_status" = #{distributionStatus,jdbcType=VARCHAR}
+    </if>
+    <if test="tem ==true ">
+      and "is_tem" = true
+    </if>
+    <if test="searchAll !=null and searchAll !='' ">
+      and ("ip_address" like concat('%',#{searchAll,jdbcType=VARCHAR},'%')
+      or "assets_name" like concat('%',#{searchAll,jdbcType=VARCHAR},'%')
+      or "remarks" like concat('%',#{searchAll,jdbcType=VARCHAR},'%')
+      or "assets_type" like concat('%',#{searchAll,jdbcType=VARCHAR},'%')
+      or "access_port_name" like concat('%',#{searchAll,jdbcType=VARCHAR},'%')
+      or "access_equip" like concat('%',#{searchAll,jdbcType=VARCHAR},'%')
+      or "vendor" like concat('%',#{searchAll,jdbcType=VARCHAR},'%')
+      or "modifier" like concat('%',#{searchAll,jdbcType=VARCHAR},'%')
+      or "creator" like concat('%',#{searchAll,jdbcType=VARCHAR},'%')
+      or "mac" like concat('%',#{searchAll,jdbcType=VARCHAR},'%')
+      )
+    </if>
+    <choose>
+      <when test="orderName !=null and orderType != null and orderName !='' and orderType != ''">
+        ORDER BY &quot;${orderName}&quot; ${orderType}
+      </when>
+      <otherwise>
+        TO_NUMBER(SUBSTR("ip_address",INSTR("ip_address", '.', -1, 1) + 1))+100
+      </otherwise>
+    </choose>
+
+  </select>
+
+  <insert id="insertIpv6List" parameterType="java.util.List">
+    insert into "mw_ipv6smanagelist_table"
+    (
+    "link_id",
+    "ip_address",
+    "ip_state",
+	"creator",
+    "create_date",
+	"modifier",
+    "modification_date",
+	"online",
+	"mac",
+	"vendor",
+	"access_equip",
+	"access_port_name",
+	"assets_name"
+    )
+	values
+    <foreach collection="list" item="item" separator=",">
+	(
+      #{item.linkId,jdbcType=INTEGER},
+      #{item.ipAddress,jdbcType=VARCHAR},
+      #{item.ipState,jdbcType=INTEGER},
+      #{item.creator,jdbcType=VARCHAR},
+      #{item.createDate,jdbcType=TIMESTAMP},
+      #{item.modifier,jdbcType=VARCHAR},
+      #{item.modificationDate,jdbcType=TIMESTAMP},
+      #{item.online,jdbcType=INTEGER},
+      #{item.mac,jdbcType=VARCHAR},
+      #{item.vendor,jdbcType=VARCHAR},
+      #{item.accessEquip,jdbcType=VARCHAR},
+      #{item.accessPort,jdbcType=VARCHAR},
+      #{item.assetsName,jdbcType=VARCHAR}
+	)
+    </foreach>
+  </insert>
+
+  <update id="updateIpv6List" parameterType="java.util.List">
+    <foreach collection="list" item ="updateList" separator=";">
+      update "mw_ipv6smanagelist_table"
+      set
+      "assets_name" = #{updateList.assetsName,jdbcType=VARCHAR},
+      "ip_state" = #{updateList.ipState,jdbcType=INTEGER},
+      "online" = #{updateList.online,jdbcType=INTEGER},
+      "mac" = #{updateList.mac,jdbcType=VARCHAR},
+      "vendor" = #{updateList.vendor,jdbcType=VARCHAR},
+      "access_equip" = #{updateList.accessEquip,jdbcType=VARCHAR},
+      "access_port_name" = #{updateList.accessPort,jdbcType=VARCHAR},
+      "update_date" = #{updateList.updateDate,jdbcType=TIMESTAMP}
+      where "id" = #{updateList.id,jdbcType=INTEGER}
+    </foreach>
+  </update>
+
+  <select id="selectSonList2" resultType="cn.mw.monitor.ipaddressmanage.param.MwIpAddressManageListTable" parameterType="java.util.List">
+    select
+    t1."id","link_id" as "linkId","ip_address" as "ipAddress",
+    t2."value" as "ipState","remarks",t1."creator",t1."create_date" as "createDate",
+    t1."modifier",t1."modification_date" as "modificationDate",
+    t3."value" as "online","mac","vendor","access_equip" as "accessEquip",
+    "assets_name" as "assetsName",
+    "assets_type" as "assetsType",
+    "access_port" as "accessPort","access_port_name" as "accessPortName","last_date" as "lastDate","update_date" as "updateDate"
+    from
+    (select * from "mw_ipv6managelist_table"
+    where "id" in (
+    <foreach collection="ids" item="id" separator=",">
+      #{id ,jdbcType=INTEGER}
+    </foreach>)) t1
+    inner join "mw_dictionary_table" t2 on  t2."typeof" = 1  and  t1."ip_state" = t2."key"
+    inner join "mw_dictionary_table" t3 on  t3."typeof" = 2  and  t1."ip_state" = t3."key"
+  </select>
+
+  <select id="selectSonList1" resultType="cn.mw.monitor.ipaddressmanage.param.MwIpAddressManageListTable" parameterType="java.lang.Integer">
+    select
+        t1."id","link_id" as "linkId","ip_address" as "ipAddress",
+        t2."value" as "ipState","remarks",t1."creator",t1."create_date" as "createDate",
+        t1."modifier",t1."modification_date" as "modificationDate",
+        t3."value" as "online","mac","vendor","access_equip" as "accessEquip",
+        "assets_name" as "assetsName",
+        "assets_type" as "assetsType",
+        "access_port" as "accessPort","access_port_name" as "accessPortName","last_date" as "lastDate","update_date" as "updateDate"
+    from
+    "mw_ipv6managelist_table" t1
+    inner join "mw_dictionary_table" t2 on t1."link_id"=#{id,jdbcType=INTEGER} and t2."typeof" = 1  and  t1."ip_state" = t2."key"
+    inner join "mw_dictionary_table" t3 on t1."link_id"=#{id,jdbcType=INTEGER} and t3."typeof" = 2  and  t1."ip_state" = t3."key"
+  </select>
+
+  <delete id="deleteBatch" parameterType="cn.mw.monitor.ipaddressmanage.param.AddUpdateIpAddressManageListParam">
+    delete from
+    "mw_ipv6managelist_table"
+    where "id" in (
+    <foreach collection="ids" item="id" separator=",">
+      #{id ,jdbcType=INTEGER}
+    </foreach>)
+  </delete>
+
+
+  <update id="updateBatch" parameterType="cn.mw.monitor.ipaddressmanage.param.AddUpdateIpAddressManageListParam">
+    update "mw_ipv6managelist_table"
+    set
+    <if test="interval !=null">
+      "interval" = #{interval,jdbcType=INTEGER},
+    </if>
+    <if test="ipState !=null">
+      "ip_state" = #{ipState,jdbcType=INTEGER},
+    </if>
+    <if test="remarks !=null">
+      "remarks" = #{remarks,jdbcType=VARCHAR},
+    </if>
+    <if test="assetsName !=null">
+      "assets_name" = #{assetsName,jdbcType=VARCHAR},
+    </if>
+    <if test="mac !=null">
+      "mac" = #{mac,jdbcType=VARCHAR},
+    </if>
+    <if test="isRewrite !=null">
+      "is_rewrite" = #{isRewrite,jdbcType=VARCHAR},
+    </if>
+    <if test="isRewrite !=null">
+      "is_rewrite" = #{isRewrite,jdbcType=VARCHAR},
+    </if>
+    <if test="isTem !=null">
+      "is_tem" = #{isTem,jdbcType=INTEGER},
+    </if>
+    "last_date" = sysdate
+    where
+    "id" in (
+    <foreach collection="ids" item="id" separator=",">
+      #{id ,jdbcType=INTEGER}
+    </foreach>)
+  </update>
+
+
+  <select id="getHisList" resultType="cn.mw.monitor.ipaddressmanage.param.AddUpdateIpAddressManageListHisParam"
+          parameterType="cn.mw.monitor.ipaddressmanage.param.AddUpdateIpAddressManageListHisParam">
+    select
+    "id" as "id",
+    "link_id" as "linkId",
+    "ip_address" as "ipAddress",
+    "mac"  as "mac",
+    "vendor" as "vendor",
+    "access_equip" as "accessEquip",
+    "access_port" as "access_port",
+    "update_date" as "updateDate"
+    from
+    "mw_ipv6managelist_his_table"
+    where "link_id" = #{linkId,jdbcType=INTEGER}
+    <if test="updateDateStart !=null">
+      and <![CDATA[#{updateDateStart,jdbcType=TIMESTAMP} <= "update_date" ]]>
+    </if>
+    <if test="updateDateEnd !=null">
+      and <![CDATA[#{updateDateEnd,jdbcType=TIMESTAMP} > "update_date" ]]>
+    </if>
+    and (
+    1=1
+    <if test="mac !=null and mac != ''">
+      or "mac" like concat('%',#{mac,jdbcType=VARCHAR},'%')
+    </if>
+    <if test="accessEquip !=null and accessEquip != ''">
+      or "access_equip" like concat('%',#{accessEquip,jdbcType=VARCHAR},'%')
+    </if>
+    <if test="accessPort !=null and accessPort != ''">
+      or "access_port" like concat('%',#{accessPort,jdbcType=VARCHAR},'%')
+    </if>
+    <if test="vendor !=null and vendor != ''">
+      or "vendor" like concat('%',#{vendor,jdbcType=VARCHAR},'%')
+    </if>
+    )
+    ORDER BY "update_date" desc
+  </select>
+
+  <select id="getHisListForOne" resultType="cn.mw.monitor.ipaddressmanage.param.AddUpdateIpAddressManageListHisParam"
+          parameterType="java.lang.String">
+    SELECT
+        "id" as "id",
+        "link_id" as "linkId",
+        "ip_address" as "ipAddress",
+        "mac"  as "mac",
+        "vendor" as "vendor",
+        "access_equip" as "accessEquip",
+        "access_port" as "access_port",
+        "update_date" as "updateDate"
+    FROM
+        "mw_ipv6managelist_his_table"
+    where
+        "ip_address" = #{ipAddress,jdbcType=VARCHAR}
+    ORDER BY
+	    "update_date" DESC
+	rownum = 1
+  </select>
+
+  <insert id="batchCreateHis" parameterType="java.util.List">
+    insert into "mw_ipv6managelist_his_table" (
+    "link_id", "ip_address", "mac", "vendor", "access_equip", "access_port","access_port_name", "update_date"
+    )values
+    <foreach collection="list" item="item" separator=",">
+      (
+      #{item.linkId,jdbcType=VARCHAR},
+      #{item.ipAddress,jdbcType=INTEGER},
+      #{item.mac,jdbcType=INTEGER},
+      #{item.vendor,jdbcType=VARCHAR},
+      #{item.accessEquip,jdbcType=VARCHAR},
+      #{item.accessPort,jdbcType=VARCHAR},
+      #{item.accessPortName,jdbcType=VARCHAR},
+      #{item.updateDate,jdbcType=TIMESTAMP}
+      )
+    </foreach>
+  </insert>
+
+  <update id="batchUpdateHis" parameterType="java.util.List">
+    <foreach collection="list" item ="updateList" separator=";">
+      update "mw_ipv6managelist_his_table"
+      set
+      "mac" = #{updateList.mac,jdbcType=VARCHAR},
+      "vendor" = #{updateList.vendor,jdbcType=VARCHAR},
+      "access_equip" = #{updateList.accessEquip,jdbcType=VARCHAR},
+      "access_port" = #{updateList.accessPort,jdbcType=VARCHAR},
+      "access_port_name"=#{updateList.accessPortName,jdbcType=VARCHAR},
+      "update_date" = #{updateList.updateDate,jdbcType=TIMESTAMP}
+      where "id" = #{updateList.id,jdbcType=INTEGER}
+    </foreach>
+  </update>
+
+  <delete id="deleteHisByLinkId"  parameterType="java.lang.Integer">
+    delete from "mw_ipv6managelist_his_table"
+    where "link_id" in
+    (SELECT "id" from "mw_ipv6managelist_table" where "link_id" = #{linkId,jdbcType=INTEGER})
+  </delete>
+
+  <delete id="deleteHisById"  parameterType="java.lang.Integer">
+    delete from "mw_ipv6managelist_his_table"
+    where "link_id" =#{linkId,jdbcType=INTEGER}
+  </delete>
+
+  <insert id="insertIpv6" parameterType="cn.mw.monitor.ipaddressmanage.param.AddUpdateIpAddressManageListParam">>
+    insert into "mw_ipv6smanagelist_table"
+    (
+    "link_id",
+    "ip_address",
+    "ip_state",
+    "creator",
+    "create_date",
+    "modifier",
+    "modification_date",
+    "online",
+    "mac",
+    "vendor",
+    "access_equip",
+    "access_port_name",
+    "assets_name"
+    )
+    values
+
+      (
+      #{item.linkId,jdbcType=INTEGER},
+      #{item.ipAddress,jdbcType=VARCHAR},
+      #{item.ipState,jdbcType=INTEGER},
+      #{item.creator,jdbcType=VARCHAR},
+      #{item.createDate,jdbcType=TIMESTAMP},
+      #{item.modifier,jdbcType=VARCHAR},
+      #{item.modificationDate,jdbcType=TIMESTAMP},
+      #{item.online,jdbcType=INTEGER},
+      #{item.mac,jdbcType=VARCHAR},
+      #{item.vendor,jdbcType=VARCHAR},
+      #{item.accessEquip,jdbcType=VARCHAR},
+      #{item.accessPort,jdbcType=VARCHAR},
+      #{item.assetsName,jdbcType=VARCHAR}
+      )
+
+  </insert>
+</mapper>

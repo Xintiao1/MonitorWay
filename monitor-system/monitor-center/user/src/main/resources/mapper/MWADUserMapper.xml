@@ -1,0 +1,270 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.mw.monitor.user.dao.MWADUserDao">
+    <sql id="whereSql">
+            1 = 1
+            <if test="adServerIpAdd != null and adServerIpAdd != ''">
+                and
+                ad_ip_add = #{adServerIpAdd,jdbcType=VARCHAR}
+            </if>
+            <if test="adPort != null and adPort != ''">
+                And
+                ad_port = #{adPort,jdbcType=VARCHAR}
+            </if>
+    </sql>
+
+    <insert id="insertUser">
+        insert into
+            mw_sys_user (user_name,login_name,user_type,delete_flag,user_state,
+            creator,modifier,create_time,update_time,password,active_passwd_plan,
+            default_passwd_plan,user_expiry_date,phone_number,email,validity_type,wechat_id,dd_id)
+        values (
+            #{userName,jdbcType=VARCHAR},
+            #{loginName,jdbcType=VARCHAR},
+            #{userType,jdbcType=VARCHAR},
+            false,
+            #{userState},
+            #{creator,jdbcType=VARCHAR},
+            #{modifier,jdbcType=VARCHAR},
+            now(),
+            now(),
+            'password',
+            #{activePasswdPlan,jdbcType=INTEGER},
+            #{defaultPasswdPlan,jdbcType=INTEGER},
+            #{userExpiryDate,jdbcType=DATE},
+            #{phoneNumber,jdbcType=VARCHAR},
+            #{email,jdbcType=VARCHAR},
+            1,
+            #{wechatId},
+            #{ddId}
+        )
+    </insert>
+
+    <insert id="insertInfo" useGeneratedKeys="true" keyProperty="id">
+        insert into
+            mw_ad_info_mapper (id,ad_ip_add,ad_port,ad_info,local_info,group_info,search_nodes,ad_type,
+            role_id,group_id,org_id,config_desc)
+        values (
+            #{id,jdbcType=VARCHAR},
+            #{adServerIpAdd,jdbcType=VARCHAR},
+            #{adPort,jdbcType=VARCHAR},
+            #{adInfo,jdbcType=VARCHAR},
+            #{localInfo,jdbcType=VARCHAR},
+            #{groupInfo,jdbcType=VARCHAR},
+            #{searchNodes,jdbcType=VARCHAR},
+            #{type,jdbcType=VARCHAR},
+            #{roleId,jdbcType=VARCHAR},
+            #{userGroup,jdbcType=VARCHAR},
+            #{department,jdbcType=VARCHAR},
+            #{configDesc,jdbcType=VARCHAR}
+            )
+    </insert>
+
+    <insert id="insertConfigUser" parameterType="cn.mw.monitor.user.model.ADUserDetailDTO">
+        insert into
+            mw_adconfig_user_mapper (config_id,user_name,login_name)
+        values (
+            #{id,jdbcType=INTEGER},
+            #{userName,jdbcType=VARCHAR},
+            #{loginName,jdbcType=VARCHAR}
+        )
+    </insert>
+
+    <insert id="insertAdInfo">
+       insert into
+            mw_adAuthentic_mapper (ad_ip_add,ad_port,ad_apartment_name,update_time,domain_name,ad_account,ad_passwd)
+        values (
+            #{adServerIpAdd,jdbcType=VARCHAR},
+            #{adPort,jdbcType=VARCHAR},
+            #{adServerName,jdbcType=VARCHAR},
+            now(),
+            #{domainName,jdbcType=VARCHAR},
+            #{adAdminAccount,jdbcType=VARCHAR},
+            #{adAdminPasswd,jdbcType=VARCHAR}
+            )
+    </insert>
+
+    <insert id="insertTempUser">
+        insert into mw_ad_improtUser_temp_mapper (user_id,creator)
+        values (
+        #{userId,jdbcType=INTEGER},#{creator,jdbcType=VARCHAR}
+        )
+    </insert>
+
+
+    <insert id="insertTempConfig">
+        insert into mw_ad_config_temp_mapper(config_id,creator)
+        values (
+        #{configId,jdbcType=INTEGER},#{creator,jdbcType=VARCHAR}
+        )
+    </insert>
+
+    <update id="updateUser">
+        delete from
+            mw_sys_user
+        where login_name = #{loginName,jdbcType=VARCHAR}
+        and user_type = #{userType,jdbcType=VARCHAR}
+    </update>
+
+    <update id="truncateTempUser">
+        truncate table mw_ad_improtUser_temp_mapper
+    </update>
+
+    <update id="truncateTempConfig">
+        truncate table mw_ad_config_temp_mapper
+    </update>
+
+    <update id="truncateAuthent">
+        truncate table mw_adAuthentic_mapper
+    </update>
+
+    <delete id="deleteConfig">
+        delete from
+            mw_ad_info_mapper
+        where
+            id = #{id,jdbcType=INTEGER}
+    </delete>
+
+    <delete id="deleteConfigUser">
+        delete from mw_adconfig_user_mapper
+        where id in (
+        <foreach collection="list" item="id" separator=",">
+            #{id,jdbcType=INTEGER}
+        </foreach>
+        )
+    </delete>
+
+    <delete id="deleteByConfigList">
+        delete from mw_ad_info_mapper
+        where id in
+         (
+        <foreach collection="list" item="configId" separator=",">
+          #{configId,jdbcType=INTEGER}
+        </foreach>
+        )
+    </delete>
+
+    <delete id="deleteByLoginName">
+        delete from mw_adconfig_user_mapper
+        where login_name in (
+        <foreach collection="list" item="loginName" separator=",">
+        #{loginName,jdbcType=VARCHAR}
+        </foreach>
+        )
+    </delete>
+
+    <delete id="deleteADConfigUser">
+        delete from
+            mw_adconfig_user_mapper
+        where
+            config_id = #{id,jdbcType=INTEGER}
+    </delete>
+
+    <select id="selectUser" resultType="java.lang.String">
+        select
+            ad_user
+        from
+            mw_adAuthentic_mapper
+        where
+            <include refid="whereSql"/>
+    </select>
+
+    <select id="selectConfigInfo" resultType="cn.mw.monitor.user.model.MWADConfigUserDTO">
+        SELECT
+            a.login_name,
+            a.user_name,
+            b.user_state,
+            b.user_id,
+            a.id
+        FROM
+            mw_adconfig_user_mapper a,
+            mw_sys_user b
+        WHERE
+            a.config_id = #{configId,jdbcType=INTEGER}
+            AND a.login_name = b.login_name
+            AND b.delete_flag = FALSE
+    </select>
+
+    <select id="selectConfig" resultType="cn.mw.monitor.user.model.MWADInfoDTO">
+        select
+            id,ad_info,local_info,group_info,search_nodes,ad_type,role_id,group_id,org_id,config_desc
+        from
+            mw_ad_info_mapper
+        where
+            <include refid="whereSql"/>
+    </select>
+
+    <select id="select" resultType="cn.mw.monitor.user.model.ADConfigDTO">
+        select ad_ip_add ldapIpAdd,ad_port ldapPort,domain_name domainName
+        from mw_adAuthentic_mapper
+    </select>
+
+    <select id="selectGroupUserById" resultType="cn.mw.monitor.service.user.model.MWUser">
+        select
+            a.login_name,
+            a.user_name,
+            b.user_state,
+            b.user_id
+        from
+            mw_adconfig_user_mapper a,
+            mw_sys_user b
+        where
+            a.config_id = #{configId,jdbcType=INTEGER}
+            and a.login_name = b.login_name
+            and b.delete_flag = false
+    </select>
+
+    <select id="selectSyAdInfo" resultType="cn.mw.monitor.user.dto.MwLdapAuthenticInfoDTO">
+        SELECT
+            	ad_apartment_name serverName,
+                ad_ip_add ipAddress,
+                ad_port PORT,
+                ad_account adAccount,
+                ad_passwd adPasswd
+        FROM
+	        mw_adAuthentic_mapper
+    </select>
+
+    <select id="selectTempConfigId" resultType="java.lang.Integer">
+        select config_id from mw_ad_config_temp_mapper
+    </select>
+
+    <select id="selectTempUserId" resultType="java.lang.Integer">
+        select user_id from mw_ad_improtUser_temp_mapper
+    </select>
+
+    <select id="selectByADInfo" resultType="cn.mw.monitor.user.model.MWADInfoDTO">
+        select
+        id,ad_info,local_info,group_info,search_nodes,ad_type,role_id,group_id,org_id
+        from
+        mw_ad_info_mapper
+        where
+        <include refid="whereSql"/>
+        and  ad_info = #{adInfo,jdbcType=VARCHAR}
+    </select>
+
+    <select id="countByConfigId" resultType="java.lang.Integer">
+        SELECT
+            COUNT( 1 )
+        FROM
+            mw_adconfig_user_mapper
+        WHERE
+            config_id = #{configId}
+    </select>
+
+    <update id="updateDesc">
+        update mw_ad_info_mapper
+        set
+            config_desc = #{desc}
+        where id = #{id}
+    </update>
+
+    <select id="countAdRoleMapper" resultType="java.lang.Integer">
+        SELECT
+            COUNT( 1 )
+        FROM
+            mw_ad_info_mapper
+        WHERE
+            role_id = #{roleId}
+    </select>
+</mapper>

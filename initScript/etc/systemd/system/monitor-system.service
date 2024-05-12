@@ -1,0 +1,12 @@
+[Unit]
+Description=monitor-system service
+After=network.target 
+
+[Service] 
+Type=forking
+SuccessExitStatus=143
+# 路径对应安装路径
+ExecStart=/bin/bash -c "source  ~/.bash_profile && /opt/app/monitor-system/start_daemon.sh"
+ExecStop=/bin/bash -c "source /etc/profile && /opt/app/monitor-system/shutdown_daemon.sh"
+KillMode=none
+TimeoutSec=600

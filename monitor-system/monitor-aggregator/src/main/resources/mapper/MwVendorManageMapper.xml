@@ -1,0 +1,238 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.mw.monitor.vendor.dao.MwVendorManageDao">
+    <resultMap id="ParentMap" type="cn.mw.monitor.vendor.model.MwVendorManageTable">
+        <id column="id" jdbcType="INTEGER" property="id"/>
+        <result column="brand" jdbcType="VARCHAR" property="brand"/>
+        <result column="specification" jdbcType="VARCHAR" property="specification"/>
+        <result column="description" jdbcType="VARCHAR" property="description"/>
+        <result column="vendor_id" jdbcType="INTEGER" property="vendorId"/>
+        <result column="creator" jdbcType="VARCHAR" property="creator"/>
+        <result column="create_date" jdbcType="TIMESTAMP" property="createDate"/>
+        <result column="modifier" jdbcType="VARCHAR" property="modifier"/>
+        <result column="modification_date" jdbcType="TIMESTAMP" property="modificationDate"/>
+    </resultMap>
+
+    <resultMap id="ResultMap" type="cn.mw.monitor.vendor.model.MwBaseVendorIcon">
+        <id column="id" jdbcType="INTEGER" property="id"/>
+        <result column="vendor" jdbcType="VARCHAR" property="vendor"/>
+        <result column="vendor_small_icon" jdbcType="VARCHAR" property="vendorSmallIcon"/>
+        <result column="vendor_large_icon" jdbcType="VARCHAR" property="vendorLargeIcon"/>
+    </resultMap>
+
+    <resultMap id="BaseResultMap" type="cn.mw.monitor.vendor.dto.MwVendorManageTableDTO" extends="ParentMap">
+        <association property="vendorIconDTO" javaType="cn.mw.monitor.service.vendor.model.VendorIconDTO"
+                     select="selectVendorIcon" column="vendor_id">
+            <result column="vendor_small_icon" jdbcType="VARCHAR" property="vendorSmallIcon"/>
+            <result column="vendor_large_icon" jdbcType="VARCHAR" property="vendorLargeIcon"/>
+            <result column="custom_flag" jdbcType="INTEGER" property="customFlag"/>
+        </association>
+    </resultMap>
+
+    <select id="selectVendorIcon" resultType="cn.mw.monitor.service.vendor.model.VendorIconDTO">
+        select vendor_small_icon, vendor_large_icon,custom_flag from mw_base_vendor_icon where id = #{vendor_id}
+    </select>
+
+    <sql id="Base_Column_List">
+    id, brand, specification, description, vendor_id, creator, create_date, modifier, modification_date
+  </sql>
+
+    <sql id="bv">
+        mw_base_vendor_icon
+  </sql>
+    <sql id="tb">
+        mw_ncm_vendor_table
+    </sql>
+
+
+    <sql id="criteria">
+        <if test="brand != null and brand != ''">
+            and brand like CONCAT('%',#{brand,jdbcType=VARCHAR},'%')
+        </if>
+        <if test="specification != null and specification !=''">
+            and specification like CONCAT('%',#{specification,jdbcType=VARCHAR},'%')
+        </if>
+        <if test="description != null and description !=''">
+            and description = #{description,jdbcType=VARCHAR}
+        </if>
+        <if test="creator != null and creator != ''">
+            and creator = #{creator,jdbcType=VARCHAR}
+        </if>
+        <if test="createDateStart != null">
+            AND  <![CDATA[#{createDateStart,jdbcType=TIMESTAMP} <= create_date ]]>
+        </if>
+        <if test="createDateEnd != null">
+            AND <![CDATA[#{createDateEnd,jdbcType=TIMESTAMP} >= create_date ]]>
+        </if>
+        <if test="modifier != null and modifier != ''">
+            AND modifier LIKE CONCAT('%',#{modifier,jdbcType=VARCHAR},'%')
+        </if>
+        <if test="modificationDateStart != null">
+            AND  <![CDATA[#{modificationDateStart,jdbcType=TIMESTAMP} <= modification_date ]]>
+        </if>
+        <if test="modificationDateEnd != null">
+            AND <![CDATA[#{modificationDateEnd,jdbcType=TIMESTAMP} >= modification_date ]]>
+        </if>
+        <if test="vendorId != null and vendorId != ''">
+            and vendor_id = #{vendorId,jdbcType=INTEGER}
+        </if>
+    </sql>
+
+    <select id="selectById" resultMap="ParentMap">
+        select
+        <include refid="Base_Column_List"/>
+        from
+        <include refid="tb"/>
+        where id = #{id,jdbcType=INTEGER}
+    </select>
+
+    <delete id="delete" parameterType="java.util.List">
+        delete from
+        <include refid="tb"/>
+        where id in (
+        <foreach collection="list" item="id" separator=",">
+            #{id,jdbcType=INTEGER}
+        </foreach>
+        )
+    </delete>
+    <delete id="deleteVendorIcon">
+        delete from mw_base_vendor_icon where id in (
+        <foreach collection="list" item="id" separator=",">
+            #{id,jdbcType=INTEGER}
+        </foreach>
+        )
+    </delete>
+
+    <insert id="insert" parameterType="cn.mw.monitor.vendor.param.AddOrUpdateVendorManageParam" useGeneratedKeys="true"
+            keyProperty="id">
+        insert into
+        <include refid="tb"/>
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="brand != null">
+                brand,
+            </if>
+            <if test="specification != null">
+                specification,
+            </if>
+            <if test="description != null">
+                description,
+            </if>
+            <if test="vendorId != null">
+                vendor_id,
+            </if>
+            <if test="creator != null">
+                creator,
+            </if>
+            create_date,
+            <if test="modifier != null">
+                modifier,
+            </if>
+            modification_date
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="brand != null">
+                #{brand,jdbcType=VARCHAR},
+            </if>
+            <if test="specification != null">
+                #{specification,jdbcType=VARCHAR},
+            </if>
+            <if test="description != null">
+                #{description,jdbcType=VARCHAR},
+            </if>
+            <if test="vendorId != null">
+                #{vendorId,jdbcType=VARCHAR},
+            </if>
+            <if test="creator != null">
+                #{creator,jdbcType=VARCHAR},
+            </if>
+            now(),
+            <if test="modifier != null">
+                #{modifier,jdbcType=VARCHAR},
+            </if>
+            now()
+        </trim>
+    </insert>
+
+    <update id="update" parameterType="cn.mw.monitor.vendor.param.AddOrUpdateVendorManageParam">
+        update
+        <include refid="tb"/>
+        <set>
+            <if test="brand != null">
+                brand = #{brand,jdbcType=VARCHAR},
+            </if>
+            <if test="specification != null">
+                specification = #{specification,jdbcType=VARCHAR},
+            </if>
+            <if test="description != null">
+                description = #{description,jdbcType=VARCHAR},
+            </if>
+            <if test="vendorId != null">
+                vendor_id = #{vendorId,jdbcType=INTEGER},
+            </if>
+            <if test="modifier != null">
+                modifier = #{modifier,jdbcType=VARCHAR},
+            </if>
+            modification_date = now(),
+        </set>
+        where id = #{id,jdbcType=INTEGER}
+    </update>
+
+    <select id="selectList" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List"/>
+        from
+        <include refid="tb"/>
+        where 1=1
+        <include refid="criteria"></include>
+    </select>
+
+    <select id="selectVendorDropdownList" resultType="cn.mw.monitor.vendor.model.MwBaseVendorIcon">
+        select
+        distinct(brand) vendor
+        from
+        <include refid="tb"></include>
+        where 1=1 and brand is not null
+        and specification=#{specification,jdbcType=VARCHAR}
+    </select>
+
+    <select id="selectDropdown" resultType="cn.mw.monitor.service.dropdown.param.DropdownDTO">
+        select
+        distinct(id) dropKey ,vendor dropValue
+        from
+        <include refid="bv"></include>
+    </select>
+
+    <select id="selectBVendorDropdownList" resultType="cn.mw.monitor.vendor.model.MwBaseVendorIcon">
+        select
+        id,vendor
+        from
+        <include refid="bv"></include>
+    </select>
+
+    <select id="selectVModelDropdownList" resultType="java.lang.String">
+        select
+        distinct(specification)
+        from
+        <include refid="tb"></include>
+        where 1=1 and specification is not null
+        <if test="brand !=null and brand != ''">
+            and brand=#{vendor,jdbcType=VARCHAR}
+        </if>
+    </select>
+    <select id="selectCountVendorByName" resultType="java.lang.Integer">
+        select count(1) from mw_base_vendor_icon where vendor=#{vendor,jdbcType=VARCHAR}
+    </select>
+    <select id="selectCountMacVendor" resultType="java.lang.Integer">
+        select count(1) from mw_mac_oui where short_name=#{vendor,jdbcType=VARCHAR}
+    </select>
+    <insert id="insertBaseVendor" parameterType="cn.mw.monitor.vendor.param.AddOrUpdateVendorManageParam">
+        insert into mw_base_vendor_icon(vendor,vendor_small_icon,vendor_large_icon,custom_flag)
+        values (#{baseVendor},#{vendorSmallIcon},#{vendorSmallIcon},#{customFlag})
+    </insert>
+    <insert id="insertMacVendor" parameterType="cn.mw.monitor.vendor.param.AddOrUpdateVendorManageParam">
+        insert into mw_mac_oui(mac,vendor,short_name) values (#{mac},#{macVendor},#{baseVendor})
+    </insert>
+    <select id="selectVendorIdBYName" resultType="java.lang.Integer">
+        select id from mw_base_vendor_icon where vendor=#{vendor,jdbcType=VARCHAR}
+    </select>
+</mapper>

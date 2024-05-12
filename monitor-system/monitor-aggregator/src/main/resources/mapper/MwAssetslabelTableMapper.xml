@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.mw.monitor.labelManage.dao.MwAssetslabelTableDao">
+  <resultMap id="BaseResultMap" type="cn.mw.monitor.labelManage.model.MwAssetslabelTable">
+    <id column="id" jdbcType="INTEGER" property="id" />
+    <result column="label_id" jdbcType="INTEGER" property="labelId" />
+    <result column="assets_id" jdbcType="INTEGER" property="assetsId" />
+    <result column="tagboard" jdbcType="VARCHAR" property="tagboard" />
+    <result column="date_tagboard" jdbcType="TIMESTAMP" property="dateTagboard" />
+  </resultMap>
+  <sql id="Base_Column_List">
+    id, label_id, assets_id, tagboard, date_tagboard
+  </sql>
+  <select id="selectByPrimaryKey" parameterType="java.lang.Integer" resultMap="BaseResultMap">
+    select
+    <include refid="Base_Column_List" />
+    from mw_assetslabel_table
+    where id = #{id,jdbcType=INTEGER}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Integer">
+    delete from mw_assetslabel_table
+    where id = #{id,jdbcType=INTEGER}
+  </delete>
+  <insert id="insert" parameterType="cn.mw.monitor.labelManage.model.MwAssetslabelTable">
+    insert into mw_assetslabel_table ( label_id, assets_id
+    <if test="tagboard != null and tagboard != ''">
+      ,tagboard
+    </if>
+    <if test="dateTagboard != null">
+      ,date_tagboard
+    </if>)
+    values ( #{labelId,jdbcType=INTEGER}, #{assetsId,jdbcType=INTEGER}
+    <if test="tagboard != null and tagboard != ''">
+      , #{tagboard,jdbcType=VARCHAR}
+    </if>
+    <if test="dateTagboard != null">
+     , #{dateTagboard,jdbcType=TIMESTAMP}
+     </if>)
+  </insert>
+
+  <insert id="insertSelective" parameterType="cn.mw.monitor.labelManage.model.MwAssetslabelTable">
+    insert into mw_assetslabel_table
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+      <if test="labelId != null">
+        label_id,
+      </if>
+      <if test="assetsId != null">
+        assets_id,
+      </if>
+      <if test="tagboard != null">
+        tagboard,
+      </if>
+      <if test="dateTagboard != null">
+        date_tagboard,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+      <if test="labelId != null">
+        #{labelId,jdbcType=INTEGER},
+      </if>
+      <if test="assetsId != null">
+        #{assetsId,jdbcType=INTEGER},
+      </if>
+      <if test="tagboard != null">
+        #{tagboard,jdbcType=VARCHAR},
+      </if>
+      <if test="dateTagboard != null">
+        #{dateTagboard,jdbcType=TIMESTAMP},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="cn.mw.monitor.labelManage.model.MwAssetslabelTable">
+    update mw_assetslabel_table
+    <set>
+      <if test="labelId != null">
+        label_id = #{labelId,jdbcType=INTEGER},
+      </if>
+      <if test="assetsId != null">
+        assets_id = #{assetsId,jdbcType=INTEGER},
+      </if>
+      <if test="tagboard != null">
+        tagboard = #{tagboard,jdbcType=VARCHAR},
+      </if>
+      <if test="dateTagboard != null">
+        date_tagboard = #{dateTagboard,jdbcType=TIMESTAMP},
+      </if>
+    </set>
+    where id = #{id,jdbcType=INTEGER}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="cn.mw.monitor.labelManage.model.MwAssetslabelTable">
+    update mw_assetslabel_table
+    set label_id = #{labelId,jdbcType=INTEGER},
+      assets_id = #{assetsId,jdbcType=INTEGER},
+      tagboard = #{tagboard,jdbcType=VARCHAR},
+      date_tagboard = #{dateTagboard,jdbcType=TIMESTAMP}
+    where id = #{id,jdbcType=INTEGER}
+  </update>
+
+    <!-- 根据标签Id查询关联资产数量 -->
+    <select id="countByLabelId" resultType="java.lang.Integer">
+        SELECT
+            COUNT(1)
+        FROM mw_assetslabel_table
+        WHERE label_id = #{labelId,jdbcType=INTEGER}
+    </select>
+
+</mapper>

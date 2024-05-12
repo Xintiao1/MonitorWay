@@ -1,0 +1,270 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.mw.monitor.templatemanage.dao.MwTemplateManageDao">
+
+  <resultMap id="BaseMap" type="cn.mw.monitor.templatemanage.entity.MwTemplateManageTable">
+    <id column="id" jdbcType="VARCHAR" property="id"/>
+    <result column="template" jdbcType="VARCHAR" property="template"/>
+    <result column="oid" jdbcType="VARCHAR" property="oid"/>
+    <result column="desc" jdbcType="VARCHAR" property="desc"/>
+    <result column="brand" jdbcType="VARCHAR" property="brand"/>
+    <result column="model" jdbcType="VARCHAR" property="model"/>
+    <result column="auto_match" jdbcType="BIT" property="autoMatch"/>
+    <result column="note" jdbcType="VARCHAR" property="note"/>
+    <result column="xml" jdbcType="VARCHAR" property="xml"/>
+    <result column="download_type" jdbcType="VARCHAR" property="downloadType"/>
+
+    <result column="creator" jdbcType="VARCHAR" property="creator"/>
+    <result column="create_date" jdbcType="TIMESTAMP" property="createDate"/>
+    <result column="modifier" jdbcType="VARCHAR" property="modifier"/>
+    <result column="modification_date" jdbcType="TIMESTAMP" property="modificationDate"/>
+    <result column="vendor_small_icon" jdbcType="VARCHAR" property="vendorSmallIcon"/>
+  </resultMap>
+
+  <resultMap id="BaseMap1" type="cn.mw.monitor.templatemanage.entity.MwQueryTemplateManageTable">
+    <id column="id" jdbcType="VARCHAR" property="id"/>
+    <result column="template" jdbcType="VARCHAR" property="template"/>
+    <result column="oid" jdbcType="VARCHAR" property="oid"/>
+    <result column="desc" jdbcType="VARCHAR" property="desc"/>
+    <result column="brand" jdbcType="VARCHAR" property="brand"/>
+    <result column="model" jdbcType="VARCHAR" property="model"/>
+    <result column="auto_match" jdbcType="BIT" property="autoMatch"/>
+    <result column="note" jdbcType="VARCHAR" property="note"/>
+    <result column="xml" jdbcType="VARCHAR" property="xml"/>
+    <result column="download_type" jdbcType="VARCHAR" property="downloadType"/>
+
+    <result column="creator" jdbcType="VARCHAR" property="creator"/>
+    <result column="create_date" jdbcType="TIMESTAMP" property="createDate"/>
+    <result column="modifier" jdbcType="VARCHAR" property="modifier"/>
+    <result column="modification_date" jdbcType="TIMESTAMP" property="modificationDate"/>
+
+  </resultMap>
+
+  <sql id="Base_Column_List">
+    a1.id,template,oid,`desc`,brand,model,auto_match,xml,note,download_type,
+    creator, create_date, modifier, modification_date
+  </sql>
+
+  <sql id="criteria">
+    <if test="template !=null and template != ''">
+      and template=#{template,jdbcType=VARCHAR}
+    </if>
+    <if test="oid != null and oid != ''">
+      and oid =#{oid,jdbcType=BIT}
+    </if>
+    <if test="desc != null and desc != ''">
+      and `desc` like CONCAT('%',#{desc,jdbcType=VARCHAR},'%')
+    </if>
+    <if test="brand != null and brand != ''">
+      and brand like CONCAT('%',#{brand,jdbcType=VARCHAR},'%')
+    </if>
+    <if test="note != null and note != ''">
+      and note like CONCAT('%',#{note,jdbcType=VARCHAR},'%')
+    </if>
+    <if test="model != null and model != ''">
+      and model like CONCAT('%',#{model,jdbcType=VARCHAR},'%')
+    </if>
+    <if test="xml != null and xml != ''">
+      and xml like CONCAT('%',#{xml,jdbcType=VARCHAR},'%')
+    </if>
+    <if test="autoMatch != null ">
+      and auto_match =#{autoMatch,jdbcType=BIT}
+    </if>
+    <if test="creator != null and creator != ''">
+      and creator = #{creator,jdbcType=VARCHAR}
+    </if>
+    <if test="createDateStart != null">
+      and <![CDATA[#{createDateStart,jdbcType=TIMESTAMP}<= create_date ]]>
+    </if>
+    <if test="createDateEnd != null">
+      and <![CDATA[#{createDateEnd,jdbcType=TIMESTAMP}>= create_date ]]>
+    </if>
+    <if test="modifier != null and modifier != ''">
+      and modifier = #{modifier,jdbcType=VARCHAR}
+    </if>
+    <if test="modificationDateStart != null">
+      and  <![CDATA[#{modificationDateStart,jdbcType=TIMESTAMP}<= modification_date ]]>
+    </if>
+    <if test="modificationDateEnd != null">
+      and  <![CDATA[#{modificationDateEnd,jdbcType=TIMESTAMP}>= modification_date ]]>
+    </if>
+    <if test="fuzzyQuery != null and fuzzyQuery != ''">
+      and  (
+      template like CONCAT('%',#{fuzzyQuery,jdbcType=VARCHAR},'%')
+      )
+    </if>
+  </sql>
+
+  <sql id="union_group">
+    <if test="groupIds!=null">
+      UNION
+      select
+      <include refid="Base_Column_List"></include>
+      from
+      mw_templatemanage_table a1
+      left join mw_datapermission a4 ON a1.id = a4.type_id
+      left join
+      (SELECT type_id,group_id FROM mw_group_mapper a where type='TEMPLATE' left join mw_datapermission b ON a.id = b.type_id where b.is_group=1) t2 ON a1.id = t2.type_id
+      where
+      a4.is_group=1
+      and group_id IN
+      <foreach collection="groupIds" item="item" index="index" open="(" separator="," close=")">
+        #{item.value,jdbcType=INTEGER}
+      </foreach>
+      <include refid="criteria"></include>
+    </if>
+  </sql>
+
+  <select id="selectList" resultMap="BaseMap">
+    select
+    <include refid="Base_Column_List"></include>,b.vendor_small_icon
+    from
+    mw_templatemanage_table a1
+    LEFT JOIN mw_base_vendor_icon b on  a1.brand = b.vendor and b.custom_flag=0 where 1=1
+    <include refid="criteria"></include>
+    order by create_date desc
+  </select>
+
+  <delete id="deleteBatch" parameterType="java.util.List">
+    delete from
+    mw_templatemanage_table
+    where id in (
+    <foreach collection="idList" item="deleteList" separator=",">
+      #{deleteList.value,jdbcType=INTEGER}
+    </foreach>
+    )
+  </delete>
+
+  <update id="update" parameterType="cn.mw.monitor.templatemanage.entity.AddTemplateManageParam">
+    update mw_templatemanage_table
+    <set>
+      <if test="downloadType != null and downloadType != ''">
+        download_type = #{downloadType,jdbcType=VARCHAR},
+      </if>
+      <if test="template != null and template != ''">
+        template = #{template,jdbcType=VARCHAR},
+      </if>
+      <if test="oid != null and oid != ''">
+        oid = #{oid,jdbcType=VARCHAR},
+      </if>
+      <if test="desc != null and desc != ''">
+        `desc` = #{desc,jdbcType=VARCHAR},
+      </if>
+      <if test="brand != null and brand != ''">
+        brand = #{brand,jdbcType=VARCHAR},
+      </if>
+      <if test="model != null and model != ''">
+        model = #{model,jdbcType=VARCHAR},
+      </if>
+      <if test="note != null and note != ''">
+        note = #{note,jdbcType=VARCHAR},
+      </if>
+      <if test="xml != null and xml != ''">
+        xml = #{xml,jdbcType=VARCHAR},
+      </if>
+      <if test="autoMatch != null">
+        auto_match = #{autoMatch,jdbcType=INTEGER},
+      </if>
+      <if test="modifier != null">
+        modifier = #{modifier,jdbcType=VARCHAR},
+      </if>
+      modification_date = now()
+    </set>
+    where id = #{id,jdbcType=INTEGER}
+  </update>
+
+  <select id="getDropdown" resultType="cn.mw.monitor.templatemanage.entity.DropDownParam">
+          select
+              drop_key as dropKey,
+              drop_value as dropValue
+          from
+              mw_dropdown_table
+          where
+          delete_flag = false
+          and drop_code = "template_match"
+      </select>
+
+  <insert id="insert" parameterType="cn.mw.monitor.templatemanage.entity.AddTemplateManageParam" useGeneratedKeys="true" keyProperty="id">
+    insert into mw_templatemanage_table
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+      <if test="downloadType != null and downloadType != ''">download_type,</if>
+      <if test="template != null and template != ''">template,</if>
+      <if test="oid != null and oid != ''">oid,</if>
+      <if test="desc != null and desc != ''">`desc`,</if>
+      <if test="brand != null and brand != ''">brand,</if>
+      <if test="model != null and model != ''">model,</if>
+      <if test="autoMatch != null ">auto_match,</if>
+      <if test="note != null and note != ''">note,</if>
+      <if test="xml != null and xml != ''">`xml`,</if>
+      <if test="creator != null">creator,</if>
+      <if test="createDate != null">create_date,</if>
+      <if test="modifier != null">modifier,</if>
+      <if test="modificationDate != null">modification_date</if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+      <if test="downloadType != null and downloadType != ''">#{downloadType,jdbcType=VARCHAR},</if>
+      <if test="template != null and template != ''">#{template,jdbcType=VARCHAR},</if>
+      <if test="oid != null and oid != ''">#{oid,jdbcType=VARCHAR},</if>
+      <if test="desc != null and desc != ''">#{desc,jdbcType=VARCHAR},</if>
+      <if test="brand != null and brand != ''">#{brand,jdbcType=VARCHAR},</if>
+      <if test="model != null and model != ''">#{model,jdbcType=VARCHAR},</if>
+      <if test="autoMatch != null ">#{autoMatch,jdbcType=BIT},</if>
+      <if test="note != null and note != ''">#{note,jdbcType=VARCHAR},</if>
+      <if test="xml != null and xml != ''">#{xml,jdbcType=VARCHAR},</if>
+      <if test="creator != null">#{creator,jdbcType=VARCHAR},</if>
+      <if test="createDate != null"> #{createDate,jdbcType=TIMESTAMP},</if>
+      <if test="modifier != null">#{modifier,jdbcType=VARCHAR},</if>
+      <if test="modificationDate != null"> #{modificationDate,jdbcType=TIMESTAMP}</if>
+    </trim>
+  </insert>
+
+  <select id="selectOne" resultMap="BaseMap1" parameterType="cn.mw.monitor.templatemanage.entity.QueryTemplateManageParam">
+    select
+    <include refid="Base_Column_List"></include>
+    from
+    mw_templatemanage_table a1
+    where
+    <if test="id !=null">
+      a1.id = #{id,jdbcType=INTEGER}
+    </if>
+  </select>
+
+  <select id="selectBrand" parameterType="java.lang.String" resultType="java.lang.String">
+    select
+        distinct(brand)
+    from mw_ncm_vendor_table
+    where 1=1 and brand is not null
+    <if test="specification !=null and specification != ''">
+      and specification=#{specification,jdbcType=VARCHAR}
+    </if>
+  </select>
+
+  <select id="selectSpecification" parameterType="java.lang.String" resultType="java.lang.String">
+    select
+    distinct(specification)
+    from mw_ncm_vendor_table
+    where 1=1 and specification is not null
+    <if test="brand !=null and brand != ''">
+      and brand=#{brand,jdbcType=VARCHAR}
+    </if>
+  </select>
+
+  <select id="countTemplateName" resultType="java.lang.Integer">
+    SELECT
+        count(1)
+    FROM
+        mw_templatemanage_table
+    WHERE
+        template = #{templateName}
+  </select>
+
+  <select id="getInfoByTemplateName"  resultMap="BaseMap1">
+    select
+        <include refid="Base_Column_List"></include>
+    from
+        mw_templatemanage_table a1
+    where
+        a1.template = #{templateName}
+  </select>
+
+</mapper>

@@ -1,0 +1,224 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.mw.monitor.user.dao.MwUserOrgMapperDao">
+
+    <!-- 根据机构id删除机构和用户关联关系 -->
+    <update id="deleteBatchByOrgId">
+        UPDATE mw_user_org_mapper
+        SET delete_flag = TRUE,
+        update_time = now()
+        WHERE delete_flag = FALSE
+        AND org_id IN (
+        <foreach collection="orgIds" item="list" separator=",">
+            #{list,jdbcType=INTEGER}
+        </foreach>
+        )
+    </update>
+
+    <!-- 根据用户id删除机构和用户关联关系 -->
+    <update id="deleteBatchByUserId">
+        UPDATE mw_user_org_mapper
+        SET delete_flag = TRUE,
+        update_time = now()
+        WHERE delete_flag = FALSE
+        AND user_id IN (
+        <foreach collection="userIds" item="list" separator=",">
+            #{list,jdbcType=INTEGER}
+        </foreach>
+        )
+    </update>
+
+    <!-- 插入系统设置信息 -->
+    <insert id="insertSettings" parameterType="cn.mw.monitor.service.user.dto.SettingDTO">
+        insert into mw_settings_info (logo_url, icon, user_icon, http_header, logo_basecode, sideheader_color,
+                                      sidemenu_color,
+                                      sidemenu_textcolor, sidemenu_text_selectcolor, title, title_color,
+                                      logo_descrition, local_language, modify_time)
+        values (#{logoUrl}, #{icon}, #{userIcon}, #{httpHeader}, #{logoBasecode}, #{sideheaderColor}, #{sidemenuColor},
+                #{sidemenuTextcolor}, #{sidemenuTextSelectcolor}, #{title}, #{titleColor}, #{logoDescrition},
+                #{localLanguage}, now())
+    </insert>
+
+    <!-- 查询最新系统设置信息 -->
+    <select id="selectSettingsInfo" resultType="cn.mw.monitor.service.user.dto.SettingDTO">
+        select logo_url,
+               icon,
+               user_icon,
+               http_header,
+               logo_basecode,
+               sideheader_color,
+               sidemenu_color,
+               sidemenu_textcolor,
+               sidemenu_text_selectcolor,
+               title,
+               title_color,
+               logo_descrition,
+               local_language
+        from mw_settings_info
+        order by modify_time desc limit 1
+    </select>
+
+    <!-- 新增用户和机构的关联关系 -->
+    <insert id="insertBatch">
+        INSERT INTO mw_user_org_mapper (
+        org_id,
+        user_id,
+        update_time
+        ) VALUES
+        <foreach collection="list" item="list" separator=",">
+            (
+            #{list.orgId,jdbcType=INTEGER},
+            #{list.userId,jdbcType=INTEGER},
+            now()
+            )
+        </foreach>
+    </insert>
+
+    <!-- 根据机构id查询关联用户数量 -->
+    <select id="countByOrgId" resultType="java.lang.Integer">
+        SELECT COUNT(1)
+        FROM mw_user_org_mapper
+        WHERE delete_flag = FALSE
+          AND org_id = #{orgId,jdbcType=INTEGER}
+    </select>
+
+    <!-- 根据登录名查询当前用户机构的节点id -->
+    <select id="getOrgNodesByLoginName" resultType="java.lang.String">
+        SELECT nodes
+        FROM view_user_org
+        WHERE login_name = #{loginName,jdbcType=VARCHAR}
+    </select>
+
+    <!-- 根据登录名查询当前用户机构的最大深度 -->
+    <select id="getMinDeepByLoginName" resultType="java.lang.Integer">
+        SELECT MIN(deep)
+        FROM view_user_org
+        WHERE login_name = #{loginName,jdbcType=VARCHAR}
+    </select>
+
+    <!-- 根据用户id查询机构关联用户信息 -->
+    <select id="selectByUserId" resultType="cn.mw.monitor.user.model.MwUserOrgTable">
+        SELECT user_id userId,
+               org_id  orgId
+        FROM mw_user_org_mapper
+        WHERE delete_flag = FALSE
+          AND user_id = #{userId,jdbcType=INTEGER}
+    </select>
+
+    <!-- 据机构id查询关联用户id -->
+    <select id="selectUserIdByOrgId" resultType="java.lang.Integer">
+        SELECT
+        user_id
+        FROM mw_user_org_mapper
+        WHERE delete_flag = FALSE
+        AND org_id IN (
+        <foreach collection="orgIds" item="list" separator=",">
+            #{list,jdbcType=INTEGER}
+        </foreach>
+        )
+    </select>
+
+    <!-- 根据登录名查询当前用户机构的名称 -->
+    <select id="getOrgNameByLoginName" resultType="java.lang.String">
+        SELECT org_name
+        FROM view_user_org
+        WHERE ${nodes}
+    </select>
+
+    <select id="getOrgIdByUserId" resultType="java.lang.Integer">
+        select distinct
+        org_id
+        from view_user_org
+        where ${nodes}
+        <!--and (
+        <foreach collection="nodes" index="index" item="item" separator="OR">
+            nodes like '%'||#{item}||'%'
+        </foreach>
+        )-->
+    </select>
+
+    <select id="getAllOrgIdByUserId" parameterType="java.lang.String" resultType="java.lang.Integer">
+        select org_id
+        from mw_sys_org
+        where delete_flag = false
+    </select>
+
+    <!-- 根据登录名称查询角色id -->
+    <select id="getRoleIdByLoginName" resultType="java.lang.String">
+        SELECT role_id
+        FROM mw_user_role_mapper a
+                 LEFT JOIN mw_sys_user b ON a.user_id = b.user_id
+        WHERE a.delete_flag = FALSE
+          AND b.login_name = #{loginName,jdbcType=VARCHAR}
+    </select>
+
+    <select id="getRoleIdByUserId" parameterType="java.lang.Integer" resultType="java.lang.String">
+        select role_id
+        from mw_sys_user c
+                 left join mw_user_role_mapper b on b.user_id = c.user_id
+                 left join mw_role a on a.id = b.role_id
+        where c.delete_flag = false
+          and a.delete_flag = false
+          and c.user_id = #{userId,jdbcType=INTEGER}
+    </select>
+
+    <select id="getUserIdByOrgId" resultType="java.lang.Integer">
+        select distinct user_id from mw_user_org_mapper where org_id in
+        (
+        SELECT org_id FROM view_user_org WHERE user_id=#{userId,jdbcType=INTEGER}
+        AND (
+        <foreach collection="nodes" index="index" item="item" separator="OR">
+            nodes LIKE CONCAT('%',#{item,jdbcType=VARCHAR},'%')
+        </foreach>
+        )
+        ) and delete_flag=false
+    </select>
+
+
+    <select id="getRolePermByUserId" parameterType="java.lang.Integer" resultType="java.lang.String">
+        select b.data_perm
+        from mw_user_role_mapper a
+                 left join mw_role b on a.role_id = b.id
+        where a.user_id = #{userId,jdbcType=INTEGER}
+    </select>
+
+
+    <select id="selectOrgNameByUserId" resultType="cn.mw.monitor.service.user.dto.OrgDTO">
+        select org_id,
+               org_name
+        from view_user_org
+        where user_id = #{userId,jdbcType=INTEGER}
+    </select>
+    <select id="getOrgIds" resultType="java.lang.Integer">
+        select org_id
+        from view_user_org
+        where login_name = #{loginName,jdbcType=VARCHAR}
+    </select>
+
+    <select id="selectAllOrgWithUserInfo" resultType="cn.mw.monitor.service.user.dto.UserOrgDto">
+        select org_id   as orgId,
+               org_name as orgName,
+               user_id  as userId
+        from view_user_org
+    </select>
+
+    <select id="getUserListByOrgIds" resultType="cn.mw.monitor.user.dto.UserOrgDTO">
+        SELECT
+        t1.org_id,
+        t2.user_id,
+        t2.user_name,
+        t2.login_name,
+        t2.phone_number,
+        t2.wechat_id,
+        t2.dd_id,
+        t2.email,
+        t2.user_Expire_State
+        FROM mw_user_org_mapper t1
+        LEFT JOIN mw_sys_user t2
+        ON t1.user_id = t2.user_id
+        WHERE t1.delete_flag=0 AND t2.delete_flag=0 AND t1.org_id IN
+        <foreach collection="orgIds" item="item" index="index" open="(" separator="," close=")">
+            #{item}
+        </foreach>
+    </select>
+</mapper>

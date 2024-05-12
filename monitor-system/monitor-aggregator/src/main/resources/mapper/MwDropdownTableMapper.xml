@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.mw.monitor.dropDown.dao.MwDropdownTableDao">
+
+    <!-- 新增下拉框信息 -->
+    <insert id="addDropDown">
+        INSERT INTO mw_dropdown_table
+        (
+        drop_code,
+        drop_key,
+        drop_value,
+        update_time
+        ) VALUES
+        <foreach collection="list" item="list" separator=",">
+            (
+            #{list.dropCode,jdbcType=VARCHAR},
+            #{list.dropKey,jdbcType=INTEGER},
+            #{list.dropValue,jdbcType=VARCHAR},
+            now()
+            )
+        </foreach>
+    </insert>
+
+    <!-- 根据下拉框code删除下拉框 -->
+    <update id="deleteDropDownByCode">
+        UPDATE mw_dropdown_table
+        SET delete_flag = TRUE,
+        update_time = now()
+        WHERE delete_flag = FALSE
+        AND drop_code IN (
+        <foreach collection="dropCodes" item="list" separator=",">
+            #{list,jdbcType=VARCHAR}
+        </foreach>
+        )
+    </update>
+
+    <!-- 根据下拉框Code查询下拉框信息 -->
+    <select id="selectByCode" resultType="cn.mw.monitor.dropDown.dto.MwDropdownDTO">
+        SELECT
+            drop_id dropId,
+            drop_key dropKey,
+            drop_value dropValue
+        FROM mw_dropdown_table
+        WHERE drop_code = #{dropCode,jdbcType=VARCHAR}
+        AND delete_flag = FALSE
+    </select>
+
+    <select id="pageSelectNumUrl" resultType="cn.mw.monitor.dropDown.dto.SelectNumDropDto">
+    select id,drop_number_value dropKey ,drop_label dropValue from mw_select_url_base where drop_value_type=0 and  drop_type=#{type,jdbcType=VARCHAR}
+    </select>
+
+    <select id="pageSelectCharUrl" resultType="cn.mw.monitor.dropDown.dto.SelectCharDropDto">
+    select  id,drop_char_value dropKey,drop_label dropValue   from mw_select_url_base where drop_value_type=1 and  drop_type=#{type,jdbcType=VARCHAR}
+    </select>
+
+    <select id="selectDropDown" resultType="java.lang.Object">
+    select distinct (${fieldName})  from ${tableName}
+    </select>
+</mapper>

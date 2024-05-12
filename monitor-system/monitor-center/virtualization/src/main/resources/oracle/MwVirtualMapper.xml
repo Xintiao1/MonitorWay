@@ -1,0 +1,223 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.mw.monitor.virtualization.dao.MwVirtualDao">
+
+    <resultMap id="modelListMap" type="cn.mw.monitor.virtualization.dto.VirtualUserPerm">
+        <result column="type_id" property="typeId"></result>
+        <collection property="principal" ofType="cn.mw.monitor.service.assets.model.UserDTO" select="selectUser"
+                    column="{typeId=type_id}">
+            <result property="userId" jdbcType="INTEGER" column="userId"/>
+            <result property="userName" jdbcType="VARCHAR" column="userName"/>
+            <result property="loginName" jdbcType="VARCHAR" column="loginName"/>
+        </collection>
+        <collection property="department" ofType="cn.mw.monitor.service.assets.model.OrgDTO" select="selectOrg"
+                    column="{typeId=type_id}">
+            <result property="orgId" jdbcType="INTEGER" column="orgId"/>
+            <result property="orgName" jdbcType="VARCHAR" column="orgName"/>
+            <result property="nodes" jdbcType="VARCHAR" column="nodes"/>
+        </collection>
+        <collection property="groups" ofType="cn.mw.monitor.service.assets.model.GroupDTO" select="selectGroup"
+                    column="{typeId=type_id}">
+            <result property="groupId" jdbcType="INTEGER" column="groupId"/>
+            <result property="groupName" jdbcType="VARCHAR" column="groupName"/>
+        </collection>
+    </resultMap>
+
+    <select id="selectUser" resultType="cn.mw.monitor.service.assets.model.UserDTO">
+    select
+    t2.user_id userId,
+    t2.login_name loginName,
+    t2.user_name userName
+    from
+    mw_user_mapper t1
+    left join mw_sys_user t2 on t1.user_id = t2.user_id
+    where t1.type='VIRTUAL' and t1.type_id = #{typeId}
+  </select>
+
+    <select id="selectOrg" resultType="cn.mw.monitor.service.assets.model.OrgDTO">
+    select
+    t2.org_id orgId,
+    t2.org_name orgName,
+    t2.nodes
+    from mw_org_mapper t1
+    left join mw_sys_org t2 on t1.org_id = t2.org_id
+    where t1.type='VIRTUAL' and t1.type_id = #{typeId}
+  </select>
+
+    <select id="selectGroup" resultType="cn.mw.monitor.service.assets.model.GroupDTO">
+    select
+    t1.group_id  groupId,
+    t2.group_name groupName
+    from mw_group_mapper t1
+    left join mw_group_table t2 on t1.group_id = t2.group_id
+    where t1.type='VIRTUAL' and t1.type_id = #{typeId}
+  </select>
+
+    <select id="selectVirtualUserList" resultMap="modelListMap">
+        SELECT
+            type_id
+        FROM
+            mw_user_mapper
+        WHERE
+            type_id = #{typeId}
+            and type = 'VIRTUAL'
+    </select>
+
+    <select id="getVirtualPowerList" resultType="java.util.Map">
+        SELECT
+            a.type_id AS "typeId",
+            GROUP_CONCAT( DISTINCT IF(a.user_id is null,"0",a.user_id)) AS "userIds",
+            GROUP_CONCAT( DISTINCT IF(b.group_id is null,"0",b.group_id)) AS "groupIds",
+            GROUP_CONCAT( DISTINCT IF(c.org_id is null,"0",c.org_id)) AS "orgIds"
+        FROM
+            mw_user_mapper a
+            LEFT JOIN mw_group_mapper b ON b.type_id = a.type_id
+            AND a.type = b.type
+            LEFT JOIN mw_org_mapper c ON a.type_id = c.type_id
+            AND a.type = c.type
+        WHERE
+            a.type = 'VIRTUAL'
+        GROUP BY
+            a.type_id
+    </select>
+
+    <select id="getAssetsIdByIp" resultType="cn.mw.monitor.service.assets.model.MwTangibleassetsTable"
+            parameterType="cn.mw.monitor.common.util.QueryHostParam">
+        SELECT
+        a.id,
+        a.assets_id AS "assetsId",
+        a.assets_name AS "assetsName",
+        a.host_name AS "hostName",
+        a.in_band_ip AS "inBandIp",
+        a.out_band_ip AS "outBandIp",
+        a.assets_type_id AS "assetsTypeId",
+        a.assets_type_sub_id AS "assetsTypeSubId",
+        a.polling_engine AS "pollingEngine",
+        a.monitor_mode AS "monitorMode",
+        a.manufacturer,
+        a.specifications,
+        a.description,
+        a.enable,
+        a.delete_flag AS "deleteFlag",
+        a.monitor_flag AS "monitorFlag",
+        a.setting_flag AS "settingFlag",
+        a.creator,
+        a.create_date AS "createDate",
+        a.modifier,
+        a.modification_date AS "modificationDate",
+        a.scan_success_id AS "scanSuccessId",
+        a.snmp_lev AS "snmpLev",
+        a.monitor_server_id AS "monitorServerId",
+        a.timing,
+        a.template_id AS "templateId",
+        b.type_name AS "assetsTypeName",
+        c.type_name AS "assetsTypeSubName",
+        d.vendor_small_icon AS "vendorSmallIcon",
+        e.drop_value AS monitorModeName,
+        f.monitoring_server_name AS monitorServerName
+        FROM
+        mw_tangibleassets_table a
+        LEFT JOIN mw_assetssubtype_table b ON a.assets_type_id = b.id
+        LEFT JOIN mw_assetssubtype_table c ON a.assets_type_sub_id = c.id
+        LEFT JOIN mw_base_vendor_icon d ON a.manufacturer = d.vendor
+        LEFT JOIN mw_dropdown_table e ON e.drop_code = 'monitor_mode' AND e.drop_key = a.monitor_mode
+        LEFT JOIN mw_thirdparty_server_table f ON a.monitor_server_id = f.id AND f.delete_flag = FALSE
+        where
+        a.assets_type_id = 1
+        <if test="ip != null and ip != ''">
+            and (a.in_band_ip = #{ip}
+            <if test="vHostName !=null and vHostName !=''">
+                or a.assets_name like CONCAT('%',#{vHostName,jdbcType=VARCHAR},'%')
+            </if>
+            )
+        </if>
+        <if test="monitorServerId !=null and monitorServerId !=''">
+            and a.monitor_server_id = #{monitorServerId}
+        </if>
+
+        and a.delete_flag = '0'
+    </select>
+
+    <delete id="deleteVirtualUserByDirector"  parameterType="java.util.List">
+        DELETE mw_user_mapper,
+        mw_org_mapper,
+        mw_group_mapper
+        FROM
+            mw_user_mapper
+            LEFT JOIN mw_org_mapper ON mw_user_mapper.type_id = mw_org_mapper.type_id
+            AND mw_user_mapper.type = mw_org_mapper.type
+            LEFT JOIN mw_group_mapper ON mw_user_mapper.type_id = mw_group_mapper.type_id
+            AND mw_user_mapper.type = mw_group_mapper.type
+        WHERE
+            mw_user_mapper.type_id IN
+            <foreach collection="typeIds" item="item" index="index" open="(" separator="," close=")">
+                #{item,jdbcType=VARCHAR}
+            </foreach>
+            AND mw_user_mapper.type = 'VIRTUAL'
+    </delete>
+
+    <insert id="setVirtualUserByDirector" parameterType="cn.mw.monitor.virtualization.dto.VirtualUser">
+        insert into mw_user_mapper(type_id,user_id,type) values (#{typeId},#{userId},#{type})
+    </insert>
+
+    <insert id="setVirtualUserByOrg" parameterType="cn.mw.monitor.virtualization.dto.VirtualUser">
+        insert into mw_org_mapper(type_id,org_id,type) values (#{typeId},#{orgId},#{type})
+    </insert>
+
+    <insert id="setVirtualUserByGroup" parameterType="cn.mw.monitor.virtualization.dto.VirtualUser">
+        insert into mw_group_mapper(type_id,group_id,type) values (#{typeId},#{groupId},#{type})
+    </insert>
+
+    <update id="editorVirtualUserByDirector" parameterType="cn.mw.monitor.virtualization.dto.VirtualUser">
+        update mw_user_mapper set
+        user_id = #{userId}
+        where type_id = #{typeId}
+        and type = #{type}
+    </update>
+    <update id="editorVirtualUserByOrg" parameterType="cn.mw.monitor.virtualization.dto.VirtualUser">
+        update mw_org_mapper set
+        org_id = #{orgId}
+        where type_id = #{typeId}
+        and type = #{type}
+    </update>
+    <update id="editorVirtualUserByGroup" parameterType="cn.mw.monitor.virtualization.dto.VirtualUser">
+        update mw_group_mapper set
+        group_id = #{groupId}
+        where type_id = #{typeId}
+        and type = #{type}
+    </update>
+
+    <select id="getVirtualUser" parameterType="cn.mw.monitor.virtualization.dto.VirtualUser"
+            resultType="cn.mw.monitor.virtualization.dto.VirtualUser">
+        SELECT
+        a.type_id AS "typeId",
+        a.type,
+        a.user_id AS "userId",
+        d.user_name AS "userName",
+        b.org_id AS "orgId",
+        e.org_name AS "orgName",
+        e.nodes AS "orgNodes",
+        c.group_id AS "groupId",
+        f.group_name AS "groupName"
+        FROM
+        mw_user_mapper a
+        LEFT JOIN mw_org_mapper b ON a.type_id = b.type_id
+        AND a.type = b.type
+        LEFT JOIN mw_group_mapper c ON a.type_id = c.type_id
+        AND a.type = c.type
+        LEFT JOIN mw_sys_user d ON a.user_id = d.user_id
+        LEFT JOIN mw_sys_org e ON b.org_id = e.org_id
+        LEFT JOIN mw_group_table f ON c.group_id = f.group_id
+        <where>
+            1 = 1
+            <if test="typeId != null and typeId != ''">
+               and a.type_id = #{typeId}
+            </if>
+            <if test="userId != null and userId != ''">
+               and a.user_id = #{userId}
+            </if>
+            AND a.type = #{type}
+        </where>
+    </select>
+
+</mapper>

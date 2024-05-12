@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.mw.monitor.user.dao.MWPasswdHisDao">
+
+    <sql id="Base_Column_List" >
+        "user_id", "passwd"
+    </sql>
+
+    <sql id="tb">
+        ${TBSNAME}."mw_passwd_his" ${alias}
+    </sql>
+
+    <sql id="select_tb_columns">
+        ${alias}"id" as "id",
+        ${alias}"user_id" as "userId",
+        ${alias}"passwd" as "passwd"
+    </sql>
+
+    <sql id="criteria">
+        <if test="userId != null">
+            AND ${alias}"user_id" = #{userId}
+        </if>
+
+        <if test="passwd != null">
+            AND ${alias}"passwd" = #{passwd,jdbcType=VARCHAR}
+        </if>
+    </sql>
+
+    <select id="selectList" resultType="cn.mw.monitor.user.model.MWPasswdHis" parameterType="java.util.HashMap">
+        SELECT
+        <include refid="select_tb_columns"><property name="alias" value=""/></include>
+        FROM
+        <include refid="tb"><property name="alias" value=""/></include>
+        WHERE 1=1
+        <include refid="criteria"><property name="alias" value=""/></include>
+    </select>
+
+    <sql id="selectRecentSqlFrom">
+        FROM
+        <include refid="tb"><property name="alias" value="${alias}"/></include>
+        WHERE  "user_id" = #{userId}
+        and <![CDATA[rownum <= #{hisNum}]]>
+        ORDER BY "id" desc
+    </sql>
+
+    <select id="selectRecentList" resultType="cn.mw.monitor.user.model.MWPasswdHis">
+        <include refid="select_tb_columns"><property name="alias" value=""/></include>
+        <include refid="selectRecentSqlFrom"><property name="alias" value=""/></include>
+    </select>
+
+    <select id="selectCount" resultType="java.lang.Integer">
+        SELECT count(1)
+        FROM
+        <include refid="tb"><property name="alias" value=""/></include>
+        WHERE "user_id" = #{userId}
+    </select>
+
+    <!--新增密码历史记录-->
+    <insert id="insert" parameterType="cn.mw.monitor.user.model.MWPasswdHis">
+        INSERT INTO
+        <include refid="tb" ><property name="alias" value=""/></include>
+        ( "id", <include refid="Base_Column_List" ><property name="alias" value=""/></include>)
+        VALUES (
+        ${TBSNAME}.SEQ_PASSWORD_HIS.NEXTVAL,
+        #{userId},
+        #{passwd,jdbcType=VARCHAR}
+        )
+    </insert>
+
+    <delete id="deleteRedun">
+        DELETE FROM
+        <include refid="tb"><property name="alias" value=""/></include>
+        WHERE "id" not in ( SELECT t."id" FROM ( SELECT "id"
+                      <include refid="selectRecentSqlFrom"><property name="alias" value=""/></include>
+                    ) t)
+            and "user_id" = #{userId}
+    </delete>
+
+</mapper>

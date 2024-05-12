@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.mw.monitor.assets.dao.MwAssetsIotDao">
+    <sql id="Base_Column_List">
+    id,
+   assets_id,
+   tem_threshold,
+   tem_condition ,
+   voice,
+   hum_threshold ,
+   hum_condition,
+   creator,
+   create_date,
+   modifier,
+   modification_date
+    </sql>
+    <sql id="tb">
+    mw_alert_assets_iot
+  </sql>
+    <insert id="addAssetsIot" parameterType="cn.mw.monitor.assets.api.param.assets.AddUpdateAssetsIotParam">
+        insert into
+        <include refid="tb"></include>
+        (<include refid="Base_Column_List"></include>)
+        values
+        (#{id,jdbcType=VARCHAR},
+        #{assetsId,jdbcType=VARCHAR},
+        #{temThreshold,jdbcType=VARCHAR},
+        #{temCondition,jdbcType=VARCHAR} ,
+        #{voice,jdbcType=INTEGER},
+        #{humThreshold,jdbcType=VARCHAR} ,
+        #{humCondition,jdbcType=VARCHAR},
+        #{creator,jdbcType=VARCHAR},
+        now(),
+        #{modifier,jdbcType=VARCHAR},
+        now()
+        )
+    </insert>
+
+    <update id="updateAssetsIot" parameterType="cn.mw.monitor.assets.api.param.assets.AddUpdateAssetsIotParam">
+        update mw_alert_assets_iot set
+        tem_threshold=#{temThreshold,jdbcType=VARCHAR},
+        tem_condition=#{temCondition,jdbcType=VARCHAR},
+        hum_threshold=#{humThreshold,jdbcType=VARCHAR},
+        hum_condition=#{humCondition,jdbcType=VARCHAR},
+        modifier=#{modifier,jdbcType=VARCHAR},
+        modification_date=now()
+        where assets_id=#{assetsId,jdbcType=VARCHAR}
+    </update>
+    <update id="updateVoice" parameterType="cn.mw.monitor.assets.dto.SoundParam">
+        update mw_alert_assets_iot set voice=#{voice,jdbcType=BIT},
+        modifier=#{modifier,jdbcType=VARCHAR},
+        modification_date=now() where assets_id=#{assetsId,jdbcType=VARCHAR}
+    </update>
+
+    <insert id="insertVoice" parameterType="cn.mw.monitor.assets.dto.SoundParam">
+       insert into mw_alert_assets_iot( id,assets_id, voice, creator,create_date,modifier,modification_date)
+       values(#{id,jdbcType=VARCHAR},
+        #{assetsId,jdbcType=VARCHAR},
+        #{voice,jdbcType=BIT},
+        #{creator,jdbcType=VARCHAR},
+        now(),
+        #{modifier,jdbcType=VARCHAR},
+        now())
+    </insert>
+    <delete id="deleteAssetsIot" parameterType="java.lang.String">
+        update mw_alert_assets_iot set delete_flag=true where assets_id=#{assetsId,jdbcType=VARCHAR}
+    </delete>
+    <select id="selectAssetsIotId" resultType="java.lang.Integer">
+        select count(0) from mw_alert_assets_iot where assets_id=#{assetsId,jdbcType=VARCHAR} and delete_flag=false
+    </select>
+    <select id="selectAssetsIot" resultType="cn.mw.monitor.assets.dto.AssetsIotDto">
+    select assets_id as assetsId ,
+    tem_threshold as temThreshold,
+    tem_condition as temCondition,
+    voice,
+    hum_threshold as humThreshold,
+    hum_condition as humCondition
+    from mw_alert_assets_iot where assets_id=#{assetsId,jdbcType=VARCHAR}
+    </select>
+
+    <select id="selectIotTypeList" resultType="cn.mw.monitor.assets.api.param.assets.IotTypeParam">
+    SELECT a.pid,a.type_id,a.type_name,b.assets_count
+    FROM (SELECT pid,id AS type_id,type_name FROM `mw_assetssubtype_table` where pid = '30') a
+    LEFT JOIN (SELECT assets_type_sub_id,count(*) AS assets_count FROM `mw_tangibleassets_table` where assets_type_id = '30' AND assets_type_sub_id
+    IN (SELECT id FROM `mw_assetssubtype_table` where pid = '30')  AND delete_flag = 0
+    <if test="assetsIds != null and assetsIds.size > 0">
+        and id in
+        <foreach collection="assetsIds" item="item" index="index" open="(" separator="," close=")">
+            #{item}
+        </foreach>
+    </if>
+    GROUP BY assets_type_sub_id) AS b
+    ON a.type_id = b.assets_type_sub_id;
+    </select>
+</mapper>

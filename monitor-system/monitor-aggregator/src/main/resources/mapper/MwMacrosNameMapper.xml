@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.mw.monitor.assets.dao.MwMacrosDao">
+
+    <select id="selectChMacro" resultType="java.lang.String" parameterType="String">
+        SELECT
+        ch_macro
+        FROM
+        mw_macros_name_mapper
+        WHERE macro = #{macro,jdbcType=VARCHAR}
+    </select>
+
+    <select id="selectMacros" resultType="cn.mw.monitor.service.assets.param.MacrosDTO">
+        SELECT
+        ch_macro chMacro,
+        macro,
+        macro_encryption type
+        FROM
+        mw_macros_name_mapper
+    </select>
+
+
+</mapper>

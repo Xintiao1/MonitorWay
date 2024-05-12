@@ -1,0 +1,222 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.mw.monitor.netflow.dao.NetflowTreeManageDao">
+
+    <resultMap id="resultMap" type="cn.mw.monitor.service.assets.param.QueryAssetsInterfaceParam">
+        <id column="id" jdbcType="INTEGER" property="id"/>
+        <result column="ifIndex" jdbcType="INTEGER" property="ifIndex"/>
+        <result column="name" jdbcType="VARCHAR" property="name"/>
+        <result column="type" jdbcType="VARCHAR" property="type"/>
+        <result column="state" jdbcType="VARCHAR" property="state"/>
+        <result column="description" jdbcType="VARCHAR" property="description"/>
+        <result column="mac" jdbcType="VARCHAR" property="mac"/>
+        <result column="mtu" jdbcType="INTEGER" property="mtu"/>
+        <result column="ip" jdbcType="VARCHAR" property="ip"/>
+        <result column="subnet_mask" jdbcType="VARCHAR" property="subnetMask"/>
+        <result column="if_mode" jdbcType="VARCHAR" property="ifMode"/>
+        <result column="vlan" jdbcType="VARCHAR" property="vlan"/>
+        <result column="vlan_flag" jdbcType="BOOLEAN" property="vlanFlag"/>
+        <result column="vrf" jdbcType="VARCHAR" property="vrf"/>
+        <result column="port_type" jdbcType="VARCHAR" property="portType"/>
+        <result column="assets_id" jdbcType="VARCHAR" property="assetsId"/>
+        <result column="creator" jdbcType="VARCHAR" property="creator"/>
+        <result column="create_date" jdbcType="TIMESTAMP" property="createDate"/>
+        <result column="manage_state" jdbcType="BOOLEAN" property="interfaceSetState"/>
+        <result column="modifier" jdbcType="VARCHAR" property="modifier"/>
+        <result column="modification_date" jdbcType="TIMESTAMP" property="modificationDate"/>
+    </resultMap>
+
+    <resultMap id="assetsMap" type="cn.mw.monitor.netflow.param.AssetsInfo">
+        <id column="id" jdbcType="VARCHAR" property="id"/>
+        <result column="assets_id" jdbcType="VARCHAR" property="assetsId"/>
+        <result column="assets_name" jdbcType="VARCHAR" property="assetsName"/>
+        <result column="host_name" jdbcType="VARCHAR" property="hostName"/>
+        <result column="in_band_ip" jdbcType="VARCHAR" property="inBandIp"/>
+        <result column="out_band_ip" jdbcType="VARCHAR" property="outBandIp"/>
+        <result column="assets_type_id" jdbcType="INTEGER" property="assetsTypeId"/>
+        <result column="assetsTypeName" jdbcType="VARCHAR" property="assetsTypeName"/>
+        <result column="assets_type_sub_id" jdbcType="INTEGER" property="assetsTypeSubId"/>
+        <result column="assetsTypeSubName" jdbcType="VARCHAR" property="assetsTypeSubName"/>
+        <result column="polling_engine" jdbcType="VARCHAR" property="pollingEngine"/>
+        <result column="monitor_mode" jdbcType="INTEGER" property="monitorMode"/>
+        <result column="monitorModeName" jdbcType="VARCHAR" property="monitorModeName"/>
+        <result column="manufacturer" jdbcType="VARCHAR" property="manufacturer"/>
+        <result column="specifications" jdbcType="VARCHAR" property="specifications"/>
+        <result column="description" jdbcType="VARCHAR" property="description"/>
+        <result column="enable" jdbcType="VARCHAR" property="enable"/>
+        <result column="delete_flag" jdbcType="BIT" property="deleteFlag"/>
+        <result column="monitor_flag" jdbcType="BIT" property="monitorFlag"/>
+        <result column="setting_flag" jdbcType="BIT" property="settingFlag"/>
+        <result column="snmp_lev" jdbcType="INTEGER" property="snmpLev"/>
+        <result column="creator" jdbcType="VARCHAR" property="creator"/>
+        <result column="create_date" jdbcType="TIMESTAMP" property="createDate"/>
+        <result column="modifier" jdbcType="VARCHAR" property="modifier"/>
+        <result column="modification_date" jdbcType="TIMESTAMP" property="modificationDate"/>
+        <result column="scan_success_id" jdbcType="INTEGER" property="scanSuccessId"/>
+        <result column="monitor_server_id" jdbcType="INTEGER" property="monitorServerId"/>
+        <result column="vendor_small_icon" jdbcType="VARCHAR" property="vendorSmallIcon"/>
+        <result column="template_id" jdbcType="VARCHAR" property="templateId"/>
+        <result column="tp_server_host_name" jdbcType="VARCHAR" property="tpServerHostName"/>
+        <result column="open_connect" jdbcType="INTEGER" property="openConnect"/>
+    </resultMap>
+
+    <select id="getAssetsIpList" resultType="java.lang.String">
+        SELECT DISTINCT
+            item_ip
+        FROM
+            `mw_netflow_assets_tree_info`
+        WHERE
+            delete_flag = FALSE
+            AND item_assets_id = #{assetsId}
+            AND LENGTH( item_ip ) > 0;
+    </select>
+
+    <select id="getIpByAssetsIdAndIfIndex" resultType="java.lang.String">
+        SELECT DISTINCT
+            item_ip
+        FROM
+            `mw_netflow_assets_tree_info`
+        WHERE
+            delete_flag = FALSE
+            AND item_assets_id = #{assetsId}
+            AND LENGTH( item_ip ) > 0
+            AND item_index = #{ifIndex}
+    </select>
+
+    <select id="getIfIndexList" resultType="java.lang.Integer">
+        SELECT
+            item_index
+        FROM
+            `mw_netflow_assets_tree_info`
+        WHERE
+            delete_flag = FALSE
+            AND item_type = 1
+            AND item_assets_id = #{assetsId}
+    </select>
+
+    <select id="getAllInterface" resultMap="resultMap">
+        select id,
+        ifIndex,
+        IFNULL(name,IFNULL(description,"null")) name,
+        type,
+        state,
+        description,
+        mac,
+        mtu,
+        ip,
+        subnet_mask,
+        if_mode,
+        vlan,
+        vlan_flag,
+        port_type,
+        vrf,
+        assets_id,
+        creator,
+        create_date,
+        manage_state,
+        modifier,
+        modification_Date,
+        host_ip
+        from
+        mw_cmdbmd_assets_interface
+        <where>
+            1 = 1
+            <if test="vlanFlag!=null">
+                and vlan_flag = false
+            </if>
+            <if test="assetsId!=null">
+                and assets_id = #{assetsId}
+            </if>
+            <if test="interfaceName!=null and interfaceName!=''">
+                and (name = #{interfaceName} or description = #{interfaceName})
+            </if>
+        </where>
+        order by ifIndex
+    </select>
+
+    <select id="getAssetsById" resultMap="assetsMap">
+        SELECT
+            t1.monitorModeName,
+            t1.assetsTypeName,
+            t1.monitorServerName,
+            t1.assetsTypeSubName,
+            t1.vendor_small_icon,
+            t1.vendorCustomFlag,
+            t1.pollingEngineName,
+            t1.id,
+            t1.assets_id,
+            t1.assets_name,
+            t1.host_name,
+            t1.in_band_ip,
+            t1.out_band_ip,
+            t1.assets_type_id,
+            t1.assets_type_sub_id,
+            t1.polling_engine,
+            t1.monitor_mode,
+            t1.manufacturer,
+            t1.specifications,
+            t1.description,
+            t1.ENABLE,
+            t1.delete_flag,
+            t1.monitor_flag,
+            t1.setting_flag,
+            t1.creator,
+            t1.create_date,
+            t1.modifier,
+            t1.modification_date,
+            t1.scan_success_id,
+            t1.monitor_server_id,
+            t1.template_id,
+            t1.tp_server_host_name,
+            t1.open_connect
+        FROM
+            (
+            SELECT DISTINCT
+                t1.id,
+                d4.drop_value AS monitorModeName,
+                t4.type_name AS assetsTypeName,
+                t8.monitoring_server_name AS monitorServerName,
+                t5.type_name AS assetsTypeSubName,
+                vendor1.vendor_small_icon,
+                vendor1.custom_flag AS vendorCustomFlag,
+                engine1.engine_name AS pollingEngineName,
+                t1.assets_id,
+                t1.assets_name,
+                t1.host_name,
+                t1.in_band_ip,
+                t1.out_band_ip,
+                t1.assets_type_id,
+                t1.assets_type_sub_id,
+                t1.polling_engine,
+                t1.monitor_mode,
+                t1.manufacturer,
+                t1.specifications,
+                t1.description,
+                t1.ENABLE,
+                t1.delete_flag,
+                t1.monitor_flag,
+                t1.setting_flag,
+                t1.creator,
+                t1.create_date,
+                t1.modifier,
+                t1.modification_date,
+                t1.scan_success_id,
+                t1.monitor_server_id,
+                t1.template_id,
+                t1.tp_server_host_name,
+                t1.open_connect
+            FROM
+                mw_tangibleassets_table t1
+                LEFT JOIN mw_dropdown_table d4 ON d4.drop_code = 'monitor_mode'
+                AND d4.drop_key = t1.monitor_mode
+                LEFT JOIN mw_assetssubtype_table t4 ON t1.assets_type_id = t4.id
+                LEFT JOIN mw_thirdparty_server_table t8 ON t1.monitor_server_id = t8.id
+                AND t8.delete_flag =FALSE
+                LEFT JOIN mw_assetssubtype_table t5 ON t1.assets_type_sub_id = t5.id
+                LEFT JOIN mw_base_vendor_icon vendor1 ON t1.manufacturer = vendor1.vendor
+                LEFT JOIN mw_enginemanage_table engine1 ON t1.polling_engine = engine1.id
+            WHERE
+            t1.id = #{assetsId}
+            ) t1
+    </select>
+</mapper>

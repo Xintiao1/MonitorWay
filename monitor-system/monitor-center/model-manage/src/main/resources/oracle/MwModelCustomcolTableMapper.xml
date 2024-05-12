@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.mw.monitor.model.dao.MwModelCustomcolTableDao">
+
+    <insert id="insert" parameterType="java.util.List">
+        INSERT INTO ${TBSNAME}."mw_customcol_table"
+        (
+        "id",
+        "col_id",
+        "user_id",
+        "sortable",
+        "width",
+        "visible",mw_cmdbmd_template_table
+        "order_number"
+        ) VALUES
+        <foreach collection="list" item="colList" separator=",">
+            (
+            ${TBSNAME}.SEQ_MW_CUSTOMCOL_TABLE.NEXTVAL,
+            #{colList.colId,jdbcType=INTEGER},
+            #{colList.userId,jdbcType=INTEGER},
+            #{colList.sortable,jdbcType=INTEGER},
+            #{colList.width,jdbcType=INTEGER},
+            #{colList.visible,jdbcType=INTEGER},
+            #{colList.orderNumber,jdbcType=INTEGER}
+            )
+        </foreach>
+    </insert>
+
+    <insert id="insertByModel" parameterType="java.util.List">
+        INSERT INTO ${TBSNAME}."mw_cmdbmd_customcol_table"
+        (
+        "col_id",
+        "user_id",
+        "sortable",
+        "width",
+        "visible",
+        "model_properties_id",
+        "order_number"
+        ) VALUES
+        <foreach collection="list" item="colList" separator=",">
+            (
+            ${TBSNAME}.SEQ_MW_CMDBMD_CUSTOMCOL_TABLE.NEXTVAL,
+            #{colList.colId,jdbcType=INTEGER},
+            #{colList.userId,jdbcType=INTEGER},
+            #{colList.sortable,jdbcType=INTEGER},
+            #{colList.width,jdbcType=INTEGER},
+            #{colList.visible,jdbcType=INTEGER},
+            #{colList.modelPropertiesId,jdbcType=INTEGER},
+            #{colList.orderNumber,jdbcType=INTEGER}
+            )
+        </foreach>
+    </insert>
+
+
+    <update id="updateBatch" parameterType="java.util.List">
+        <foreach collection="list" item="updateList" separator=";" close="; END ;" open="BEGIN ">
+            update ${TBSNAME}."mw_cmdbmd_customcol_table"
+            <set>
+                <if test="updateList.sortable!=null">
+                    "sortable" = #{updateList.sortable},
+                </if>
+                <if test="updateList.width!=null">
+                    "width" = #{updateList.width},
+                </if>
+                <if test="updateList.visible!=null">
+                    "visible" = #{updateList.visible},
+                </if>
+                <if test="updateList.orderNumber!=null">
+                    "order_number" = #{updateList.orderNumber},
+                </if>
+                "delete_flag" = 0
+            </set>
+            where "id" = #{updateList.customId}
+        </foreach>
+    </update>
+
+    <update id="updateBatchByModel" parameterType="java.util.List">
+        <foreach collection="list" item="updateList" separator=";">
+            update ${TBSNAME}."mw_cmdbmd_customcol_table"
+            set "col_id" = #{updateList.colId,jdbcType=INTEGER},
+            "user_id" = #{updateList.userId,jdbcType=INTEGER},
+            "sortable" = #{updateList.sortable,jdbcType=INTEGER},
+            "width" = #{updateList.width,jdbcType=INTEGER},
+            "visible" = #{updateList.visible,jdbcType=INTEGER},
+            "order_number" = #{updateList.orderNumber,jdbcType=INTEGER},
+            "delete_flag" = #{updateList.deleteFlag,jdbcType=INTEGER}
+            where "id" = #{updateList.customId,jdbcType=INTEGER}
+        </foreach>
+    </update>
+
+    <update id="reset">
+        <foreach collection="list" item="updateList" separator=";" close="; END;" open="BEGIN">
+            update ${TBSNAME}."mw_cmdbmd_customcol_table" t2
+            SET t2."width" = NULL ,
+            t2."visible" = (SELECT t1."visible" from ${TBSNAME}."mw_cmdbmd_pagefield_table" t1 where  t1."id"= #{updateList.colId,jdbcType=INTEGER})
+            where t2."user_id" = #{updateList.userId,jdbcType=INTEGER}
+            and t2."id"= #{updateList.customId,jdbcType=INTEGER}
+        </foreach>
+    </update>
+
+
+
+
+
+</mapper>

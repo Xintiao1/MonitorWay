@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.mw.monitor.user.dao.MwRoleModulePermMapperDao">
+
+    <resultMap id="modulePermMap" type="cn.mw.monitor.service.user.model.PageAuth">
+        <result column="page_id" jdbcType="INTEGER" property="pageId"/>
+        <result column="page_name" jdbcType="VARCHAR" property="pageName"/>
+        <result column="pid"  jdbcType="INTEGER" property="pid"/>
+        <result column="deep"  jdbcType="INTEGER" property="deep"/>
+        <collection property="auth" ofType="cn.mw.monitor.service.user.model.Auth">
+            <result column="browse" jdbcType="BIT" property="browse"/>
+            <result column="create" jdbcType="BIT" property="create"/>
+            <result column="editor" jdbcType="BIT" property="editor"/>
+            <result column="delete" jdbcType="BIT" property="delete"/>
+            <result column="perform" jdbcType="BIT" property="perform"/>
+        </collection>
+    </resultMap>
+
+    <!-- 根据角色ID重置角色模块权限信息 -->
+    <update id="updateEnableByRoleId">
+        UPDATE ${TBSNAME}."mw_role_module_perm_mapper"
+        SET "enable" = 1
+        WHERE "role_id" = #{roleId}
+    </update>
+
+    <!-- 查询角色模块权限映射信息 -->
+    <select id="selectModulePermByRoleId" parameterType="java.util.Map" resultMap="modulePermMap">
+        SELECT
+            t1."id" "page_id",
+            t1."module_desc" "page_name",
+            t1."pid",
+            t1."deep",
+            MAX( CASE TO_CHAR(t2."perm_name") WHEN 'browse' THEN t2."enable" ELSE 0 END ) AS "browse",
+            MAX( CASE TO_CHAR(t2."perm_name") WHEN 'create' THEN t2."enable" ELSE 0 END ) AS "create",
+            MAX( CASE TO_CHAR(t2."perm_name") WHEN 'delete' THEN t2."enable" ELSE 0 END ) AS "delete",
+            MAX( CASE TO_CHAR(t2."perm_name") WHEN 'editor' THEN t2."enable" ELSE 0 END ) AS "editor",
+            MAX( CASE TO_CHAR(t2."perm_name") WHEN 'perform' THEN t2."enable" ELSE 0 END ) AS "perform"
+        FROM ${TBSNAME}."mw_module" t1
+        LEFT JOIN ${TBSNAME}."mw_role_module_perm_mapper" t2 ON t1."id" = t2."module_id"
+        <if test="roleId != null">
+            AND t2."role_id" = #{roleId}
+        </if>
+        WHERE t1."delete_flag" = 0
+        GROUP BY t1."id",t1."module_desc",t1."pid",
+        t1."deep"
+        ORDER BY t1."id"
+    </select>
+
+    <!-- 查询模块信息 -->
+    <select id="selectModule" parameterType="java.util.Map" resultMap="modulePermMap">
+        SELECT
+        t1.id page_id,
+        t1.module_desc page_name,
+        t1.pid,
+        t1.deep
+        FROM mw_module t1
+        <if test="nodePath != null">
+            AND nodes like "#{nodePath},%"
+        </if>
+        WHERE t1.delete_flag = false
+    </select>
+
+
+
+    <!-- 新增角色模块权限映射信息 -->
+    <insert id="insert">
+        insert all
+        <foreach collection="list" item="list" separator=" ">
+            INTO ${TBSNAME}."mw_role_module_perm_mapper" (
+            "id",
+            "role_id",
+            "module_id",
+            "perm_name",
+            "enable"
+            )
+            values
+            (
+            #{list.id},
+            #{list.roleId},
+            #{list.moduleId},
+            #{list.permName},
+            <choose>
+                <when test="list.enable == null || list.enable == false">
+                    0
+                </when>
+                <otherwise>
+                    1
+                </otherwise>
+            </choose>)
+        </foreach>
+        SELECT
+        1
+        FROM
+        dual
+    </insert>
+
+    <!-- 根据角色ID删除角色模块权限信息 -->
+    <delete id="deleteByRoleId">
+        DELETE FROM ${TBSNAME}."mw_role_module_perm_mapper"
+        WHERE "role_id" = #{roleId}
+    </delete>
+
+    <!-- 根据用户ID查询权限信息 -->
+    <select id="selectByUserId" parameterType="java.lang.Integer" resultType="cn.mw.monitor.service.user.model.MwRoleModulePermMapper">
+        select
+            a."id",
+            a."role_id" as "roleId",
+            a."module_id" as "moduleId",
+            a."perm_name" as "permName",
+            a."enable" as "enable"
+        from ${TBSNAME}."mw_role_module_perm_mapper" a
+        LEFT JOIN ${TBSNAME}."mw_user_role_mapper" b ON b."role_id" = a."role_id"
+        where b."delete_flag" = 0
+        AND b."user_id" = #{userId}
+    </select>
+
+</mapper>

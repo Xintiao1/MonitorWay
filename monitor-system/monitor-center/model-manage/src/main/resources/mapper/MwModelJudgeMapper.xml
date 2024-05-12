@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.mw.monitor.model.dao.MwModelJudgeDao">
+
+    <sql id="insert_Column_FailList">
+        judge_message,judge_score,judge_time,user_id,user_name,instance_id
+    </sql>
+
+    <sql id="tb_fail">
+        mw_cmdbmd_judge
+    </sql>
+
+    <resultMap id="InstanceViewResultMap" type="cn.mw.monitor.model.dto.MwModelJudgeDTO">
+        <id property="id" column="id" jdbcType="INTEGER"/>
+        <id property="judgeMessage" column="judge_message" jdbcType="VARCHAR"/>
+        <result property="judgeScore" column="judge_score" jdbcType="INTEGER"/>
+        <result property="judgeTime" column="judge_time" jdbcType="TIMESTAMP"/>
+        <result property="userId" column="user_id" jdbcType="INTEGER"/>
+        <result property="userName" column="user_name" jdbcType="VARCHAR"/>
+        <result property="instanceId" column="instance_id" jdbcType="INTEGER"/>
+    </resultMap>
+
+     <select id="selectModelJudgeInfo" resultMap="InstanceViewResultMap"
+            parameterType="cn.mw.monitor.model.param.MwModelJudgeParam">
+        SELECT
+         id,
+        <include refid="insert_Column_FailList"/>
+        FROM
+        <include refid="tb_fail"/>
+        WHERE
+            1 = 1
+        <if test="instanceId!=null and instanceId!=0">
+           and instance_id = #{instanceId}
+        </if>
+        <if test="judgeScore!=null and judgeScore!=''">
+            <if test=" queryScoreType !=null  and queryScoreType!=''">
+                and  judge_score <![CDATA[ ${queryScoreType} ]]> #{judgeScore}
+            </if>
+            <if test=" queryScoreType ==null ">
+                and   judge_score = #{judgeScore}
+            </if>
+        </if>
+        <if test="judgeMessage!=null and judgeMessage!=''">
+            and judge_message like concat ('%' ,#{judgeMessage,jdbcType=VARCHAR},'%')
+        </if>
+    </select>
+
+    <select id="checkModelJudgeTime" resultType="cn.mw.monitor.model.dto.MwModelJudgeDTO"
+            parameterType="cn.mw.monitor.model.param.MwModelJudgeParam">
+        SELECT
+         id,max(judge_time) AS "judgeTime"
+        FROM
+        <include refid="tb_fail"/>
+        WHERE
+        <if test="instanceId!=null and instanceId!=0">
+            instance_id = #{instanceId}
+        </if>
+    </select>
+
+
+    <insert id="insertModelJudgeInfo" parameterType="cn.mw.monitor.model.param.MwModelJudgeParam">
+        insert into
+        <include refid="tb_fail"/>
+        (<include refid="insert_Column_FailList"/>)
+        values (
+        #{judgeMessage,jdbcType=VARCHAR}
+        ,#{judgeScore,jdbcType=INTEGER}
+        ,now()
+        ,#{userId,jdbcType=INTEGER}
+        ,#{userName,jdbcType=VARCHAR}
+        ,#{instanceId,jdbcType=INTEGER}
+        )
+    </insert>
+
+    <delete id="batchDeleteModelJudge" >
+        delete
+        FROM
+        <include refid="tb_fail"/>
+        WHERE
+        id IN (
+        <foreach collection="list" item="id" separator=",">
+            #{id}
+        </foreach>)
+    </delete>
+</mapper>

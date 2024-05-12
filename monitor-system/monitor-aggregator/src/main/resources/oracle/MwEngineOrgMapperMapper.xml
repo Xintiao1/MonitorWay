@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.mw.monitor.engineManage.dao.MwEngineOrgMapperDao">
+  <resultMap id="BaseResultMap" type="cn.mw.monitor.engineManage.model.MwEngineOrgModel">
+    <id column="ID" jdbcType="INTEGER" property="id" />
+    <result column="engine_id" jdbcType="INTEGER" property="engineId" />
+    <result column="org_id" jdbcType="INTEGER" property="orgId" />
+  </resultMap>
+  <sql id="Base_Column_List">
+    ID, engine_id, org_id
+  </sql>
+
+  <delete id="delete" parameterType="java.util.List">
+    delete from mw_engine_org_mapper
+    where engine_id in
+    (
+    <foreach collection="list" item="deleteList" separator=",">
+    #{deleteList.value,jdbcType=INTEGER}
+    </foreach>
+    )
+  </delete>
+
+  <insert id="insert" parameterType="java.util.List">
+    insert into mw_engine_org_mapper ( engine_id, org_id
+      )
+    values
+    <foreach collection="list" item="insertList" separator=",">
+    ( #{insertList.engineId,jdbcType=INTEGER}, #{insertList.orgId,jdbcType=INTEGER}
+      )
+    </foreach>
+  </insert>
+
+</mapper>

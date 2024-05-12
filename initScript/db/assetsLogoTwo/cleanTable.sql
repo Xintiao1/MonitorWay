@@ -1,0 +1,1 @@
+ truncate table mw_assets_logo;

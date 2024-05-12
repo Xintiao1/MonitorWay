@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.mw.monitor.user.dao.MwNotCheckUrlDao">
+  <resultMap id="BaseResultMap" type="cn.mw.monitor.user.model.MwNotCheckUrl">
+    <id column="id" jdbcType="INTEGER" property="id" />
+    <result column="url" jdbcType="VARCHAR" property="url" />
+  </resultMap>
+
+  <sql id="Base_Column_List">
+    id, <include refid="excludeId_Column_List" />
+  </sql>
+
+  <sql id="excludeId_Column_List">
+    url
+  </sql>
+
+  <sql id="tb">
+    mw_notcheck_url
+  </sql>
+
+  <select id="selectByPrimaryKey" parameterType="java.lang.Integer" resultMap="BaseResultMap">
+    select 
+    <include refid="Base_Column_List" />
+    from <include refid="tb" />
+    where id = #{id,jdbcType=INTEGER}
+  </select>
+
+  <select id="selectList" resultType="cn.mw.monitor.user.model.MwNotCheckUrl" parameterType="java.util.HashMap">
+    select <include refid="Base_Column_List"/>
+    from <include refid="tb"/>
+  </select>
+
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Integer">
+    delete from <include refid="tb" />
+    where id = #{id,jdbcType=INTEGER}
+  </delete>
+
+  <insert id="insert" parameterType="cn.mw.monitor.user.model.MwNotCheckUrl">
+    insert into <include refid="tb" /> (<include refid="excludeId_Column_List" />)
+    values (
+    #{url,jdbcType=VARCHAR}
+    )
+  </insert>
+
+  <update id="updateByPrimaryKeySelective" parameterType="cn.mw.monitor.user.model.MwNotCheckUrl">
+    update <include refid="tb" />
+    <set>
+      <if test="url != null">
+        url = #{url,jdbcType=VARCHAR},
+      </if>
+    </set>
+    where id = #{id,jdbcType=INTEGER}
+  </update>
+
+</mapper>

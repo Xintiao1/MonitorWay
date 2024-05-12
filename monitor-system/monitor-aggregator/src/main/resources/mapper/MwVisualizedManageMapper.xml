@@ -1,0 +1,751 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.mw.monitor.visualized.dao.MwVisualizedManageDao">
+
+    <resultMap id="BaseMap" type="cn.mw.monitor.visualized.dto.MwVisualizedViewDto">
+        <id column="id" jdbcType="INTEGER" property="id"/>
+        <result column="classify_id" jdbcType="INTEGER" property="classifyId"/>
+        <result column="visualized_view_name" jdbcType="VARCHAR" property="visualizedViewName"/>
+        <result column="creator" jdbcType="VARCHAR" property="creator"/>
+        <result column="create_date" jdbcType="TIMESTAMP" property="createDate"/>
+        <result column="modifier" jdbcType="VARCHAR" property="modifier"/>
+        <result column="modification_date" jdbcType="TIMESTAMP" property="modificationDate"/>
+        <result column="visualized_data" jdbcType="VARCHAR" property="visualizedDatasStr"/>
+        <result column="visualized_image" jdbcType="VARCHAR" property="visualizedImage"/>
+        <result column="type" jdbcType="VARCHAR" property="type"/>
+        <result column="date_type" jdbcType="VARCHAR" property="dateType"/>
+        <result column="start_time" jdbcType="VARCHAR" property="startTime"/>
+        <result column="background_image" jdbcType="VARCHAR" property="backGroundImage"/>
+        <result column="end_time" jdbcType="VARCHAR" property="endTime"/>
+        <result column="animation" jdbcType="TINYINT" property="animation"/>
+        <result column="set_time" jdbcType="TINYINT" property="setTime"/>
+        <result column="is_template" jdbcType="INTEGER" property="isTemplate"/>
+    </resultMap>
+
+
+    <resultMap id="assetsMap" type="cn.mw.monitor.service.assets.model.MwTangibleassetsTable">
+        <id column="id" jdbcType="VARCHAR" property="id"/>
+        <result column="assets_id" jdbcType="VARCHAR" property="assetsId"/>
+        <result column="assets_name" jdbcType="VARCHAR" property="assetsName"/>
+        <result column="host_name" jdbcType="VARCHAR" property="hostName"/>
+        <result column="in_band_ip" jdbcType="VARCHAR" property="inBandIp"/>
+        <result column="out_band_ip" jdbcType="VARCHAR" property="outBandIp"/>
+        <result column="assets_type_id" jdbcType="INTEGER" property="assetsTypeId"/>
+        <result column="assetsTypeName" jdbcType="VARCHAR" property="assetsTypeName"/>
+        <result column="assets_type_sub_id" jdbcType="INTEGER" property="assetsTypeSubId"/>
+        <result column="assetsTypeSubName" jdbcType="VARCHAR" property="assetsTypeSubName"/>
+        <result column="polling_engine" jdbcType="VARCHAR" property="pollingEngine"/>
+        <result column="monitor_mode" jdbcType="INTEGER" property="monitorMode"/>
+        <result column="monitorModeName" jdbcType="VARCHAR" property="monitorModeName"/>
+        <result column="manufacturer" jdbcType="VARCHAR" property="manufacturer"/>
+        <result column="specifications" jdbcType="VARCHAR" property="specifications"/>
+        <result column="description" jdbcType="VARCHAR" property="description"/>
+        <result column="enable" jdbcType="VARCHAR" property="enable"/>
+        <result column="delete_flag" jdbcType="BIT" property="deleteFlag"/>
+        <result column="monitor_flag" jdbcType="BIT" property="monitorFlag"/>
+        <result column="setting_flag" jdbcType="BIT" property="settingFlag"/>
+        <result column="snmp_lev" jdbcType="INTEGER" property="snmpLev"/>
+        <result column="creator" jdbcType="VARCHAR" property="creator"/>
+        <result column="create_date" jdbcType="TIMESTAMP" property="createDate"/>
+        <result column="modifier" jdbcType="VARCHAR" property="modifier"/>
+        <result column="modification_date" jdbcType="TIMESTAMP" property="modificationDate"/>
+        <result column="scan_success_id" jdbcType="INTEGER" property="scanSuccessId"/>
+        <result column="monitor_server_id" jdbcType="INTEGER" property="monitorServerId"/>
+        <result column="vendor_small_icon" jdbcType="VARCHAR" property="vendorSmallIcon"/>
+        <result column="template_id" jdbcType="VARCHAR" property="templateId"/>
+        <result column="tp_server_host_name" jdbcType="VARCHAR" property="tpServerHostName"/>
+    </resultMap>
+
+
+    <sql id="Base_Column_List">
+        ${alias}id,
+        ${alias}assets_id,
+        ${alias}assets_name,
+        ${alias}host_name,
+        ${alias}in_band_ip,
+        ${alias}out_band_ip,
+        ${alias}assets_type_id,
+        ${alias}assets_type_sub_id,
+        ${alias}polling_engine,
+        ${alias}monitor_mode,
+        ${alias}manufacturer,
+        ${alias}specifications,
+        ${alias}description,
+        ${alias}enable,
+        ${alias}delete_flag,
+        ${alias}monitor_flag,
+        ${alias}setting_flag,
+        ${alias}creator,
+        ${alias}create_date,
+        ${alias}modifier,
+        ${alias}modification_date,
+        ${alias}scan_success_id,
+        ${alias}monitor_server_id,
+        ${alias}template_id,
+        ${alias}tp_server_host_name
+    </sql>
+
+    <insert id="addVisualizedClassify">
+        INSERT INTO `mw_visualized_classify`(`classify_name`) VALUES (#{classifyName})
+    </insert>
+
+    <update id="updateVisualizedClassify">
+        update mw_visualized_classify set classify_name = #{classifyName} where classify_id = #{classifyId}
+    </update>
+
+    <delete id="deleteVisualizedClassify">
+        delete from
+        mw_visualized_classify
+        where classify_id in (
+        <foreach collection="ids" item="id" separator=",">
+            #{id,jdbcType=INTEGER}
+        </foreach>
+        )
+    </delete>
+
+    <select id="selectVisualizedClassify" resultType="cn.mw.monitor.visualized.dto.MwVisualizedClassifyDto">
+        select classify_id classifyId,classify_name classifyName from mw_visualized_classify
+    </select>
+
+    <insert id="addVisualizedView">
+        insert into mw_visualized_table
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="classifyId != null">classify_id,</if>
+            <if test="visualizedViewName != null and visualizedViewName != ''">visualized_view_name,</if>
+            <if test="createDate != null">create_date,</if>
+            <if test="modifier != null and modifier != ''">modifier,</if>
+            <if test="modificationDate != null">modification_date,</if>
+            <if test="visualizedDatasStr != null and visualizedDatasStr != ''">visualized_data,</if>
+            <if test="visualizedImage != null and visualizedImage != ''">visualized_image,</if>
+            <if test="type != null">type,</if>
+            <if test="dateType != null">date_type,</if>
+            <if test="startTime != null and startTime != ''">start_time,</if>
+            <if test="endTime != null and endTime != ''">end_time,</if>
+            <if test="backGroundImage != null and backGroundImage != ''">background_image,</if>
+            <if test="creator != null and creator != ''">creator</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="classifyId != null">#{classifyId,jdbcType=INTEGER},</if>
+            <if test="visualizedViewName != null and visualizedViewName != ''">#{visualizedViewName,jdbcType=VARCHAR},</if>
+            <if test="createDate != null"> #{createDate,jdbcType=TIMESTAMP},</if>
+            <if test="modifier != null and modifier != ''">#{modifier,jdbcType=VARCHAR},</if>
+            <if test="modificationDate != null"> #{modificationDate,jdbcType=TIMESTAMP},</if>
+            <if test="visualizedDatasStr != null and visualizedDatasStr != ''"> #{visualizedDatasStr},</if>
+            <if test="visualizedImage != null and visualizedImage != ''">#{visualizedImage},</if>
+            <if test="type != null">#{type},</if>
+            <if test="dateType != null">#{dateType},</if>
+            <if test="startTime != null and startTime != ''">#{startTime},</if>
+            <if test="endTime != null and endTime != ''">#{endTime},</if>
+            <if test="backGroundImage != null and backGroundImage != ''">#{backGroundImage,jdbcType=VARCHAR},</if>
+            <if test="creator != null and creator != ''">#{creator,jdbcType=VARCHAR}</if>
+        </trim>
+    </insert>
+
+    <update id="updateVisualizedView">
+        update mw_visualized_table
+        <set>
+            <if test="classifyId != null">
+                classify_id = #{classifyId,jdbcType=INTEGER},
+            </if>
+            <if test="visualizedViewName != null and visualizedViewName != ''">
+                visualized_view_name = #{visualizedViewName,jdbcType=VARCHAR},
+            </if>
+            <if test="modifier != null">
+                modifier = #{modifier,jdbcType=VARCHAR},
+            </if>
+            <if test="visualizedDatasStr != null and visualizedDatasStr != ''">
+                visualized_data = #{visualizedDatasStr},
+            </if>
+            <if test="visualizedImage != null and visualizedImage != ''">
+                visualized_image = #{visualizedImage},
+            </if>
+            <if test="type != null">
+                type = #{type},
+            </if>
+            <if test="dateType != null">
+                date_type = #{dateType},
+            </if>
+            <if test="startTime != null and startTime != ''">
+                start_time = #{startTime},
+            </if>
+            <if test="endTime != null and endTime != ''">
+                end_time = #{endTime},
+            </if>
+            is_template = 1,
+            animation = #{animation},
+            set_time = #{setTime},
+            background_image = #{backGroundImage},
+            modification_date = now()
+        </set>
+        where id = #{id,jdbcType=INTEGER}
+    </update>
+
+    <delete id="deleteVisualizedView">
+        delete from
+        mw_visualized_table
+        where id in (
+        <foreach collection="ids" item="id" separator=",">
+            #{id,jdbcType=INTEGER}
+        </foreach>
+        )
+    </delete>
+
+    <select id="selectVisualizedView" resultMap="BaseMap">
+        select
+            id,
+            classify_id,
+            visualized_view_name,
+            creator,
+            create_date,
+            modifier,
+            modification_date,
+            visualized_image,
+            type,
+            date_type,
+            start_time,
+            background_image,
+            end_time,
+            animation,
+            set_time,
+            is_template
+        from mw_visualized_table where delete_flag = false
+        <if test="visualizedViewName != null and visualizedViewName != ''">
+            and visualized_view_name = #{visualizedViewName,jdbcType=VARCHAR}
+        </if>
+        <if test="classifyId != null">
+            and classify_id = #{classifyId}
+        </if>
+    </select>
+    <select id="selectAllAssets" resultMap="assetsMap">
+        SELECT
+            t1.monitorModeName,
+            t1.assetsTypeName,
+            t1.monitorServerName,
+            t1.assetsTypeSubName,
+            t1.vendor_small_icon,
+            t1.vendorCustomFlag,
+            t1.pollingEngineName,
+            t1.id,
+            t1.assets_id,
+            t1.assets_name,
+            t1.host_name,
+            t1.in_band_ip,
+            t1.out_band_ip,
+            t1.assets_type_id,
+            t1.assets_type_sub_id,
+            t1.polling_engine,
+            t1.monitor_mode,
+            t1.manufacturer,
+            t1.specifications,
+            t1.description,
+            t1.ENABLE,
+            t1.delete_flag,
+            t1.monitor_flag,
+            t1.setting_flag,
+            t1.creator,
+            t1.create_date,
+            t1.modifier,
+            t1.modification_date,
+            t1.scan_success_id,
+            t1.monitor_server_id,
+            t1.template_id,
+            t1.tp_server_host_name
+        FROM
+            (
+            SELECT DISTINCT
+                t1.id,
+                d4.drop_value AS monitorModeName,
+                t4.type_name AS assetsTypeName,
+                t8.monitoring_server_name AS monitorServerName,
+                t5.type_name AS assetsTypeSubName,
+                vendor1.vendor_small_icon,
+                vendor1.custom_flag AS vendorCustomFlag,
+                engine1.engine_name AS pollingEngineName,
+                t1.assets_id,
+                t1.assets_name,
+                t1.host_name,
+                t1.in_band_ip,
+                t1.out_band_ip,
+                t1.assets_type_id,
+                t1.assets_type_sub_id,
+                t1.polling_engine,
+                t1.monitor_mode,
+                t1.manufacturer,
+                t1.specifications,
+                t1.description,
+                t1.ENABLE,
+                t1.delete_flag,
+                t1.monitor_flag,
+                t1.setting_flag,
+                t1.creator,
+                t1.create_date,
+                t1.modifier,
+                t1.modification_date,
+                t1.scan_success_id,
+                t1.monitor_server_id,
+                t1.template_id,
+                t1.tp_server_host_name
+            FROM
+                mw_tangibleassets_table t1
+                LEFT JOIN mw_dropdown_table d4 ON d4.drop_code = 'monitor_mode'
+                AND d4.drop_key = t1.monitor_mode
+                LEFT JOIN mw_assetssubtype_table t4 ON t1.assets_type_id = t4.id
+                LEFT JOIN mw_thirdparty_server_table t8 ON t1.monitor_server_id = t8.id
+                AND t8.delete_flag =
+                FALSE LEFT JOIN mw_assetssubtype_table t5 ON t1.assets_type_sub_id = t5.id
+                LEFT JOIN mw_base_vendor_icon vendor1 ON t1.manufacturer = vendor1.vendor
+                LEFT JOIN mw_enginemanage_table engine1 ON t1.polling_engine = engine1.id
+            WHERE
+                t1.delete_flag = FALSE
+            ) t1
+    </select>
+    <select id="selectAssetsByHostId" resultMap="assetsMap">
+        select
+        <include refid="Base_Column_List">
+            <property name="alias" value=""/>
+        </include>
+        from mw_tangibleassets_table
+        where assets_id in (
+        <foreach collection="hostIds" item="hostid" separator=",">
+            #{hostid}
+        </foreach>
+        )
+    </select>
+    <select id="selectItemName" resultType="java.util.Map">
+        select index_monitor_item prop,index_name name from mw_visualized_index where index_monitor_item in
+        (
+        <foreach collection="items" item="item" separator=",">
+            #{item}
+        </foreach>
+        )
+    </select>
+    <select id="selectVisualizedById" resultMap="BaseMap">
+        select
+            id,
+            classify_id,
+            visualized_view_name,
+            creator,create_date,
+            modifier,
+            modification_date,
+            visualized_data,
+            type,
+            date_type,
+            start_time,
+            end_time,
+            background_image,
+            animation,
+            set_time
+         from mw_visualized_table where delete_flag = false
+        and id = #{id}
+    </select>
+    <insert id="visualizedCacheMonitorInfo" parameterType="java.util.List">
+        insert mw_visualized_cache_table
+        (cache_id,assets_id,assets_name,host_id,item_name,`value`,units,clock,creator,create_date)
+        values
+        <foreach collection="list" item="item" separator=",">
+            (#{item.cacheId,jdbcType=VARCHAR},
+            #{item.assetsId,jdbcType=VARCHAR},
+            #{item.assetsName,jdbcType=VARCHAR},
+            #{item.hostId,jdbcType=VARCHAR},
+            #{item.itemName,jdbcType=VARCHAR},
+            #{item.value,jdbcType=VARCHAR},
+            #{item.units,jdbcType=VARCHAR},
+            #{item.clock,jdbcType=VARCHAR},
+            #{item.creator,jdbcType=VARCHAR},
+            now()
+            )
+        </foreach>
+    </insert>
+    <select id="selectvisualizedCacheInfo" resultType="cn.mw.monitor.visualized.dto.MwVisualizedCacheDto">
+        select
+            cache_id as cacheId,
+            assets_id as assetsId,
+            assets_name as assetsName,
+            host_id as hostId,
+            item_name as itemName,
+            `value`,
+            units,
+            clock,
+            creator,
+            create_date as createDate
+         from mw_visualized_cache_table where item_name like  CONCAT('%',#{itemName})
+         <if test="assetsIds != null and assetsIds.size > 0">
+             and assets_id in
+             <foreach collection="assetsIds" item="item" index="index" open="(" separator="," close=")">
+                 #{item,jdbcType=INTEGER}
+             </foreach>
+         </if>
+    </select>
+    <select id="selectvisualizedCacheInfos" resultType="cn.mw.monitor.visualized.dto.MwVisualizedCacheDto">
+        select
+        cache_id as cacheId,
+        assets_id as assetsId,
+        assets_name as assetsName,
+        host_id as hostId,
+        item_name as itemName,
+        `value`,
+        units,
+        clock,
+        creator,
+        create_date as createDate
+        from mw_visualized_cache_table where 1 = 1
+        <if test="assetsIds != null and assetsIds.size > 0">
+            and assets_id in
+            <foreach collection="assetsIds" item="item" index="index" open="(" separator="," close=")">
+                #{item,jdbcType=INTEGER}
+            </foreach>
+        </if>
+        <if test="itemNames != null and itemNames.size > 0">
+            and
+            <foreach collection="itemNames" item="name" index="index" open="(" separator=" or " close=")">
+                item_name like  CONCAT('%',#{name})
+            </foreach>
+        </if>
+    </select>
+    <insert id="insertHostAndGroupCache" parameterType="java.util.List">
+        insert mw_visualized_cache_assets_table
+        (id,host_name,host_id,host_group_id,host_group_name,host_status,server_id,`server_name`,creator,create_date,alert_title)
+        values
+        <foreach collection="list" item="item" separator=",">
+            (#{item.id,jdbcType=VARCHAR},
+            #{item.hostName,jdbcType=VARCHAR},
+            #{item.hostId,jdbcType=VARCHAR},
+            #{item.hostGroupId,jdbcType=VARCHAR},
+            #{item.hostGroupName,jdbcType=VARCHAR},
+            #{item.hostStatus,jdbcType=VARCHAR},
+            #{item.serverId,jdbcType=INTEGER},
+            #{item.serverName,jdbcType=VARCHAR},
+            #{item.creator,jdbcType=VARCHAR},
+            now(),
+            #{item.alertTitle,jdbcType=VARCHAR}
+            )
+        </foreach>
+    </insert>
+    <select id="selectHostAndGroupCache" resultType="cn.mw.monitor.visualized.dto.MwVisualizedHostGroupDto">
+        select
+        id,
+        host_name as hostName,
+        host_id as hostId,
+        host_group_id as hostGroupId,
+        host_group_name as hostGroupName,
+        host_status as hostStatus,
+        server_id as serverId,
+        `server_name` as serverName,
+        creator,
+        create_date as createDate,
+        alert_title as alertTitle
+        from mw_visualized_cache_assets_table
+        <if test="serverName != null and serverName != ''">
+            where `server_name` like  CONCAT('%',#{serverName},'%')
+        </if>
+        <if test="title != null and title != ''">
+            where `title` like  CONCAT('%',#{title})
+        </if>
+    </select>
+    <insert id="visualizedCacheHistoryMonitorInfo" parameterType="java.util.List">
+        insert mw_visualized_cache_history_table
+        (id,assets_id,assets_name,host_id,item_name,avg_value,max_value,min_value,units,clock,creator,create_date)
+        values
+        <foreach collection="list" item="item" separator=",">
+            (#{item.id,jdbcType=VARCHAR},
+            #{item.assetsId,jdbcType=VARCHAR},
+            #{item.assetsName,jdbcType=VARCHAR},
+            #{item.hostId,jdbcType=VARCHAR},
+            #{item.itemName,jdbcType=VARCHAR},
+            #{item.avgValue,jdbcType=VARCHAR},
+            #{item.maxValue,jdbcType=VARCHAR},
+            #{item.minValue,jdbcType=VARCHAR},
+            #{item.units,jdbcType=VARCHAR},
+            #{item.clock,jdbcType=VARCHAR},
+            #{item.creator,jdbcType=VARCHAR},
+            now()
+            )
+        </foreach>
+    </insert>
+    <insert id="insertVisualizedDayData" parameterType="java.util.List">
+        insert mw_visualized_cache_day_table
+        (id,assets_id,assets_name,host_id,item_name,avg_value,max_value,min_value,units,clock,date_time)
+        values
+        <foreach collection="list" item="item" separator=",">
+            (#{item.id,jdbcType=VARCHAR},
+            #{item.assetsId,jdbcType=VARCHAR},
+            #{item.assetsName,jdbcType=VARCHAR},
+            #{item.hostId,jdbcType=VARCHAR},
+            #{item.itemName,jdbcType=VARCHAR},
+            #{item.avgValue,jdbcType=VARCHAR},
+            #{item.maxValue,jdbcType=VARCHAR},
+            #{item.minValue,jdbcType=VARCHAR},
+            #{item.units,jdbcType=VARCHAR},
+            #{item.clock,jdbcType=VARCHAR},
+            #{item.time,jdbcType=VARCHAR}
+            )
+        </foreach>
+    </insert>
+    <delete id="deleteVisualizedCacheMonitorInfo">
+        delete from
+        mw_visualized_cache_table
+    </delete>
+    <delete id="deleteHostAndGroupCache">
+        delete from
+        mw_visualized_cache_assets_table
+    </delete>
+    <delete id="deleteVisualizedCacheHistoryMonitorInfo">
+        delete from
+        mw_visualized_cache_history_table
+    </delete>
+    <select id="selectVisualizedCacheHistoryMonitorInfo" resultType="cn.mw.monitor.visualized.dto.MwVisualizedCacheHistoryDto">
+        select
+        id as id,
+        assets_id as assetsId,
+        assets_name as assetsName,
+        host_id as hostId,
+        item_name as itemName,
+        avg_value as avgValue,
+        max_value as `maxValue`,
+        min_value as minValue,
+        units,
+        clock,
+        creator,
+        create_date as createDate
+        from mw_visualized_cache_history_table where assets_id = #{assetsId,jdbcType=VARCHAR}
+        and
+        <foreach collection="itemNames" item="name" index="index" open="(" separator=" or " close=")">
+            item_name like  CONCAT('%',#{name})
+        </foreach>
+    </select>
+    <select id="selectVisualizedDayData" resultType="cn.mw.monitor.visualized.dto.MwVisualizedCacheHistoryDto">
+        select
+        id as id,
+        assets_id as assetsId,
+        assets_name as assetsName,
+        host_id as hostId,
+        item_name as itemName,
+        avg_value as avgValue,
+        max_value as `maxValue`,
+        min_value as minValue,
+        units,
+        clock,
+        date_time as `time`
+        from mw_visualized_cache_day_table where 1 =1
+        <if test="assetsIds != null and assetsIds.size > 0">
+            and assets_id in
+            <foreach collection="assetsIds" item="item" index="index" open="(" separator="," close=")">
+                #{item}
+            </foreach>
+        </if>
+        and
+        <foreach collection="itemNames" item="name" index="index" open="(" separator=" or " close=")">
+            item_name like  CONCAT('%',#{name})
+        </foreach>
+        and STR_TO_DATE(date_time, '%Y-%m-%d') BETWEEN #{startTime} AND  #{endTime}
+    </select>
+    <select id="selectVisualizedDropDownInfo" resultType="cn.mw.monitor.visualized.dto.MwVisualizedDropDownDto">
+        select
+        drop_value as dropValue,
+        `type`,
+        item_name as itemName
+        from mw_visualized_drop_down_table where type = #{type,jdbcType=INTEGER}
+    </select>
+    <select id="selectCacheItemByType" resultType="java.lang.String">
+        select
+            item_name
+        from mw_visualized_cache_item_table where type = #{type,jdbcType=INTEGER}
+    </select>
+    <insert id="visualizedCacheAlertInfo" parameterType="java.util.List">
+        insert mw_visualized_alert_cache_table
+        (cache_id,assets_id,host_id,alert_severity,`time`)
+        values
+        <foreach collection="list" item="item" separator=",">
+            (#{item.cacheId,jdbcType=VARCHAR},
+            #{item.assetsId,jdbcType=VARCHAR},
+            #{item.hostId,jdbcType=VARCHAR},
+            #{item.alertSeverity,jdbcType=VARCHAR},
+            #{item.time,jdbcType=VARCHAR}
+            )
+        </foreach>
+    </insert>
+    <select id="selectAlertCacheInfo" resultType="cn.mw.monitor.visualized.dto.MwVisualizedAlertRecordDto">
+        select
+        cache_id as cacheId,
+        assets_id as assetsId,
+        host_id as hostId,
+        alert_severity as alertSeverity,
+        `time` as `time`
+        from mw_visualized_alert_cache_table where host_id in
+        <foreach collection="ids" item="id" index="index" open="(" separator="," close=")">
+            #{id,jdbcType=VARCHAR}
+        </foreach>
+        and `time` in
+        <foreach collection="days" item="day" index="index" open="(" separator="," close=")">
+            #{day,jdbcType=VARCHAR}
+        </foreach>
+    </select>
+    <select id="selectVisualizedContaine" resultType="cn.mw.monitor.visualized.dto.MwVisualizedPrometheusDropDto">
+        select
+        id as id,
+        `desc` as `desc`,
+        url as url,
+        partition_name as partitionName,
+        param as param,
+        units as units,
+        item_name as item_name
+        from mw_visualized_container_item_table where partition_name = #{typeName}
+    </select>
+    <insert id="insertVisualizedPartitionAssets" parameterType="java.util.List">
+        insert mw_visualized_assets_count_table
+        (id,partition_name,partition_number,`time`)
+        values
+        <foreach collection="list" item="item" separator=",">
+            (#{item.id,jdbcType=VARCHAR},
+            #{item.partitionName,jdbcType=VARCHAR},
+            #{item.partitionNumber,jdbcType=VARCHAR},
+            #{item.time,jdbcType=VARCHAR}
+            )
+        </foreach>
+    </insert>
+    <select id="selectVisualizedPartitionAssets" resultType="cn.mw.monitor.visualized.dto.MwVisualizedAeestsCountDto">
+        select
+        id as id,
+        partition_name as partitionName,
+        partition_number as partitionNumber,
+        `time` as `time`
+        from mw_visualized_assets_count_table where 1 = 1
+        <if test="name != null and name != ''">
+            and partition_name = #{name}
+        </if>
+        and `time` in
+        <foreach collection="days" item="day" index="index" open="(" separator="," close=")">
+            #{day,jdbcType=VARCHAR}
+        </foreach>
+    </select>
+    <insert id="insertVisualizedBusinStatusTitle" parameterType="java.util.List">
+        insert mw_visualized_businstatuse_table
+        (id,model_system_name,title_name)
+        values
+        <foreach collection="list" item="item" separator=",">
+            (#{item.id,jdbcType=VARCHAR},
+            #{item.modelSystemName,jdbcType=VARCHAR},
+            #{item.titleName,jdbcType=VARCHAR}
+            )
+        </foreach>
+    </insert>
+    <select id="selectVisualizedBusinStatusTitle" resultType="cn.mw.monitor.visualized.dto.MwVisualizedModuleBusinSatusDto">
+        select
+        id as id,
+        model_system_name as modelSystemName,
+        title_name as titleName
+        from mw_visualized_businstatuse_table where 1 = 1
+        <if test="name != null and name != ''">
+            and model_system_name = #{name}
+        </if>
+    </select>
+    <select id="selectVisualizedCacheHistoryBatch" resultType="cn.mw.monitor.visualized.dto.MwVisualizedCacheHistoryDto">
+        select
+        id as id,
+        assets_id as assetsId,
+        assets_name as assetsName,
+        host_id as hostId,
+        item_name as itemName,
+        avg_value as avgValue,
+        max_value as `maxValue`,
+        min_value as minValue,
+        units,
+        clock,
+        creator,
+        create_date as createDate
+        from mw_visualized_cache_history_table where 1 = 1
+        <if test="assetsIds != null and assetsIds.size > 0">
+            and assets_id in
+            <foreach collection="assetsIds" item="item" index="index" open="(" separator="," close=")">
+                #{item,jdbcType=INTEGER}
+            </foreach>
+        </if>
+        and
+        <foreach collection="itemNames" item="name" index="index" open="(" separator=" or " close=")">
+            item_name like  CONCAT('%',#{name})
+        </foreach>
+    </select>
+    <select id="selectVisualizedContaineByItemName" resultType="cn.mw.monitor.visualized.dto.MwVisualizedPrometheusDropDto">
+        select
+            id as id,
+            `desc` as `desc`,
+            url as url,
+            partition_name as partitionName,
+            param as param,
+            units as units,
+            item_name as item_name
+        from mw_visualized_container_item_table where item_name like  CONCAT('%',#{itemName})
+    </select>
+    <insert id="visualizedCacheContaineAlertInfo" parameterType="java.util.List">
+        insert mw_visualized_containeralert_table
+        (id,alert_level,alert_count,alert_date,partition_name)
+        values
+        <foreach collection="list" item="item" separator=",">
+            (#{item.id,jdbcType=VARCHAR},
+            #{item.alertLevel,jdbcType=VARCHAR},
+            #{item.alertCount,jdbcType=VARCHAR},
+            #{item.alertDate,jdbcType=VARCHAR},
+            #{item.partitionName,jdbcType=VARCHAR}
+            )
+        </foreach>
+    </insert>
+    <select id="getVisualizedCacheContaineAlertInfo" resultType="cn.mw.monitor.visualized.dto.MwVisualizedAlertRecordDto">
+        select
+        id as id,
+        alert_level as alertLevel,
+        alert_count as alertCount,
+        alert_date as alertDate,
+        partition_name as partitionName
+        from mw_visualized_containeralert_table where partition_name = #{name}
+        and `alert_date` in
+        <foreach collection="dates" item="day" index="index" open="(" separator="," close=")">
+            #{day,jdbcType=VARCHAR}
+        </foreach>
+    </select>
+    <select id="getVisualizedScoreProportion" resultType="cn.mw.monitor.visualized.dto.MwVisualizedScoreProportionDto">
+        select
+            id as id,
+            proportion as proportion,
+            type as type,
+            classify_name as classifyName,
+            item_name as itemName
+        from mw_visualized_scoreproportion_table
+    </select>
+
+    <insert id="saveVisualizedQueryValue"  parameterType="cn.mw.monitor.visualized.dto.MwVisualizedQueryValueDTO"
+            useGeneratedKeys="true" keyProperty="id" keyColumn="id">
+        insert into mw_visualized_query_value (value_json)
+        values(#{queryValueJsonStr})
+    </insert>
+
+    <select id="getVisualizedQueryValue" resultType="cn.mw.monitor.visualized.dto.MwVisualizedQueryValueDTO">
+        select id,value_json AS "queryValueJsonStr"
+        from mw_visualized_query_value
+        where id = #{id}
+    </select>
+
+    <insert id="insertVisualizedImageInfo" parameterType="java.util.List">
+        insert mw_visualized_image_table
+        (visualized_id,image_url,node_id)
+        values
+        <foreach collection="list" item="item" separator=",">
+            (#{item.visualizedId,jdbcType=INTEGER},
+            #{item.imageUrl,jdbcType=VARCHAR},
+            #{item.nodeId,jdbcType=VARCHAR}
+            )
+        </foreach>
+    </insert>
+    <delete id="deleteVisualizedImageInfo">
+        delete from
+            mw_visualized_image_table
+        where visualized_id = #{visualizedId,jdbcType=INTEGER}
+    </delete>
+    <select id="selectVisualizedImageInfo" resultType="cn.mw.monitor.visualized.dto.MwVisualizedImageDto">
+        select
+            visualized_id as visualizedId,
+            image_url as imageUrl,
+            node_id as nodeId
+        from mw_visualized_image_table
+        where visualized_id = #{visualizedId,jdbcType=INTEGER}
+    </select>
+</mapper>

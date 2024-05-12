@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.mw.monitor.visualized.dao.MwVisualizedModuleRelationDao">
+
+    <resultMap id="BaseResultMap" type="cn.mw.monitor.visualized.dto.MwVisualizedModuleRelationDto">
+        <id column="id" jdbcType="INTEGER" property="id"/>
+        <result column="visualized_id" jdbcType="VARCHAR" property="visualizedId"/>
+        <result column="generate_name" jdbcType="VARCHAR" property="generateName"/>
+        <result column="generate_url" jdbcType="VARCHAR" property="generateUrl"/>
+        <result column="generate_id" jdbcType="INTEGER" property="generateId"/>
+        <result column="module_id" jdbcType="INTEGER" property="moduleId"/>
+        <result column="creator" jdbcType="VARCHAR" property="creator"/>
+        <result column="create_date" jdbcType="TIMESTAMP" property="createDate"/>
+        <result column="modifier" jdbcType="VARCHAR" property="modifier"/>
+        <result column="modification_date" jdbcType="TIMESTAMP" property="modificationDate"/>
+    </resultMap>
+
+    <insert id="insertVisualizedModuleRelation" parameterType="cn.mw.monitor.visualized.dto.MwVisualizedModuleRelationDto" useGeneratedKeys="true" keyProperty="id">
+        insert into  ${TBSNAME}."mw_visualized_module_relation"
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            "id",
+            <if test="visualizedId != null">"visualized_id",</if>
+            <if test="generateName != null and generateName != ''">"generate_name",</if>
+            <if test="generateUrl != null and generateUrl != ''">"generate_url",</if>
+            <if test="generateId != null">"generate_id",</if>
+            <if test="moduleId != null">"module_id",</if>
+            <if test="creator != null">"creator",</if>
+            <if test="createDate != null">"create_date",</if>
+            <if test="modifier != null">"modifier",</if>
+            <if test="modificationDate != null">"modification_date",</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            ${TBSNAME}.SEQ_MW_VISUALIZED_MODULE_RELATION.NEXTVAL,
+            <if test="visualizedId != null">#{visualizedId},</if>
+            <if test="generateName != null and generateName != ''">#{generateName},</if>
+            <if test="generateUrl != null and generateUrl != ''">#{generateUrl},</if>
+            <if test="generateId != null">#{generateId},</if>
+            <if test="moduleId != null">#{moduleId},</if>
+            <if test="creator != null">#{creator},</if>
+            <if test="createDate != null">#{createDate},</if>
+            <if test="modifier != null">#{modifier},</if>
+            <if test="modificationDate != null">#{modificationDate},</if>
+        </trim>
+    </insert>
+
+    <update id="updateVisualizedModuleRelation">
+        update  ${TBSNAME}."mw_visualized_module_relation" set
+        <if test="visualizedId != null">"visualized_id" = #{visualizedId},</if>
+        <if test="generateName != null and generateName != ''">"generate_name" = #{generateName},</if>
+        <if test="generateUrl != null and generateUrl != ''">"generate_url" = #{generateUrl},</if>
+        <if test="generateId != null">"generate_id" = #{generateId},</if>
+        <if test="moduleId != null">"module_id" = #{moduleId},</if>
+        <if test="creator != null">"creator" = #{creator},</if>
+        <if test="createDate != null">"create_date" = #{createDate},</if>
+        <if test="modifier != null">"modifier" = #{modifier},</if>
+        <if test="modificationDate != null">"modification_date" = >#{modificationDate},</if>
+        where "id" = #{id}
+    </update>
+    <delete id="deleteVisualizedModuleRelation">
+        delete from  ${TBSNAME}."mw_visualized_module_relation"
+        where "id" in (
+        <foreach collection="ids" item="id" separator=",">
+            #{id}
+        </foreach>
+        )
+    </delete>
+    <select id="selectVisualizedModuleRelation" resultMap="BaseResultMap">
+        select "id","visualized_id","generate_name","generate_url","generate_id","module_id","creator","create_date","modifier","modification_date" from  ${TBSNAME}."mw_visualized_module_relation"
+        where 1=1
+        <if test="visualizedId != null">and "visualized_id" = #{visualizedId}</if>
+        <if test="generateName != null and generateName != ''">and "generate_name" = #{generateName}</if>
+        <if test="generateUrl != null and generateUrl != ''">and "generate_url" = #{generateUrl}</if>
+        <if test="moduleId != null">and "module_id" = #{moduleId}</if>
+    </select>
+
+
+</mapper>

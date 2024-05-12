@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.mw.monitor.netflow.dao.IpGroupIPAMExpandManageDao">
+
+
+    <select id="getIpGroupList" resultType="java.lang.String">
+        SELECT
+            "item_label"
+        FROM
+            ${TBSNAME}."mw_netflow_ip_group_expand_ipam"
+        WHERE
+            "ip_group_id" = #{ipGroupId}
+            AND "item_type" = 'iPaddresses'
+    </select>
+
+</mapper>

@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.mw.monitor.model.dao.MwModelMacroAuthDao">
+
+    <select id="getMacroAuthList" resultType="cn.mw.monitor.model.dto.MwModelMacrosManageDTO"
+            parameterType="cn.mw.monitor.model.param.MwModelMacrosManageParam">
+        SELECT DISTINCT
+            a.model_id AS "modelId",
+            a.auth_name AS "authName",
+            b.model_name AS "modelName",
+            b.group_nodes AS "groupNodes"
+        FROM
+            mw_cmdbmd_macro_value_authname a
+            LEFT JOIN mw_cmdbmd_manage b ON a.model_id = b.model_id
+        <where>
+            <if test="authName != null and authName !=''">
+                and b.model_name like concat ('%' ,#{authName,jdbcType=VARCHAR},'%')
+            </if>
+            <if test="modelId!=null and modelId!='' ">
+                AND a.model_id = #{modelId}
+            </if>
+        </where>
+    </select>
+
+    <select id="getAllMacroField" resultType="cn.mw.monitor.model.dto.ModelMacroSelectDataDTO">
+        SELECT
+            id AS "id",
+            id AS "macroId",
+            macro AS "macro",
+            macro_name AS "macroName",
+            macro_type AS "macroType"
+        FROM
+            mw_cmdbmd_macro
+    </select>
+
+    <select id="queryMacroFieldByModelId" resultType="cn.mw.monitor.model.param.MwModelMacrosManageParam">
+        SELECT
+            t2.id AS "macroId",
+            t1.model_id AS "modelId",
+            t2.macro AS "macro",
+            t2.macro_name  AS "macroName",
+            t2.macro_type  AS "macroType"
+        FROM
+            mw_cmdbmd_model_macro t1
+            left join mw_cmdbmd_macro t2 on t1.macro_id = t2.id
+        Where t1.model_id = #{modelId}
+    </select>
+
+    <select id="checkAuthNameInfoNum" resultType="java.lang.Integer"
+            parameterType="cn.mw.monitor.model.param.MwModelMacrosManageParam">
+        SELECT
+            count(b.id) AS "num"
+        FROM
+            mw_cmdbmd_macro_value_authname b
+        WHERE
+            b.model_id = #{modelId}
+            AND b.auth_name = #{authName}
+    </select>
+
+    <insert id="insertModelMacroInfoMapper" parameterType="java.util.List">
+        INSERT INTO mw_cmdbmd_model_macro(model_id, macro_id)
+        VALUES
+        <foreach collection="list" item="insertList" separator=",">
+            (#{insertList.modelId,jdbcType=INTEGER},#{insertList.macroId,jdbcType=INTEGER})
+        </foreach>
+    </insert>
+
+    <insert id="addMacroValueAuthName" parameterType="java.util.List">
+        INSERT INTO mw_cmdbmd_macro_value_authname(`modelmacro_id`, `macro_val`, `auth_name`,`model_id`)
+        VALUES
+        <foreach collection="list" item="insertList" separator=",">
+            (#{insertList.macroId,jdbcType=INTEGER},#{insertList.macroVal,jdbcType=VARCHAR},#{insertList.authName,jdbcType=VARCHAR},#{insertList.modelId,jdbcType=INTEGER})
+        </foreach>
+    </insert>
+
+    <update id="editorMacroValueAuthNameInfo" parameterType="java.util.List">
+        <foreach collection="list" item="updateList" separator=";">
+            UPDATE mw_cmdbmd_macro_value_authname
+            <set>
+                <if test="updateList.macroVal!=null">
+                    macro_val = #{updateList.macroVal},
+                </if>
+                <if test="updateList.authName!=null">
+                    auth_name = #{updateList.authName}
+                </if>
+            </set>
+            WHERE
+              id = #{updateList.id}
+        </foreach>
+    </update>
+
+    <delete id="deleteModelMacroInfoMapper">
+        <foreach collection="list" item="updateList" separator=";">
+            DELETE FROM mw_cmdbmd_model_macro
+            WHERE
+            model_id = #{updateList.modelId}
+            AND macro_id = #{updateList.macroId}
+        </foreach>
+    </delete>
+
+    <delete id="deleteModelMacroNameInfo">
+        <foreach collection="list" item="updateList" separator=";">
+            DELETE FROM mw_cmdbmd_macro_value_authname
+            WHERE
+            model_id = #{updateList.modelId}
+            AND modelmacro_id = #{updateList.macroId}
+        </foreach>
+    </delete>
+
+    <delete id="deleteModelMacroNameInfoByName">
+        <foreach collection="list" item="updateList" separator=";">
+            DELETE FROM mw_cmdbmd_macro_value_authname
+            WHERE
+            model_id = #{updateList.modelId}
+            AND auth_name = #{updateList.authName}
+        </foreach>
+    </delete>
+
+    <select id="selectInfoPopup" resultType="cn.mw.monitor.model.dto.MwModelMacrosManageDTO"
+            parameterType="cn.mw.monitor.model.param.MwModelMacrosManageParam">
+        select
+        a.id AS "id",
+        a.macro_val AS "macroVal",
+        a.auth_name AS "authName",
+        t1.macro_name AS "macroName",
+        t1.macro_type AS "macroType",
+        t1.macro AS "macro",
+        a.modelmacro_id AS "macroId",
+        a.model_id AS "modelId",
+        b.group_nodes AS "groupNodes"
+        FROM mw_cmdbmd_macro_value_authname a
+        left join mw_cmdbmd_macro t1 on a.modelmacro_id = t1.id
+         LEFT JOIN mw_cmdbmd_manage b ON a.model_id = b.model_id
+        WHERE a.model_id = #{modelId,jdbcType=INTEGER}
+        and a.auth_name = #{authName,jdbcType=VARCHAR}
+    </select>
+
+</mapper>

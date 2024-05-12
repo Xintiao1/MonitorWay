@@ -1,0 +1,317 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration debug="true" scan="true">
+
+    <springProperty scope="context" source="logback.mwSyslog.host" name="mwSyslogHost" defaultValue="localhost"/>
+    <springProperty scope="context" source="logback.mwSyslog.port" name="mwSyslogPort" defaultValue="514"/>
+    <springProperty scope="context" source="logback.mwSyslog.facility" name="mwSyslogFacility" defaultValue="local2"/>
+    <springProperty scope="context" source="logback.path" name="logback.path" defaultValue="/opt/app/monitor-system/logs"/>
+    <springProperty scope="context" source="logback.zip.path" name="logback.zip.path" defaultValue="/opt/app/monitor-system/logs"/>
+    <springProperty scope="context" source="logback.maxFileSize" name="logback.maxFileSize" defaultValue="500MB"/>
+    <springProperty scope="context" source="logback.maxHistory" name="logback.maxHistory" defaultValue="10"/>
+    <springProperty scope="context" source="logback.totalSizeCap" name="logback.totalSizeCap" defaultValue="2GB"/>
+    <springProperty scope="context" source="logback.level" name="logback.level"/>
+    <springProperty scope="context" source="logback.topo.level" name="logback.topo.level"/>
+    <springProperty scope="context" source="logback.timer.level" name="logback.timer.level"/>
+    <springProperty scope="context" source="logback.file.level" name="logback.file.level"/>
+    <springProperty scope="context" source="logback.console" name="logback.console"/>
+    <springProperty scope="context" source="spring.datasource.driverClassName" name="spring.datasource.driverClassName" defaultValue="com.mysql.jdbc.Driver"/>
+    <springProperty scope="context" source="spring.datasource.url3" name="spring.datasource.url3" defaultValue=""/>
+    <springProperty scope="context" source="spring.datasource.username3" name="spring.datasource.username3"/>
+    <springProperty scope="context" source="spring.datasource.passwd3" name="spring.datasource.passwd3"/>
+
+    <!--0. 日志格式和颜色渲染 -->
+    <!-- 彩色日志依赖的渲染类 -->
+    <conversionRule conversionWord="clr" converterClass="org.springframework.boot.logging.logback.ColorConverter"/>
+    <conversionRule conversionWord="wex"
+                    converterClass="org.springframework.boot.logging.logback.WhitespaceThrowableProxyConverter"/>
+    <conversionRule conversionWord="wEx"
+                    converterClass="org.springframework.boot.logging.logback.ExtendedWhitespaceThrowableProxyConverter"/>
+    <!-- 彩色日志格式 -->
+    <property name="CONSOLE_LOG_PATTERN"
+              value="${CONSOLE_LOG_PATTERN:-%clr(%d{yyyy-MM-dd HH:mm:ss.SSS}){faint} %clr(${LOG_LEVEL_PATTERN:-%5p}) %clr(${PID:- }){magenta} %clr(---){faint} %clr([%15.15t]){faint} %clr(%-40.40logger{39}){cyan} %clr(:){faint} %m%n${LOG_EXCEPTION_CONVERSION_WORD:-%wEx}}"/>
+
+    <!--1. 输出到控制台-->
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <!--此日志appender是为开发使用，只配置最底级别，控制台输出的日志级别是大于或等于此级别的日志信息-->
+        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+            <level>${logback.console}</level>
+        </filter>
+        <encoder>
+            <Pattern>${CONSOLE_LOG_PATTERN}</Pattern>
+            <!-- 设置字符集 -->
+            <charset>UTF-8</charset>
+        </encoder>
+    </appender>
+
+    <!-- 自定义日志 -->
+    <appender name="FILE_INFO" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <File>${logback.path}/monitor.log</File>
+        <append>true</append>
+        <filter class="ch.qos.logback.classic.filter.LevelFilter">
+            <level>INFO</level>
+            <onMatch>ACCEPT</onMatch>
+            <onMismatch>DENY</onMismatch>
+        </filter>
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <fileNamePattern>${logback.zip.path}/%d{yyyy-MM-dd}/monitor-all-%i.log</fileNamePattern>
+            <!-- 单个日志大小 -->
+            <maxFileSize>${logback.maxFileSize}</maxFileSize>
+            <!-- 日志保存周期 -->
+            <maxHistory>${logback.maxHistory}</maxHistory>
+            <!-- 总大小 -->
+            <totalSizeCap>${logback.totalSizeCap}</totalSizeCap>
+        </rollingPolicy>
+        <encoder charset="UTF-8">
+            <pattern>%d{yyyy-MM-dd HH:mm:ss} [%p] [%t] %c{36} - %m%n</pattern>
+            <charset>UTF-8</charset>
+        </encoder>
+    </appender>
+
+    <appender name="indexAppender" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <File>${logback.path}/index.log</File>
+        <append>true</append>
+        <filter class="ch.qos.logback.classic.filter.LevelFilter">
+            <level>INFO</level>
+            <onMatch>ACCEPT</onMatch>
+            <onMismatch>DENY</onMismatch>
+        </filter>
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <fileNamePattern>${logback.zip.path}/%d{yyyy-MM-dd}/monitor-index-%i.log</fileNamePattern>
+            <!-- 单个日志大小 -->
+            <maxFileSize>${logback.maxFileSize}</maxFileSize>
+            <!-- 日志保存周期 -->
+            <maxHistory>${logback.maxHistory}</maxHistory>
+            <!-- 总大小 -->
+            <totalSizeCap>${logback.totalSizeCap}</totalSizeCap>
+        </rollingPolicy>
+        <encoder charset="UTF-8">
+            <pattern>[%d{yyyy-MM-dd HH:mm:ss.SSS}] %level [%thread] %file:%line - %msg%n</pattern>
+            <charset>UTF-8</charset>
+        </encoder>
+    </appender>
+
+    <appender name="alertAppender" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <File>${logback.path}/alert.log</File>
+        <append>true</append>
+        <filter class="ch.qos.logback.classic.filter.LevelFilter">
+            <level>INFO</level>
+            <onMatch>ACCEPT</onMatch>
+            <onMismatch>DENY</onMismatch>
+        </filter>
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <fileNamePattern>${logback.zip.path}/%d{yyyy-MM-dd}/monitor-alert-%i.log</fileNamePattern>
+            <!-- 单个日志大小 -->
+            <maxFileSize>${logback.maxFileSize}</maxFileSize>
+            <!-- 日志保存周期 -->
+            <maxHistory>${logback.maxHistory}</maxHistory>
+            <!-- 总大小 -->
+            <totalSizeCap>${logback.totalSizeCap}</totalSizeCap>
+        </rollingPolicy>
+        <encoder charset="UTF-8">
+            <pattern>[%d{yyyy-MM-dd HH:mm:ss.SSS}] %level [%thread] %file:%line - %msg%n</pattern>
+            <charset>UTF-8</charset>
+        </encoder>
+    </appender>
+
+    <appender name="alarmAppender" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <File>${logback.path}/alarm.log</File>
+        <append>true</append>
+        <filter class="ch.qos.logback.classic.filter.LevelFilter">
+            <level>INFO</level>
+            <onMatch>ACCEPT</onMatch>
+            <onMismatch>DENY</onMismatch>
+        </filter>
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <fileNamePattern>${logback.zip.path}/%d{yyyy-MM-dd}/monitor-alarm-%i.log</fileNamePattern>
+            <!-- 单个日志大小 -->
+            <maxFileSize>${logback.maxFileSize}</maxFileSize>
+            <!-- 日志保存周期 -->
+            <maxHistory>${logback.maxHistory}</maxHistory>
+            <!-- 总大小 -->
+            <totalSizeCap>${logback.totalSizeCap}</totalSizeCap>
+        </rollingPolicy>
+        <encoder charset="UTF-8">
+            <pattern>[%d{yyyy-MM-dd HH:mm:ss.SSS}] %level [%thread] %file:%line - %msg%n</pattern>
+            <charset>UTF-8</charset>
+        </encoder>
+    </appender>
+
+    <appender name="topoAppender" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <File>${logback.path}/topo.log</File>
+        <append>true</append>
+        <filter class="ch.qos.logback.classic.filter.LevelFilter">
+            <level>INFO</level>
+            <onMatch>ACCEPT</onMatch>
+            <onMismatch>DENY</onMismatch>
+        </filter>
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <fileNamePattern>${logback.zip.path}/%d{yyyy-MM-dd}/monitor-topo-%i.log</fileNamePattern>
+            <!-- 单个日志大小 -->
+            <maxFileSize>${logback.maxFileSize}</maxFileSize>
+            <!-- 日志保存周期 -->
+            <maxHistory>${logback.maxHistory}</maxHistory>
+            <!-- 总大小 -->
+            <totalSizeCap>${logback.totalSizeCap}</totalSizeCap>
+        </rollingPolicy>
+        <encoder charset="UTF-8">
+            <pattern>[%d{yyyy-MM-dd HH:mm:ss.SSS}] %level [%thread] %file:%line - %msg%n</pattern>
+            <charset>UTF-8</charset>
+        </encoder>
+    </appender>
+
+    <appender name="licenseAppender" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <File>${logback.path}/license.log</File>
+        <append>true</append>
+        <filter class="ch.qos.logback.classic.filter.LevelFilter">
+            <level>INFO</level>
+            <onMatch>ACCEPT</onMatch>
+            <onMismatch>DENY</onMismatch>
+        </filter>
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <fileNamePattern>${logback.zip.path}/%d{yyyy-MM-dd}/monitor-license-%i.log</fileNamePattern>
+            <!-- 单个日志大小 -->
+            <maxFileSize>${logback.maxFileSize}</maxFileSize>
+            <!-- 日志保存周期 -->
+            <maxHistory>${logback.maxHistory}</maxHistory>
+            <!-- 总大小 -->
+            <totalSizeCap>${logback.totalSizeCap}</totalSizeCap>
+        </rollingPolicy>
+        <encoder charset="UTF-8">
+            <pattern>[%d{yyyy-MM-dd HH:mm:ss.SSS}] %level [%thread] %file:%line - %msg%n</pattern>
+            <charset>UTF-8</charset>
+        </encoder>
+    </appender>
+
+    <appender name="SYSLOG" class="ch.qos.logback.classic.net.SyslogAppender">
+        <syslogHost>${mwSyslogHost}</syslogHost>
+        <port>${mwSyslogPort}</port>
+        <facility>${mwSyslogFacility}</facility>
+        <charset>UTF-8</charset>
+        <suffixPattern>%d{yyyy-MM-dd HH:mm:ss} [%p] [%t] %c{36} - %m%n</suffixPattern>
+    </appender>
+
+    <appender name="DB" class="cn.mw.config.syslog.MySDBAppender">
+        <connectionSource class="ch.qos.logback.core.db.DriverManagerConnectionSource">
+            <driverClass>${spring.datasource.driverClassName}</driverClass>
+            <url>${spring.datasource.url3}</url>
+            <user>${spring.datasource.username3}</user>
+            <password>${spring.datasource.passwd3}</password>
+        </connectionSource>
+    </appender>
+
+    <appender name="timerAppender" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <File>${logback.path}/timer.log</File>
+        <append>true</append>
+        <filter class="ch.qos.logback.classic.filter.LevelFilter">
+            <level>INFO</level>
+            <onMatch>ACCEPT</onMatch>
+            <onMismatch>DENY</onMismatch>
+        </filter>
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <fileNamePattern>${logback.zip.path}/%d{yyyy-MM-dd}/timer-%i.log</fileNamePattern>
+            <!-- 单个日志大小 -->
+            <maxFileSize>${logback.maxFileSize}</maxFileSize>
+            <!-- 日志保存周期 -->
+            <maxHistory>${logback.maxHistory}</maxHistory>
+            <!-- 总大小 -->
+            <totalSizeCap>${logback.totalSizeCap}</totalSizeCap>
+        </rollingPolicy>
+        <encoder charset="UTF-8">
+            <pattern>[%d{yyyy-MM-dd HH:mm:ss.SSS}] %level [%thread] %file:%line - %msg%n</pattern>
+            <charset>UTF-8</charset>
+        </encoder>
+    </appender>
+
+    <!--配置异步日志-->
+    <appender name="SYSLOG_ASYNC" class="ch.qos.logback.classic.AsyncAppender">
+        <discardingThreshold>0</discardingThreshold>
+        <appender-ref ref="SYSLOG"/>
+    </appender>
+
+    <appender name="CONSOLE_ASYNC" class="ch.qos.logback.classic.AsyncAppender">
+        <discardingThreshold>0</discardingThreshold>
+        <appender-ref ref="CONSOLE"/>
+    </appender>
+
+    <appender name="DB_ASYNC" class="ch.qos.logback.classic.AsyncAppender">
+        <discardingThreshold>0</discardingThreshold>
+        <appender-ref ref="DB"/>
+    </appender>
+
+    <appender name="FILE_INFO_ASYNC" class="ch.qos.logback.classic.AsyncAppender">
+        <discardingThreshold>0</discardingThreshold>
+        <appender-ref ref="FILE_INFO"/>
+    </appender>
+
+    <appender name="indexAppender_ASYNC" class="ch.qos.logback.classic.AsyncAppender">
+        <discardingThreshold>0</discardingThreshold>
+        <appender-ref ref="indexAppender"/>
+    </appender>
+
+    <appender name="alertAppender_ASYNC" class="ch.qos.logback.classic.AsyncAppender">
+        <discardingThreshold>0</discardingThreshold>
+        <appender-ref ref="alertAppender"/>
+    </appender>
+
+    <appender name="alarmAppender_ASYNC" class="ch.qos.logback.classic.AsyncAppender">
+        <discardingThreshold>0</discardingThreshold>
+        <appender-ref ref="alarmAppender"/>
+    </appender>
+
+    <appender name="topoAppender_ASYNC" class="ch.qos.logback.classic.AsyncAppender">
+        <discardingThreshold>0</discardingThreshold>
+        <appender-ref ref="topoAppender"/>
+    </appender>
+
+    <appender name="licenseAppender_ASYNC" class="ch.qos.logback.classic.AsyncAppender">
+        <discardingThreshold>0</discardingThreshold>
+        <appender-ref ref="licenseAppender"/>
+    </appender>
+
+    <appender name="timerAppender_ASYNC" class="ch.qos.logback.classic.AsyncAppender">
+        <discardingThreshold>0</discardingThreshold>
+        <appender-ref ref="timerAppender"/>
+    </appender>
+
+    <logger name="consoleLogger" level="${logback.level}" additivity="true">
+        <appender-ref ref="CONSOLE_ASYNC"/>
+    </logger>
+    <!-- 不同的业务逻辑日志打印到指定文件夹-->
+
+    <logger name="MWIndexController" level="${logback.level}" additivity="true">
+        <appender-ref ref="indexAppender_ASYNC"/>
+    </logger>
+    <logger name="MWAlertController" level="${logback.level}" additivity="true">
+        <appender-ref ref="alertAppender_ASYNC"/>
+    </logger>
+    <!--告警信息，企业微信，邮件，短信-->
+    <logger name="MWWxController" level="${logback.level}" additivity="true">
+        <appender-ref ref="alarmAppender_ASYNC"/>
+    </logger>
+    <!--拓扑生成-->
+    <logger name="MWTopoLogger" level="${logback.level}" additivity="true">
+        <appender-ref ref="topoAppender_ASYNC"/>
+    </logger>
+
+    <logger name="MWLicenseController" level="${logback.level}" additivity="true">
+        <appender-ref ref="licenseAppender_ASYNC"/>
+    </logger>
+    <logger name="MWDBLogger" level="INFO" additivity="true">
+        <appender-ref ref="DB_ASYNC"/>
+    </logger>
+
+    <logger name="timerController" level="${logback.level}" additivity="true">
+        <appender-ref ref="timerAppender_ASYNC"/>
+    </logger>
+
+    <logger name="logfile" level="${logback.level}" additivity="true">
+        <appender-ref ref="FILE_INFO_ASYNC"/>
+    </logger>
+
+    <root level="${logback.level}">
+        <appender-ref ref="CONSOLE_ASYNC"/>
+        <appender-ref ref="FILE_INFO_ASYNC"/>
+        <appender-ref ref="SYSLOG_ASYNC"/>
+    </root>
+    <statusListener class="ch.qos.logback.core.status.OnConsoleStatusListener" />
+</configuration>

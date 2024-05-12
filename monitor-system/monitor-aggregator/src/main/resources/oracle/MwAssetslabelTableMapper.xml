@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.mw.monitor.labelManage.dao.MwAssetslabelTableDao">
+  <resultMap id="BaseResultMap" type="cn.mw.monitor.labelManage.model.MwAssetslabelTable">
+    <id column="id" property="id" />
+    <result column="label_id"  property="labelId" />
+    <result column="assets_id"  property="assetsId" />
+    <result column="tagboard"  property="tagboard" />
+    <result column="date_tagboard"  property="dateTagboard" />
+  </resultMap>
+  <sql id="Base_Column_List">
+    "id", "label_id", "assets_id", "tagboard", "date_tagboard"
+  </sql>
+  <select id="selectByPrimaryKey" parameterType="java.lang.Integer" resultMap="BaseResultMap">
+    select
+    <include refid="Base_Column_List" />
+    from ${TBSNAME}."mw_assetslabel_table"
+    where "id" = #{id}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Integer">
+    delete from ${TBSNAME}."mw_assetslabel_table"
+    where "id" = #{id}
+  </delete>
+  <insert id="insert" parameterType="cn.mw.monitor.labelManage.model.MwAssetslabelTable">
+    insert into ${TBSNAME}."mw_assetslabel_table" ("id", "label_id", "assets_id"
+    <if test="tagboard != null and tagboard != ''">
+      ,"tagboard"
+    </if>
+    <if test="dateTagboard != null">
+      ,"date_tagboard"
+    </if>)
+    values ( ${TBSNAME}.SEQ_MW_ASSETSLABEL_TABLE.NEXTVAL,#{labelId}, #{assetsId}
+    <if test="tagboard != null and tagboard != ''">
+      , #{tagboard}
+    </if>
+    <if test="dateTagboard != null">
+     , #{dateTagboard}
+     </if>)
+  </insert>
+
+  <insert id="insertSelective" parameterType="cn.mw.monitor.labelManage.model.MwAssetslabelTable">
+    insert into ${TBSNAME}."mw_assetslabel_table"
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+      "id",
+      <if test="labelId != null">
+        "label_id",
+      </if>
+      <if test="assetsId != null">
+        "assets_id",
+      </if>
+      <if test="tagboard != null">
+        "tagboard",
+      </if>
+      <if test="dateTagboard != null">
+        "date_tagboard",
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+      ${TBSNAME}.SEQ_MW_ASSETSLABEL_TABLE.NEXTVAL,
+      <if test="labelId != null">
+        #{labelId},
+      </if>
+      <if test="assetsId != null">
+        #{assetsId},
+      </if>
+      <if test="tagboard != null">
+        #{tagboard},
+      </if>
+      <if test="dateTagboard != null">
+        #{dateTagboard},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="cn.mw.monitor.labelManage.model.MwAssetslabelTable">
+    update ${TBSNAME}."mw_assetslabel_table"
+    <set>
+      <if test="labelId != null">
+        "label_id" = #{labelId},
+      </if>
+      <if test="assetsId != null">
+        "assets_id" = #{assetsId},
+      </if>
+      <if test="tagboard != null">
+        "tagboard" = #{tagboard},
+      </if>
+      <if test="dateTagboard != null">
+        "date_tagboard" = #{dateTagboard},
+      </if>
+    </set>
+    where id = #{id}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="cn.mw.monitor.labelManage.model.MwAssetslabelTable">
+    update ${TBSNAME}."mw_assetslabel_table"
+    set "label_id" = #{labelId},
+      "assets_id" = #{assetsId},
+      "tagboard" = #{tagboard},
+      "date_tagboard" = #{dateTagboard}
+    where "id" = #{id}
+  </update>
+
+    <!-- 根据标签Id查询关联资产数量 -->
+    <select id="countByLabelId" resultType="java.lang.Integer">
+        SELECT
+            COUNT(1)
+        FROM ${TBSNAME}."mw_assetslabel_table"
+        WHERE "label_id" = #{labelId}
+    </select>
+
+</mapper>

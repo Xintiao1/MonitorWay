@@ -1,0 +1,1149 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.mw.monitor.alert.dao.MwAlertActionDao">
+    <resultMap id="actionMap" type="cn.mw.monitor.alert.param.AlertActionTable">
+        <id column="actionId" property="actionId"></id>
+        <result column="actionName" property="actionName"></result>
+        <result column="isAllAssets" property="isAllAssets"></result>
+        <result column="isAllUser" property="isAllUser"></result>
+        <result column="creator" property="creator"></result>
+        <result column="modifier" property="modifier"></result>
+        <result column="createDate" property="createDate"></result>
+        <result column="modificationDate" property="modificationDate"></result>
+        <result column="state" property="enable"></result>
+        <result column="success_num" property="successNum"></result>
+        <result column="fail_num" property="failNum"></result>
+    </resultMap>
+
+    <sql id="criteria">
+        <if test="actionName != null and actionName != ''">
+            and action_name like CONCAT('%',#{actionName,jdbcType=VARCHAR},'%')
+        </if>
+        <if test="isAllAssets != null ">
+            and is_all_assets =#{isAllAssets,jdbcType=BIT}
+        </if>
+        <if test="isAllUser != null ">
+            and is_all_user=#{isAllUser,jdbcType=BIT}
+        </if>
+        <if test="creator != null and creator != ''">
+            and creator = #{creator,jdbcType=VARCHAR}
+        </if>
+        <if test="createDateStart != null">
+            and <![CDATA[#{createDateStart,jdbcType=TIMESTAMP}<= create_date ]]>
+        </if>
+        <if test="createDateEnd != null">
+            and <![CDATA[#{createDateEnd,jdbcType=TIMESTAMP}>= create_date ]]>
+        </if>
+        <if test="modifier != null and modifier != ''">
+            and modifier = #{modifier,jdbcType=VARCHAR}
+        </if>
+        <if test="modificationDateStart != null">
+            and  <![CDATA[#{modificationDateStart,jdbcType=TIMESTAMP}<= modification_date ]]>
+        </if>
+        <if test="modificationDateEnd != null">
+            and  <![CDATA[#{modificationDateEnd,jdbcType=TIMESTAMP}>= modification_date ]]>
+        </if>
+        <if test="effectTimeSelect != null and effectTimeSelect != ''">
+            and  effect_time_select like CONCAT('%',#{effectTimeSelect,jdbcType=VARCHAR},'%')
+        </if>
+    </sql>
+
+    <select id="selectUser" parameterType="java.lang.String" resultType="cn.mw.monitor.service.action.param.UserDTO">
+    select
+    t1.user_id userId,
+    t1.login_name loginName,
+    t1.user_name userName
+    from
+    mw_sys_user t1
+    left join  mw_user_mapper t2 on t1.user_id = t2.user_id
+    where t2.type='ACTION' and t2.type_id = #{actionId,jdbcType=VARCHAR}
+  </select>
+
+    <select id="selectOrg" parameterType="java.lang.String" resultType="cn.mw.monitor.service.action.param.OrgDTO">
+    select
+    t1.org_id orgId,
+    t1.org_name orgName,
+    t1.nodes
+    from mw_sys_org t1
+    left join mw_org_mapper t2  on t1.org_id = t2.org_id
+    where t2.type='ACTION' and t2.type_id = #{actionId,jdbcType=VARCHAR}
+  </select>
+
+    <select id="selectGroup" parameterType="java.lang.String" resultType="cn.mw.monitor.service.action.param.GroupDTO">
+    select
+    t1.group_id  groupId,
+    t1.group_name groupName
+    from mw_group_table  t1
+    left join mw_group_mapper t2 on t1.group_id = t2.group_id
+    where t2.type='ACTION' and t2.type_id = #{actionId,jdbcType=VARCHAR}
+  </select>
+
+    <sql id="Base_column">
+        action_id ,
+        action_name,
+        is_all_assets ,
+        is_all_user ,
+        <if test="assetsName != null and assetsName != ''">assets_name,</if>
+        <if test="inBandIp != null and inBandIp != ''">in_band_ip,</if>
+        <if test="assetsTypeId != null and assetsTypeId != ''">assets_type_id,</if>
+        <if test="assetsTypeSubId != null and assetsTypeSubId != ''">assets_type_sub_id,</if>
+        <if test="monitorMode != null and monitorMode != ''">monitor_mode,</if>
+        <if test="pollingEngine != null and pollingEngine != ''">polling_engine,</if>
+        <if test="manufacturer != null and manufacturer != ''">manufacturer,</if>
+        <if test="specifications != null and specifications != ''">specifications,</if>
+        creator ,
+        create_date ,
+        modifier ,
+        modification_date,
+        state
+    </sql>
+    <insert id="insertAction" parameterType="cn.mw.monitor.service.action.param.AddAndUpdateAlertActionParam">
+        insert into mw_alert_action
+        (<include refid="Base_column"></include>)
+        values(
+        #{actionId, jdbcType=VARCHAR},
+        #{actionName, jdbcType=VARCHAR},
+        #{isAllAssets, jdbcType=BIT},
+        #{isAllUser, jdbcType=BIT},
+        <if test="assetsName != null and assetsName != ''">#{assetsName,jdbcType=VARCHAR},</if>
+        <if test="inBandIp != null and inBandIp != ''">#{inBandIp,jdbcType=VARCHAR},</if>
+        <if test="assetsTypeId != null and assetsTypeId != ''">#{assetsTypeId,jdbcType=INTEGER},</if>
+        <if test="assetsTypeSubId != null and assetsTypeSubId != ''">#{assetsTypeSubId,jdbcType=INTEGER},</if>
+        <if test="monitorMode != null and monitorMode != ''">#{monitorMode,jdbcType=INTEGER},</if>
+        <if test="pollingEngine != null and pollingEngine != ''">#{pollingEngine,jdbcType=VARCHAR},</if>
+        <if test="manufacturer != null and manufacturer != ''">#{manufacturer,jdbcType=VARCHAR},</if>
+        <if test="specifications != null and specifications != ''">#{specifications,jdbcType=VARCHAR},</if>
+
+        #{creator,jdbcType=VARCHAR},
+        now(),
+        #{modifier,jdbcType=VARCHAR},
+        now(),
+        #{enable}
+        )
+    </insert>
+
+
+    <update id="updateAction">
+        update mw_alert_action set
+        action_name=#{actionName, jdbcType=VARCHAR},
+        is_all_assets=#{isAllAssets, jdbcType=BIT},
+        is_all_user=#{isAllUser, jdbcType=BIT},
+        <if test="assetsName != null and assetsName != ''">assets_name=#{assetsName,jdbcType=VARCHAR},</if>
+        <if test="inBandIp != null and inBandIp != ''">in_band_ip=#{inBandIp,jdbcType=VARCHAR},</if>
+        <if test="assetsTypeId != null and assetsTypeId != ''">
+            assets_type_id=#{assetsTypeId,jdbcType=INTEGER},
+        </if>
+        <if test="assetsTypeSubId != null and assetsTypeSubId != ''">
+            assets_type_sub_id=#{assetsTypeSubId,jdbcType=INTEGER},
+        </if>
+        <if test="monitorMode != null and monitorMode != ''">monitor_mode=#{monitorMode,jdbcType=INTEGER},</if>
+        <if test="pollingEngine != null and  pollingEngine != ''">polling_engine=#{pollingEngine,jdbcType=VARCHAR},</if>
+        <if test="manufacturer != null and manufacturer != ''">manufacturer=#{manufacturer,jdbcType=VARCHAR},</if>
+        <if test="specifications != null and specifications != ''">specifications=#{specifications,jdbcType=VARCHAR},
+        </if>
+        <!--        <if test="labelId !=null and labelId != ''">label_id=#{labelId,jdbcType=INTEGER},</if>-->
+        <!--        <if test="labelName !=null and labelName != ''">label_name=#{labelName,jdbcType=VARCHAR},</if>-->
+        <!--        <if test="inputFormat !=null and inputFormat != ''">input_format=#{inputFormat,jdbcType=INTEGER},</if>-->
+        <!--        <if test="labelValue !=null and labelValue != ''">label_value=#{labelValue,jdbcType=VARCHAR},</if>-->
+        <!--        <if test="dropCode !=null and dropCode != ''">drop_code=#{dropCode,jdbcType=VARCHAR},</if>-->
+        <!--        <if test="dropKey !=null and dropKey != ''">drop_key=#{dropKey,jdbcType=VARCHAR},</if>-->
+        <!--        <if test="labelDateStart !=null and labelDateStart != ''">label_date_start=#{labelDateStart,jdbcType=DATE},</if>-->
+        <!--        <if test="labelDateEnd !=null and labelDateEnd != ''">label_date_end=#{labelDateEnd,jdbcType=INTEGER},</if>-->
+        modifier = #{modifier,jdbcType=VARCHAR},
+        modification_date=now(),
+        state= #{enable}
+        where action_id=#{actionId,jdbcType=VARCHAR}
+    </update>
+
+    <update id="updateActionEnable" parameterType="cn.mw.monitor.alert.param.AlertAndRuleEnableParam">
+        update mw_alert_action set
+        state = #{enable}
+        where action_id=#{actionId,jdbcType=VARCHAR}
+    </update>
+
+    <update id="deleteAction">
+        update mw_alert_action set delete_flag=true where action_id in
+        <foreach collection="list" item="item" index="index" open="(" close=")" separator=",">
+            #{item}
+        </foreach>
+    </update>
+    <delete id="deleteActionAssetsMapper">
+        delete from mw_alert_action_assets_mapper where action_id=#{actionId,jdbcType=VARCHAR}
+    </delete>
+    <delete id="deleteActionRulesMapper">
+        delete from mw_alert_action_rule_mapper where action_id=#{actionId,jdbcType=VARCHAR}
+    </delete>
+
+    <delete id="deleteActionGroupsMapper">
+        delete from mw_alert_action_group_mapper where action_id=#{actionId,jdbcType=VARCHAR}
+    </delete>
+
+    <delete id="deleteActionUsersMapper">
+        delete from mw_alert_action_user_mapper where action_id=#{actionId,jdbcType=VARCHAR}
+    </delete>
+
+    <delete id="deleteActionTypesMapper">
+        delete from mw_alert_action_type_mapper where action_id=#{actionId,jdbcType=VARCHAR}
+    </delete>
+
+    <delete id="deleteActionServerityMapper">
+        delete from mw_alert_serverity_mapper where action_id=#{actionId,jdbcType=VARCHAR}
+    </delete>
+
+    <delete id="deleteActionLabelMapper">
+        delete from mw_alert_action_label_mapper where action_id=#{actionId,jdbcType=VARCHAR}
+    </delete>
+
+
+    <insert id="insertSeverityMapper" parameterType="java.util.List">
+        insert into mw_alert_serverity_mapper(action_id,severity) values
+        <foreach collection="list" item="item" index="index" separator=",">
+            (#{item.actionId,jdbcType=VARCHAR},#{item.severity,jdbcType=VARCHAR})
+        </foreach>
+    </insert>
+
+
+    <insert id="insertAssetsMapper" parameterType="java.util.List">
+        insert into mw_alert_action_assets_mapper(action_id,assets_id) values
+        <foreach collection="list" item="item" index="index" separator=",">
+            ( #{item.actionId,jdbcType=VARCHAR},#{item.assetsId,jdbcType=VARCHAR})
+        </foreach>
+    </insert>
+
+    <insert id="insertUserTypeMapper" parameterType="java.util.List">
+        insert into mw_alert_action_user_type_mapper(action_id,user_type) values
+        <foreach collection="list" item="item" index="index" separator=",">
+            ( #{item.actionId,jdbcType=VARCHAR},#{item.userType,jdbcType=VARCHAR})
+        </foreach>
+    </insert>
+
+
+    <insert id="insertActionUsersMapper" parameterType="java.util.List">
+        insert into mw_alert_action_user_mapper(action_id,user_id) values
+        <foreach collection="list" item="item" index="index" separator=",">
+            (#{item.actionId,jdbcType=VARCHAR},#{item.userId,jdbcType=INTEGER})
+        </foreach>
+    </insert>
+
+    <insert id="insertActionGroupsMapper" parameterType="java.util.List">
+        insert into mw_alert_action_group_mapper(action_id,group_id) values
+        <foreach collection="list" item="item" index="index" separator=",">
+            (#{item.actionId,jdbcType=VARCHAR},#{item.groupId,jdbcType=INTEGER})
+        </foreach>
+    </insert>
+
+    <insert id="insertActionRuleMapper" parameterType="java.util.List">
+        insert into mw_alert_action_rule_mapper(action_id,rule_id) values
+        <foreach collection="list" item="item" index="index" separator=",">
+            (#{item.actionId,jdbcType=VARCHAR},#{item.ruleId,jdbcType=INTEGER})
+        </foreach>
+    </insert>
+    <insert id="insertActionTypeMapper" parameterType="java.util.List">
+        insert into mw_alert_action_type_mapper(action_id,action_type_id) values
+        <foreach collection="list" item="item" index="index" separator=",">
+            (#{item.actionId,jdbcType=VARCHAR},#{item.actionTypeId,jdbcType=INTEGER})
+        </foreach>
+    </insert>
+
+    <insert id="insertActionLeveRule" parameterType="cn.mw.monitor.alert.dto.ActionLevelRule">
+        insert into mw_alert_action_level_rule(action_id,state,date,date_two,date_three,level) values
+            (#{actionId,jdbcType=VARCHAR},#{state,jdbcType=INTEGER},#{date,jdbcType=INTEGER},#{dateTwo,jdbcType=INTEGER},#{dateThree,jdbcType=INTEGER},#{level,jdbcType=INTEGER})
+    </insert>
+
+    <insert id="insertActionLeveUserMapper" parameterType="java.util.List">
+        insert into mw_alert_action_level_user_mapper(action_id,user_id,level) values
+        <foreach collection="list" item="item" index="index" separator=",">
+            (#{item.actionId,jdbcType=VARCHAR},#{item.userId,jdbcType=INTEGER},#{item.level,jdbcType=INTEGER})
+        </foreach>
+    </insert>
+
+    <insert id="insertActionLeveEmailMapper" parameterType="java.util.List">
+        insert into mw_alert_action_level_rule_email_mapper(action_id,level,is_alluser,email) values
+        <foreach collection="list" item="item" index="index" separator=",">
+            (#{item.actionId,jdbcType=VARCHAR},#{item.level,jdbcType=INTEGER},#{item.isAllUser},#{item.email})
+        </foreach>
+    </insert>
+
+    <insert id="insertActionLabelMapper" parameterType="cn.mw.monitor.service.action.param.Label">
+        insert into mw_alert_action_label_mapper(
+        <if test="labelId !=null and labelId != ''">label_id,</if>
+        <if test="labelName !=null and labelName != ''">label_name,</if>
+        <if test="inputFormat !=null and inputFormat != ''">input_format,</if>
+        <if test="labelValue !=null and labelValue != ''">label_value,</if>
+        <if test="dropdownValue !=null and dropdownValue != ''">drop_down_value,</if>
+        <if test="dropKey !=null and dropKey != ''">drop_key,</if>
+        <if test="labelDateStart !=null ">label_date_start,</if>
+        <if test="labelDateEnd !=null ">label_date_end,</if>
+        action_id
+        ) values
+        (
+        <if test="labelId !=null and labelId != ''">#{labelId,jdbcType=INTEGER},</if>
+        <if test="labelName !=null and labelName != ''">#{labelName,jdbcType=VARCHAR},</if>
+        <if test="inputFormat !=null and inputFormat != ''">#{inputFormat,jdbcType=INTEGER},</if>
+        <if test="labelValue !=null and labelValue != ''">#{labelValue,jdbcType=VARCHAR},</if>
+        <if test="dropdownValue !=null and dropdownValue != ''">#{dropdownValue,jdbcType=VARCHAR},</if>
+        <if test="dropKey !=null and dropKey != ''">#{dropKey,jdbcType=INTEGER},</if>
+        <if test="labelDateStart !=null ">#{labelDateStart,jdbcType=DATE},</if>
+        <if test="labelDateEnd !=null">#{labelDateEnd,jdbcType=DATE},</if>
+        #{actionId,jdbcType=INTEGER}
+        )
+    </insert>
+
+
+    <select id="getDefaultUserIds" resultType="java.lang.Integer">
+        select user_id from mw_user_mapper where type="ASSETS" and type_id=#{assetsId,jdbcType=VARCHAR}
+    </select>
+    <select id="getAssetsByActionId" resultType="java.lang.String">
+        select assets_id from mw_alert_action_assets_mapper where action_id=#{assetsId,jdbcType=VARCHAR}
+    </select>
+    <select id="getAssetsByActionIds" resultType="java.lang.String">
+        select assets_id from mw_alert_action_assets_mapper where action_id in
+        <foreach collection="list" item="item" index="index" separator="," open="(" close=")">
+            #{item}
+        </foreach>
+    </select>
+    <sql id="Base_Column_List">
+        action_id as actionId,
+        action_name as actionName,
+        is_all_assets as isAllAssets,
+        is_all_user as isAllUser,
+        creator,
+        modifier,
+        create_date as createDate ,
+        modification_date as modificationDate,
+        state,
+        success_num,
+        fail_num,
+        fail_num+success_num as 'count',
+        effect_time_select as effectTimeSelect
+    </sql>
+
+    <sql id="union_group">
+        <if test="groupIds!=null">
+            UNION
+            select
+            <include refid="Base_Column_List"></include>
+            from mw_alert_action t1
+            left join
+            (SELECT a.type_id,a.group_id FROM mw_group_mapper a LEFT JOIN mw_datapermission b ON a.type_id = b.type_id
+            WHERE b.type = 'ACTION' and b.is_group = 1
+            ) t2 ON t1.action_id = t2.type_id
+            where t1.delete_flag=false and group_id IN
+            <foreach collection="groupIds" item="item" index="index" open="(" separator="," close=")">
+                #{item.value,jdbcType=INTEGER}
+            </foreach>
+            <include refid="criteria"></include>
+        </if>
+    </sql>
+
+    <select id="selectPriActionList" resultMap="actionMap">
+        select <include refid="Base_Column_List"></include> from mw_alert_action t1
+        left join
+        (SELECT type_id,user_id FROM mw_user_mapper where type='ACTION') t2 ON t1.action_id = t2.type_id
+        where t1.delete_flag=false and
+        user_id =#{userId,jdbcType=INTEGER}
+        <include refid="criteria"></include>
+        <include refid="union_group"></include>
+    </select>
+    <select id="selectPubActionList" resultMap="actionMap">
+        <include refid="selectActionListCommon"/>
+        GROUP BY t1.action_id
+        <!--<choose>
+            <when test="isAdmin==false">
+                LEFT JOIN (SELECT type_id,org_id FROM mw_org_mapper where type='ACTION') t2 ON t1.action_id = t2.type_id
+                WHERE t1.delete_flag = FALSE
+                AND org_id IN
+                <foreach collection="orgIds" item="item" index="index" open="(" separator="," close=")">
+                    #{item.value,jdbcType=INTEGER}
+                </foreach>
+                <include refid="criteria"></include>
+                <include refid="union_group"></include>
+            </when>
+            <otherwise>
+                WHERE t1.delete_flag = FALSE
+                <include refid="criteria"></include>
+            </otherwise>
+        </choose>-->
+    </select>
+    <select id="selectPopupAction" resultType="cn.mw.monitor.service.action.param.AddAndUpdateAlertActionParam">
+        select
+        action_id as actionId,
+        action_name as actionName,
+        is_all_user as isAllUser,
+        assets_name as assetsName,
+        in_band_ip as inBandIp,
+        assets_type_id as assetsTypeId,
+        assets_type_sub_id as assetsTypeSubId,
+        monitor_mode as monitorMode,
+        polling_engine as pollingEngine,
+        manufacturer,
+        specifications,
+        state as enable,
+        area
+        from mw_alert_action
+        where action_id =#{actionId,jdbcType=VARCHAR} and state = true
+    </select>
+
+    <select id="selectActionList" resultType="cn.mw.monitor.alert.param.AlertActionTable">
+        <include refid="selectActionListCommon"/>
+        <if test="isSystem == false">
+            and FIND_IN_SET(t1.action_id,#{listSet})
+        </if>
+        GROUP BY t1.action_id
+    </select>
+
+    <sql id="selectActionListCommon">
+        select
+        t1.action_id as actionId,
+        t1.action_name as actionName,
+        t1.is_all_assets as isAllAssets,
+        t1.is_all_user as isAllUser,
+        t1.creator,
+        t1.modifier,
+        t1.create_date as createDate ,
+        t1.modification_date as modificationDate,
+        t1.state as enable,
+        t1.success_num,
+        t1.fail_num,
+        t1.fail_num+success_num as 'count',
+        t1.effect_time_select as effectTimeSelect,
+        group_concat(t3.rule_name) as ruleName
+        from mw_alert_action t1,mw_alert_action_rule_mapper t2,mw_alert_rule t3
+        WHERE t1.delete_flag = FALSE and t1.action_id = t2.action_id and t3.rule_id = t2.rule_id
+        <if test="actionName != null and actionName != ''">
+            and t1.action_name like CONCAT('%',#{actionName,jdbcType=VARCHAR},'%')
+        </if>
+        <if test="isAllAssets != null ">
+            and t1.is_all_assets =#{isAllAssets,jdbcType=BIT}
+        </if>
+        <if test="isAllUser != null ">
+            and t1.is_all_user=#{isAllUser,jdbcType=BIT}
+        </if>
+        <if test="creator != null and creator != ''">
+            and t1.creator = #{creator,jdbcType=VARCHAR}
+        </if>
+        <if test="createDateStart != null">
+            and <![CDATA[#{createDateStart,jdbcType=TIMESTAMP}<= t1.create_date ]]>
+        </if>
+        <if test="createDateEnd != null">
+            and <![CDATA[#{createDateEnd,jdbcType=TIMESTAMP}>= t1.create_date ]]>
+        </if>
+        <if test="modifier != null and modifier != ''">
+            and t1.modifier = #{modifier,jdbcType=VARCHAR}
+        </if>
+        <if test="modificationDateStart != null">
+            and  <![CDATA[#{modificationDateStart,jdbcType=TIMESTAMP}<= t1.modification_date ]]>
+        </if>
+        <if test="modificationDateEnd != null">
+            and  <![CDATA[#{modificationDateEnd,jdbcType=TIMESTAMP}>= t1.modification_date ]]>
+        </if>
+        <if test="effectTimeSelect != null and effectTimeSelect != ''">
+            and  t1.effect_time_select like CONCAT('%',#{effectTimeSelect,jdbcType=VARCHAR},'%')
+        </if>
+    </sql>
+
+    <select id="selectActionTypes" parameterType="java.lang.String" resultType="java.lang.Integer">
+        select action_type_id as actionTypeId from  mw_alert_action_type_mapper where action_id=#{actionId,jdbcType=VARCHAR}
+    </select>
+    <select id="selectRules" parameterType="java.lang.String" resultType="java.lang.String">
+        select rule_id as ruleId from  mw_alert_action_rule_mapper where action_id=#{actionId,jdbcType=VARCHAR}
+    </select>
+    <select id="selectSeverity" parameterType="java.lang.String" resultType="java.lang.String">
+        select severity from  mw_alert_serverity_mapper where action_id=#{actionId,jdbcType=VARCHAR}
+    </select>
+    <select id="selectLabel" parameterType="java.lang.String" resultType="cn.mw.monitor.service.action.param.Label">
+        select label_id as labelId,
+        label_name as labelName,
+        input_format as inputFormat,
+        label_value as labelValue,
+        drop_down_value as dropdownValue,
+        drop_key as dropKey,
+        label_date_start as labelDateStart,
+        label_date_end as labelDateEnd
+         from  mw_alert_action_label_mapper where action_id=#{actionId,jdbcType=VARCHAR}
+    </select>
+    <select id="selectActionUsers" parameterType="java.lang.String" resultType="java.lang.Integer">
+        select t.user_id as userId
+        from mw_sys_user  t
+        left join mw_alert_action_user_mapper t1
+        on t.user_id=t1.user_id where t1.action_id=#{actionId,jdbcType=VARCHAR}
+    </select>
+    <select id="selectActionUsersMapper" resultType="java.lang.Integer">
+        select user_id from mw_alert_action_user_mapper where action_id =#{actionId,jdbcType=VARCHAR}
+    </select>
+    <select id="selectActionGroupsMapper" resultType="java.lang.Integer">
+        select group_id as groupId from mw_alert_action_group_mapper where action_id =#{actionId,jdbcType=VARCHAR}
+    </select>
+    <delete id="deleteActionAssetsMappers">
+        delete from mw_alert_action_assets_mapper where action_id in
+        <foreach collection="list" item="item" index="index" separator="," open="(" close=")">
+            #{item}
+        </foreach>
+    </delete>
+    <delete id="deleteActionRulesMappers">
+        delete from mw_alert_action_rule_mapper where action_id in
+        <foreach collection="list" item="item" index="index" separator="," open="(" close=")">
+            #{item}
+        </foreach>
+    </delete>
+    <delete id="deleteActionUsersMappers">
+        delete from mw_alert_action_user_mapper where action_id in
+        <foreach collection="list" item="item" index="index" separator="," open="(" close=")">
+            #{item}
+        </foreach>
+    </delete>
+    <delete id="deleteActionTypesMappers">
+        delete from mw_alert_action_type_mapper where action_id in
+        <foreach collection="list" item="item" index="index" separator="," open="(" close=")">
+            #{item}
+        </foreach>
+    </delete>
+
+    <delete id="deleteActionServerityMappers">
+        delete from mw_alert_serverity_mapper where action_id in
+        <foreach collection="list" item="item" index="index" separator="," open="(" close=")">
+            #{item}
+        </foreach>
+    </delete>
+    <delete id="deleteActionLabelMappers">
+        delete from mw_alert_action_label_mapper where action_id in
+        <foreach collection="list" item="item" index="index" separator="," open="(" close=")">
+            #{item}
+        </foreach>
+    </delete>
+
+    <delete id="deleteActionLevelRules">
+        delete from mw_alert_action_level_rule where action_id in
+        <foreach collection="list" item="item" index="index" separator="," open="(" close=")">
+            #{item}
+        </foreach>
+    </delete>
+
+    <delete id="deleteActionLevelRule">
+        delete from mw_alert_action_level_rule where action_id = #{actionId}
+    </delete>
+
+    <delete id="deleteActionLevelUserMappers">
+        delete from mw_alert_action_level_user_mapper where action_id in
+        <foreach collection="list" item="item" index="index" separator="," open="(" close=")">
+            #{item}
+        </foreach>
+    </delete>
+
+    <delete id="deleteActionLevelUserMapper">
+        delete from mw_alert_action_level_user_mapper where action_id = #{actionId}
+    </delete>
+
+    <delete id="deleteActionLevelEventMappers">
+        delete from mw_alert_action_level_event_mapper where action_id in
+        <foreach collection="list" item="item" index="index" separator="," open="(" close=")">
+            #{item}
+        </foreach>
+    </delete>
+
+    <delete id="deleteActionLevelEventMapper">
+        delete from mw_alert_action_level_event_mapper where action_id = #{actionId}
+    </delete>
+
+    <select id="selectActionLevelRule" resultType="cn.mw.monitor.alert.param.ActionLevelRuleParam">
+        select
+            t1.action_id as actionId,
+            t1.state as state,
+            t1.date as date,
+            t1.date_two as dateTwo,
+            t1.date_three as dateThree,
+            t1.level as selectLevel
+        from mw_alert_action_level_rule t1, mw_alert_action t2
+        where t1.state = 1 and t2.state = 1 and t2.action_id = t1.action_id
+    </select>
+
+    <select id="selectActionLevelUserId" parameterType="cn.mw.monitor.alert.param.ActionLevelRuleParam" resultType="java.lang.Integer">
+        select
+        user_id as userId
+        from mw_alert_action_level_user_mapper
+        where action_id = #{actionId} and level = #{level}
+    </select>
+
+    <insert id="addActionLevelEventMapper"  parameterType="cn.mw.monitor.alert.param.ActionLevelRuleParam">
+        insert into mw_alert_action_level_event_mapper(action_id,event_id,level) values (#{actionId},#{eventId},#{level})
+    </insert>
+    <select id="selectActionLevelEventMapper" parameterType="cn.mw.monitor.alert.param.ActionLevelRuleParam" resultType="java.lang.Integer">
+        select
+        level as level
+        from mw_alert_action_level_event_mapper
+        where action_id = #{actionId} and level = #{level} and event_id = #{eventId}
+    </select>
+
+
+    <select id="selectActionLevelId" parameterType="java.lang.Integer" resultType="java.lang.String">
+        select DISTINCT
+        action_id
+        from mw_alert_action_level_rule
+        where state = 1
+    </select>
+
+    <select id="selectActionLevelUserIdByActionId" resultType="cn.mw.monitor.alert.param.ActionLevelRuleParam">
+        select
+        action_id as actionId,
+        state as state,
+        date as date,
+        date_two as dateTwo,
+        date_three as dateThree,
+        level as level
+        from mw_alert_action_level_rule
+        where action_id = #{actionId}
+    </select>
+
+    <select id="selectWebmonitorId" parameterType="cn.mw.monitor.alert.param.WebMonitorParam" resultType="java.lang.Integer">
+        select
+        id
+        from mw_webmonitor_table
+        where web_name = #{webName} and host_id = #{hostid}
+    </select>
+
+    <select id="selectUserMapper" resultType="java.lang.Integer">
+        select
+            user_id
+        from
+            mw_user_mapper
+        where type_id = #{typeid}
+    </select>
+
+    <select id="selectGroupMapper" resultType="java.lang.Integer">
+        select
+            group_id
+        from mw_group_mapper
+        where type_id = #{typeid}
+    </select>
+
+    <select id="selectOrgMapper" resultType="java.lang.Integer">
+        select
+            org_id
+        from mw_org_mapper
+        where type_id = #{typeid}
+    </select>
+    <select id="selectNetworkLinkId" parameterType="cn.mw.monitor.alert.param.NetworkLinkParam" resultType="java.lang.String">
+       select link_id from mw_network_link
+        where
+        (root_ip_address = #{hostIp} and root_port = #{portName} and root_assets_id = #{assertId} and delete_flag = 0)
+        or (target_ip_address = #{hostIp} and target_port = #{portName} and target_assets_id = #{assertId} and delete_flag = 0)
+    </select>
+
+    <select id="getAssetsFielid" resultType="cn.mw.monitor.alert.param.AssetsFielidParam">
+        SELECT column_name as clumnName, column_comment as clumnComent
+        from information_schema.columns
+        where table_schema = 'monitor' and table_name = 'mw_tangibleassets_table'
+    </select>
+
+    <insert id="addAction" parameterType="cn.mw.monitor.alert.param.AddAndUpdateAlertActionDto">
+        insert into mw_alert_action(
+        <if test="effectTimeSelect != null">
+            effect_time_select,
+        </if>
+        <if test="startTime != null">
+            start_time,
+        </if>
+        <if test="endTime != null">
+            end_time,
+        </if>
+        <if test="alarmCompressionSelect != null">
+            alarm_compression_select,
+        </if>
+        <if test="customTime != null">
+            custom_time,
+        </if>
+        <if test="timeUnit != null">
+            time_unit,
+        </if>
+        <if test="customNum != null">
+            custom_num,
+        </if>
+        <if test="numUnit != null">
+            num_unit,
+        </if>
+        <if test="area != null">
+            area,
+        </if>
+        <if test="email != null">
+            email,
+        </if>
+        action_id ,
+        action_name,
+        is_all_user ,
+        creator ,
+        create_date ,
+        modifier ,
+        modification_date,
+        state)
+        values(
+        <if test="effectTimeSelect != null">
+            #{effectTimeSelect},
+        </if>
+        <if test="startTime != null">
+            #{startTime},
+        </if>
+        <if test="endTime != null">
+            #{endTime},
+        </if>
+        <if test="alarmCompressionSelect != null">
+            #{alarmCompressionSelect},
+        </if>
+        <if test="customTime != null">
+            #{customTime},
+        </if>
+        <if test="timeUnit != null">
+            #{timeUnit},
+        </if>
+        <if test="customNum != null">
+            #{customNum},
+        </if>
+        <if test="numUnit != null">
+            #{numUnit},
+        </if>
+        <if test="area != null">
+            #{area, jdbcType=VARCHAR},
+        </if>
+        <if test="email != null">
+            #{email, jdbcType=VARCHAR},
+        </if>
+        #{actionId, jdbcType=VARCHAR},
+        #{actionName, jdbcType=VARCHAR},
+        #{isAllUser, jdbcType=BIT},
+        #{creator,jdbcType=VARCHAR},
+        now(),
+        #{modifier,jdbcType=VARCHAR},
+        now(),
+        #{enable}
+        )
+    </insert>
+
+    <update id="upAction">
+        update mw_alert_action set
+        action_name=#{actionName, jdbcType=VARCHAR},
+        is_all_user=#{isAllUser, jdbcType=BIT},
+        modifier = #{modifier,jdbcType=VARCHAR},
+        modification_date=now(),
+        state= #{enable},
+        effect_time_select = #{effectTimeSelect},
+        start_time = #{startTime},
+        end_time = #{endTime},
+        alarm_compression_select =  #{alarmCompressionSelect},
+        custom_time = #{customTime},
+        time_unit = #{timeUnit},
+        custom_num = #{customNum},
+        num_unit = #{numUnit},
+        area = #{area, jdbcType=VARCHAR},
+        email=#{email}
+        where action_id=#{actionId,jdbcType=VARCHAR}
+    </update>
+
+    <select id="selectAction" resultType="cn.mw.monitor.alert.param.MwRuleSelectListParam">
+        select
+        action_id as actionId,
+        action_name as actionName,
+        is_all_user as isAllUser,
+        assets_name as assetsName,
+        in_band_ip as inBandIp,
+        assets_type_id as assetsTypeId,
+        assets_type_sub_id as assetsTypeSubId,
+        monitor_mode as monitorMode,
+        polling_engine as pollingEngine,
+        manufacturer,
+        specifications,
+        state as enable,
+        effect_time_select as effectTimeSelect,
+        start_time as startTime,
+        end_time as endTime,
+        alarm_compression_select as alarmCompressionSelect,
+        custom_time as customTime,
+        time_unit as timeUnit,
+        custom_num as customNum,
+        num_unit as numUnit,
+        success_num as successNum,
+        fail_num as failNum,
+        area as area,
+        email as email
+        from mw_alert_action
+        where action_id =#{actionId,jdbcType=VARCHAR} and delete_flag = FALSE
+    </select>
+
+    <insert id="insertActionAssetsclumn" parameterType="java.util.List">
+        insert into mw_alert_action_assetsclumn_mapper(action_id,clumn_name,clumn_coment) values
+        <foreach collection="list" item="item" index="index" separator=",">
+            (#{item.actionId,jdbcType=VARCHAR},#{item.clumnName,jdbcType=VARCHAR},#{item.clumnComent,jdbcType=VARCHAR})
+        </foreach>
+    </insert>
+
+    <delete id="deleteActionAssetsclumnMapper">
+        delete from mw_alert_action_assetsclumn_mapper where action_id = #{actionId}
+    </delete>
+
+    <select id="selectActionAssetsclumn" resultType="cn.mw.monitor.alert.param.AssetsFielidParam">
+        select
+        action_id as actionId,
+        clumn_name as clumnName,
+        clumn_coment as clumnComent
+        from mw_alert_action_assetsclumn_mapper
+        where action_id = #{actionId}
+    </select>
+
+    <select id="selectUserType" resultType="java.lang.String">
+        select
+        user_type as userType
+        from mw_alert_action_user_type_mapper
+        where action_id = #{actionId}
+    </select>
+
+    <insert id="insertActionLeveRuleMapper" parameterType="java.util.List">
+        insert into mw_alert_action_level_rule_mapper(action_id,level,rule_id,time_unit,is_send_person) values
+        <foreach collection="list" item="item" index="index" separator=",">
+            (#{item.actionId,jdbcType=VARCHAR},#{item.level,jdbcType=INTEGER},#{item.ruleId,jdbcType=VARCHAR},#{item.timeUnit,jdbcType=INTEGER},#{item.isSendPerson,jdbcType=INTEGER})
+        </foreach>
+    </insert>
+
+    <delete id="deleteActionLeveRuleMapper">
+        delete from mw_alert_action_level_rule_mapper where action_id = #{actionId}
+    </delete>
+
+    <delete id="deleteActionAssetsclumnMappers">
+        delete from mw_alert_action_assetsclumn_mapper where action_id in
+        <foreach collection="list" item="item" index="index" separator="," open="(" close=")">
+            #{item}
+        </foreach>
+    </delete>
+
+    <delete id="deleteActionLeveRuleMappers">
+        delete from mw_alert_action_level_rule_mapper where action_id in
+        <foreach collection="list" item="item" index="index" separator="," open="(" close=")">
+            #{item}
+        </foreach>
+    </delete>
+
+    <delete id="deleteActionLevelEmailMappers">
+        delete from mw_alert_action_level_rule_email_mapper where action_id in
+        <foreach collection="list" item="item" index="index" separator="," open="(" close=")">
+            #{item}
+        </foreach>
+    </delete>
+
+    <delete id="deleteActionUserTypeMappers">
+        delete from mw_alert_action_user_type_mapper where action_id in
+        <foreach collection="list" item="item" index="index" separator="," open="(" close=")">
+            #{item}
+        </foreach>
+    </delete>
+
+    <select id="selecActionLeveRuleMapper" parameterType="cn.mw.monitor.alert.param.ActionLevelRuleParam" resultType="java.lang.String">
+        select
+        rule_id as ruleId
+        from mw_alert_action_level_rule_mapper
+        where action_id = #{actionId} and level = #{level}
+    </select>
+
+    <select id="getLevelInfo" parameterType="cn.mw.monitor.alert.param.ActionLevelRuleParam" resultType="cn.mw.monitor.alert.param.ActionLevelParam">
+        select
+        rule_id as ruleId,
+        time_unit as timeUnit,
+        is_send_person as isSendPerson
+        from mw_alert_action_level_rule_mapper
+        where action_id = #{actionId} and level = #{level}
+    </select>
+
+    <select id="selecActionLeveTimeUnit" parameterType="cn.mw.monitor.alert.param.ActionLevelRuleParam" resultType="java.lang.Integer">
+        select
+        time_unit as timeUnit
+        from mw_alert_action_level_rule_mapper
+        where action_id = #{actionId} and level = #{level} LIMIT 1
+    </select>
+
+    <select id="selecActionLeveEmail" parameterType="java.lang.String" resultType="cn.mw.monitor.alert.param.ActionLevelRuleParam">
+        select
+        action_id as actionId,
+        level as level,
+        is_alluser as isAllUser,
+        email
+        from mw_alert_action_level_rule_email_mapper
+        where action_id = #{actionId}
+    </select>
+
+    <resultMap id="fielMap" type="cn.mw.monitor.alert.param.MwTangibleassetsParam">
+        <id column="assets_id" property="assetsId"></id>
+        <id column="id" property="id"></id>
+        <id column="assets_name" property="assetsName"></id>
+        <id column="host_name" property="hostName"></id>
+        <id column="in_band_ip" property="inBandIp"></id>
+        <id column="assets_type_id" property="assetsTypeId"></id>
+        <id column="assets_type_sub_id" property="assetsTypeSubId"></id>
+        <id column="polling_engine" property="pollingEngine"></id>
+        <id column="monitor_mode" property="monitorMode"></id>
+        <id column="manufacturer" property="manufacturer"></id>
+        <id column="specifications" property="specifications"></id>
+        <id column="description" property="description"></id>
+        <id column="enable" property="enable"></id>
+        <id column="delete_flag" property="deleteFlag"></id>
+        <id column="monitor_flag" property="monitorFlag"></id>
+        <id column="setting_flag" property="settingFlag"></id>
+        <id column="creator" property="creator"></id>
+        <id column="create_date" property="createDate"></id>
+        <id column="modifier" property="modifier"></id>
+        <id column="modification_date" property="modificationDate"></id>
+        <id column="scan_success_id" property="scanSuccessId"></id>
+        <id column="monitor_server_id" property="monitorServerId"></id>
+        <id column="timing" property="timing"></id>
+        <id column="tp_server_host_name" property="tpServerHostName"></id>
+        <id column="template_id" property="templateId"></id>
+        <id column="assets_uuid" property="assetsUuid"></id>
+        <id column="assets_serialnum" property="assetsSerialnum"></id>
+    </resultMap>
+
+    <select id="slecltTangibleassetsByfielids"  resultMap="fielMap">
+        select
+        <trim suffixOverrides=",">
+            <foreach collection="list" item="item" separator="" index="">
+                <if test="item.clumnName.contains('id')">
+                    id,
+                </if>
+                <if test="item.clumnName.contains('assets_id')">
+                    assets_id,
+                </if>
+                <if test="item.clumnName.contains('assets_name')">
+                    assets_name,
+                </if>
+                <if test="item.clumnName.contains('host_name')">
+                    host_name,
+                </if>
+                <if test="item.clumnName.contains('in_band_ip')">
+                    in_band_ip,
+                </if>
+                <if test="item.clumnName.contains('assets_type_id')">
+                    assets_type_id,
+                </if>
+                <if test="item.clumnName.contains('assets_type_sub_id')">
+                    assets_type_sub_id,
+                </if>
+                <if test="item.clumnName.contains('polling_engine')">
+                    polling_engine,
+                </if>
+                <if test="item.clumnName.contains('monitor_mode')">
+                    monitor_mode,
+                </if>
+                <if test="item.clumnName.contains('manufacturer')">
+                    manufacturer,
+                </if>
+                <if test="item.clumnName.contains('specifications')">
+                    specifications,
+                </if>
+                <if test="item.clumnName.contains('description')">
+                    description,
+                </if>
+                <if test="item.clumnName.contains('enable')">
+                    enable,
+                </if>
+                <if test="item.clumnName.contains('delete_flag')">
+                    delete_flag,
+                </if>
+                <if test="item.clumnName.contains('monitor_flag')">
+                    monitor_flag,
+                </if>
+                <if test="item.clumnName.contains('setting_flag')">
+                    setting_flag,
+                </if>
+                <if test="item.clumnName.contains('creator')">
+                    creator,
+                </if>
+                <if test="item.clumnName.contains('create_date')">
+                    create_date,
+                </if>
+                <if test="item.clumnName.contains('modifier')">
+                    modifier,
+                </if>
+                <if test="item.clumnName.contains('modification_date')">
+                    modification_date,
+                </if>
+                <if test="item.clumnName.contains('scan_success_id')">
+                    scan_success_id,
+                </if>
+                <if test="item.clumnName.contains('monitor_server_id')">
+                    monitor_server_id,
+                </if>
+                <if test="item.clumnName.contains('timing')">
+                    timing,
+                </if>
+                <if test="item.clumnName.contains('tp_server_host_name')">
+                    tp_server_host_name,
+                </if>
+                <if test="item.clumnName.contains('template_id')">
+                    template_id,
+                </if>
+                <if test="item.clumnName.contains('assets_uuid')">
+                    assets_uuid,
+                </if>
+                <if test="item.clumnName.contains('assets_serialnum')">
+                    assets_serialnum,
+                </if>
+            </foreach>
+        </trim>
+        from mw_tangibleassets_table
+        where id= #{assetsId}
+    </select>
+
+    <insert id="insertMwAlertRuleSelect" parameterType="java.util.List">
+        insert into mw_alert_rule_select(id,deep,condition_unit,name,relation,value,parent_id,uuid) values
+        <foreach collection="list" item="item" index="index" separator=",">
+            (#{item.key},#{item.deep},#{item.condition},#{item.name},#{item.relation},#{item.value},#{item.parentKey},#{item.uuid})
+        </foreach>
+    </insert>
+
+    <delete id="deleteMwAlertRuleSelect">
+        delete from mw_alert_rule_select where uuid = #{uuid}
+    </delete>
+
+    <delete id="deleteActionLevelEmailMapper">
+        delete from mw_alert_action_level_rule_email_mapper where action_id = #{actionId}
+    </delete>
+
+    <delete id="deleteActionUserTypeMapper">
+        delete from mw_alert_action_user_type_mapper where action_id = #{actionId}
+    </delete>
+
+    <select id="selectMwAlertRuleSelect"  resultType="cn.mw.monitor.weixinapi.MwRuleSelectParam">
+        select
+            id as 'key',
+            deep deep,
+            condition_unit as 'condition',
+            name,
+            relation,
+            value,
+            parent_id as parentKey
+        from mw_alert_rule_select
+        <if test="uuid != null and uuid != ''">
+            where uuid = #{uuid}
+        </if>
+    </select>
+
+    <select id="selectMwAlertAction"  resultType="cn.mw.monitor.alert.param.MwRuleSelectListParam">
+        select
+            effect_time_select as effectTimeSelect,
+            start_time as startTime,
+            end_time as endTime,
+            state as state,
+            alarm_compression_select as alarmCompressionSelect,
+            custom_time as customTime,
+            time_unit as timeUnit,
+            custom_num as customNum,
+            num_unit as numUnit,
+            action_name as actionName,
+            success_num as successNum,
+            fail_num as failNum,
+            area,
+            action_id as actionId
+        from mw_alert_action
+        where delete_flag = FALSE and state = true
+        <if test="actionId !=null and actionId != '' ">
+            and action_id = #{actionId}
+        </if>
+    </select>
+
+    <select id="selectMwAlertRuleSelectEvent"  resultType="cn.mw.monitor.alert.param.MwRuleSelectEventParam">
+        select
+            text,
+            hostid,
+            title,
+            ip,
+            is_alarm as isAlarm,
+            date,
+            size,
+            uuid
+        from mw_alert_rule_select_event
+        <if test="uuid != null">
+            where uuid = #{uuid}
+        </if>
+    </select>
+
+    <insert id="insertMwAlertRuleSelectEvent" parameterType="cn.mw.monitor.alert.param.MwRuleSelectEventParam">
+        insert into mw_alert_rule_select_event(text,hostid,title,ip,is_alarm,size,uuid,date) values
+        (#{text},#{hostid},#{title},#{ip},#{isAlarm},#{size},#{uuid},#{date})
+    </insert>
+
+    <delete id="deleteMwAlertRuleSelectEvent">
+        delete from mw_alert_rule_select_event where ip = #{ip} and title = #{title} and is_alarm = #{isAlarm}
+    </delete>
+
+    <select id="selectMwAlertRuleSelectEventBytitle"  resultType="cn.mw.monitor.alert.param.MwRuleSelectEventParam">
+        select
+            text,
+            hostid,
+            title,
+            ip,
+            is_alarm as isAlarm,
+            date,
+            size,
+            uuid
+        from mw_alert_rule_select_event
+        where ip = #{ip} and title = #{title} and is_alarm = #{isAlarm} and uuid = #{actionId}
+    </select>
+
+    <update id="upMwAlertRuleSelectEvent">
+        update mw_alert_rule_select_event set
+        text=#{text, jdbcType=VARCHAR},
+        hostid=#{hostid, jdbcType=BIT},
+        title = #{title,jdbcType=VARCHAR},
+        ip=#{ip,jdbcType=VARCHAR},
+        is_alarm= #{isAlarm},
+        size = #{size}
+        where ip = #{ip} and title = #{title} and is_alarm = #{isAlarm}
+    </update>
+
+    <update id="upMwAlertAction">
+        update mw_alert_action set
+        success_num=#{successNum},
+        fail_num=#{failNum}
+        where action_id = #{actionId}
+    </update>
+
+    <delete id="deleteMwAlertRuleSelects">
+        delete from mw_alert_rule_select
+        where uuid in (
+        <foreach collection="uuids" item="uuid" separator=",">
+        #{uuid}
+        </foreach>)
+    </delete>
+
+    <select id="selectTypeIdMapper" resultType="java.lang.String">
+        select type_id from mw_user_mapper
+        where type_id like CONCAT('%',#{hostid},'%') and type='VIRTUAL'
+    </select>
+
+    <select id="selectFuzzUserMapper" resultType="java.lang.Integer">
+        select
+            user_id
+        from
+            mw_user_mapper
+        where type_id like CONCAT('%',#{hostid},'%') and type='VIRTUAL'
+    </select>
+
+    <select id="selectFuzzGroupMapper" resultType="java.lang.Integer">
+        select
+            group_id
+        from
+            mw_group_mapper
+        where type_id like CONCAT('%',#{hostid},'%') and type='VIRTUAL'
+    </select>
+
+    <select id="selectFuzzOrgMapper" resultType="java.lang.Integer">
+        select
+            org_id
+        from
+            mw_org_mapper
+        where type_id like CONCAT('%',#{hostid},'%') and type='VIRTUAL'
+    </select>
+
+    <select id="selectActionIds" resultType="java.lang.String">
+        select
+            action_id
+        from
+            mw_alert_action
+        where delete_flag = FALSE and state = 1
+    </select>
+
+</mapper>

@@ -1,0 +1,351 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.mw.monitor.model.dao.MWModelVendorDao">
+
+    <insert id="modelFirmAdd" parameterType="cn.mw.monitor.model.param.AddAndUpdateModelFirmParam">
+        <selectKey resultType="java.lang.Integer" keyProperty="id" order="BEFORE">
+            select ${TBSNAME}.SEQ_MW_CMDBMD_VENDOR_ICON.NEXTVAL AS "id" from dual
+        </selectKey>
+        INSERT INTO ${TBSNAME}."mw_cmdbmd_vendor_icon"(
+        "id",
+        "vendor",
+        "vendor_small_icon",
+        "vendor_large_icon",
+        "custom_flag",
+        "description"
+        )
+        values(
+        #{id},
+        #{brand},
+        #{vendorSmallIcon},
+        #{vendorLargeIcon},
+        #{customFlag},
+        #{description}
+        )
+    </insert>
+
+    <insert id="addBrandSpecification" parameterType="cn.mw.monitor.model.param.AddAndUpdateModelSpecificationParam">
+        <selectKey resultType="java.lang.Integer" keyProperty="id" order="BEFORE">
+            select ${TBSNAME}.SEQ_MW_CMDBMD_VENDOR_SPECIFICATION.NEXTVAL AS "id" from dual
+        </selectKey>
+        INSERT INTO ${TBSNAME}."mw_cmdbmd_vendor_specification"(
+            "id",
+            "brand",
+            "specification",
+            "description",
+            "device_height",
+            "vendor_id",
+            "creator",
+            "create_date",
+            "modifier",
+            "modification_Date"
+            )
+        values(
+            #{id},
+            #{brand},
+            #{specification},
+            #{description},
+            #{deviceHeight},
+            #{brandId},
+            #{creator},
+            SYSDATE,
+            #{modifier},
+            SYSDATE
+            )
+    </insert>
+
+    <insert id="addMACInfo" parameterType="cn.mw.monitor.model.param.AddAndUpdateModelMACParam">
+        INSERT INTO ${TBSNAME}."mw_mac_oui"(
+            "mac",
+            "vendor",
+            "short_name",
+            "country",
+            "address")
+        values (
+             #{mac},
+             #{brand},
+             #{shortName},
+             #{country},
+             #{address}
+        )
+    </insert>
+
+    <update id="editorMACInfo" parameterType="cn.mw.monitor.model.param.AddAndUpdateModelMACParam">
+        update ${TBSNAME}."mw_mac_oui"
+        <trim prefix="set" suffixOverrides=",">
+            <if test="mac!=null and mac!=''">
+                "mac" = #{mac},
+            </if>
+            <if test="brand!=null and brand!=''">
+                "vendor" = #{brand},
+            </if>
+            <if test="shortName!=null">
+                "short_name" = #{shortName},
+            </if>
+            <if test="country!=null">
+                "country" = #{country},
+            </if>
+            <if test="address!=null">
+                "address" = #{address},
+            </if>
+        </trim>
+        where
+        "mac" = #{oldMac}
+    </update>
+
+    <update id="updateBrandSpecification" parameterType="cn.mw.monitor.model.param.AddAndUpdateModelSpecificationParam">
+        update ${TBSNAME}."mw_cmdbmd_vendor_specification"
+        <set>
+            <if test="specification!=null and specification!=''">
+                "specification" = #{specification},
+            </if>
+            <if test="description!=null">
+                "description" = #{description},
+            </if>
+            <if test="deviceHeight!=null">
+                "device_height" = #{deviceHeight},
+            </if>
+            <if test="modifier!=null and modifier!=''">
+                "modifier" = #{modifier},
+            </if>
+            "modification_Date" = SYSDATE
+        </set>
+        where "id" = #{id}
+    </update>
+
+    <update id="updateModelFirm" parameterType="cn.mw.monitor.model.param.AddAndUpdateModelFirmParam">
+        update ${TBSNAME}."mw_cmdbmd_vendor_icon"
+        <trim prefix="set" suffixOverrides=",">
+            <if test="brand!=null and brand!=''">
+                "vendor" = #{brand},
+            </if>
+            <if test="vendorSmallIcon!=null and vendorSmallIcon!=''">
+                "vendor_small_icon" = #{vendorSmallIcon},
+            </if>
+            <if test="vendorLargeIcon!=null and vendorLargeIcon!=''">
+                "vendor_large_icon" = #{vendorLargeIcon},
+            </if>
+            <if test="description!=null and description!=''">
+                "description" = #{description},
+            </if>
+        </trim>
+        where "id" = #{id}
+    </update>
+
+
+    <select id="queryModelFirmTree" resultType="cn.mw.monitor.model.param.AddAndUpdateModelFirmParam">
+        SELECT
+            a."id",
+            a."vendor" AS "brand",
+            a."vendor_small_icon" AS "vendorSmallIcon",
+            a."vendor_large_icon" AS "vendorLargeIcon",
+            a."custom_flag" AS "customFlag",
+            a."description",
+            ( SELECT count(1) from  ${TBSNAME}."mw_cmdbmd_vendor_specification" WHERE "vendor_id" = a."id" ) AS "specificationNum"
+        from  ${TBSNAME}."mw_cmdbmd_vendor_icon" a
+    </select>
+
+    <select id="checkMACInfo" resultType="java.lang.Integer"
+            parameterType="cn.mw.monitor.model.param.AddAndUpdateModelMACParam">
+        SELECT count(1)
+        from  ${TBSNAME}."mw_mac_oui"
+        <where>
+            "mac" = #{mac}
+            <if test="oldMac != null and oldMac != ''">
+                and "mac" != #{oldMac}
+            </if>
+        </where>
+    </select>
+
+    <select id="getMacVendorByShortName" resultType="java.lang.String">
+        SELECT DISTINCT
+            "vendor"
+        from  ${TBSNAME}."mw_mac_oui"
+        WHERE
+            "short_name" = #{shortName}
+    </select>
+
+    <select id="checkFirmByName" resultType="java.lang.Integer"
+            parameterType="cn.mw.monitor.model.param.AddAndUpdateModelFirmParam">
+        SELECT
+        count(1)
+        from  ${TBSNAME}."mw_cmdbmd_vendor_icon"
+        <where>
+            "vendor" = #{brand}
+            <if test="id!=null">
+                AND "id" != #{id}
+            </if>
+        </where>
+    </select>
+
+    <select id="queryBrandSpecification" parameterType="cn.mw.monitor.model.param.AddAndUpdateModelSpecificationParam"
+            resultType="cn.mw.monitor.model.param.AddAndUpdateModelSpecificationParam">
+        SELECT
+        "id",
+        "brand",
+        "specification",
+        "description",
+        "vendor_id" AS "brandId",
+        "device_height" AS "deviceHeight",
+        "creator",
+        "create_date" AS "createDate",
+        "modifier",
+        "modification_Date" AS "modificationDate"
+        from  ${TBSNAME}."mw_cmdbmd_vendor_specification"
+        <where>
+            1 = 1
+            <if test="brandId!=null">
+                and "vendor_id" = #{brandId}
+            </if>
+            <if test="brand!=null and brand!=''">
+                and LOWER("brand") like LOWER('%'||#{brand,jdbcType=VARCHAR}||'%')
+            </if>
+            <if test="specification!=null and specification!=''">
+                and LOWER("specification") like LOWER('%'||#{specification,jdbcType=VARCHAR}||'%')
+            </if>
+            <if test="description!=null and description!=''">
+                and LOWER("description") like LOWER('%'||#{description,jdbcType=VARCHAR}||'%')
+            </if>
+            <if test="creator != null and creator != ''">
+                and "creator" = #{creator}
+            </if>
+            <if test="modifier != null and modifier != ''">
+                and "modifier" = #{modifier}
+            </if>
+            <if test="createDateStart != null">
+                and <![CDATA[#{createDateStart,jdbcType=TIMESTAMP} <= "create_date "]]>
+            </if>
+            <if test="createDateEnd != null">
+                and <![CDATA[#{createDateEnd,jdbcType=TIMESTAMP} >= "create_date" ]]>
+            </if>
+            <if test="modificationDateStart != null">
+                and  <![CDATA[#{modificationDateStart,jdbcType=TIMESTAMP} <= "modification_Date" ]]>
+            </if>
+            <if test="modificationDateEnd != null">
+                and  <![CDATA[#{modificationDateEnd,jdbcType=TIMESTAMP} >= "modification_Date" ]]>
+            </if>
+        </where>
+
+    </select>
+
+
+    <select id="querySpecificationByBrand" resultType="cn.mw.monitor.model.param.AddAndUpdateModelSpecificationParam">
+        SELECT
+        "id",
+        "brand",
+        "specification",
+        "device_height" AS "deviceHeight",
+        "description"
+        from ${TBSNAME}."mw_cmdbmd_vendor_specification"
+        where
+        1 = 1
+        <if test="brand!=null and brand!=''">
+            and "brand" = #{brand,jdbcType=VARCHAR}
+        </if>
+        <if test="specification!=null and specification!=''">
+            and "specification" = #{specification,jdbcType=VARCHAR}
+        </if>
+    </select>
+
+    <select id="checkSpecification" resultType="java.lang.Integer"
+            parameterType="cn.mw.monitor.model.param.AddAndUpdateModelSpecificationParam">
+        SELECT
+        count(1)
+        from  ${TBSNAME}."mw_cmdbmd_vendor_specification"
+        <where>
+            "specification" = #{specification}
+            and "vendor_id" = #{brandId}
+            <if test="id!=null">
+                AND "id" != #{id}
+            </if>
+        </where>
+    </select>
+
+    <select id="queryMACInfoList" resultType="cn.mw.monitor.model.param.AddAndUpdateModelMACParam"
+            parameterType="cn.mw.monitor.model.param.AddAndUpdateModelMACParam">
+        SELECT
+        "mac",
+        "vendor" AS "brand",
+        "short_name" AS "shortName",
+        "country",
+        "address"
+        from  ${TBSNAME}."mw_mac_oui"
+        <where>
+            1 = 1
+            <if test="mac != null and mac !=''">
+                and "mac" =#{mac}
+            </if>
+            <if test="brand != null and brand !=''">
+                and "vendor" LIKE ('%'||#{brand,jdbcType=VARCHAR}||'%')
+            </if>
+            <if test="shortName!=null and shortName !=''">
+                and "short_name" LIKE ('%'||#{shortName,jdbcType=VARCHAR}||'%')
+            </if>
+            <if test="country!=null and country !=''">
+                and "country" LIKE ('%'||#{country,jdbcType=VARCHAR}||'%')
+            </if>
+            <if test="address!=null and address !=''">
+                and "address" LIKE ('%'||#{address,jdbcType=VARCHAR}||'%')
+            </if>
+        </where>
+    </select>
+
+    <select id="fuzzSearchAllFiledBySpecification" resultType="java.util.Map">
+        SELECT
+            "specification",
+            "description",
+            "creator",
+            "modifier"
+        from  ${TBSNAME}."mw_cmdbmd_vendor_specification"
+    </select>
+
+    <select id="fuzzSearchAllFiledByMAC" resultType="java.util.Map">
+        SELECT
+            "mac",
+            "vendor",
+            "short_name",
+            "country",
+            "address"
+        from  ${TBSNAME}."mw_mac_oui"
+    </select>
+
+    <select id="getFirmByName" resultType="cn.mw.monitor.model.param.AddAndUpdateModelFirmParam">
+        SELECT
+            a."id",
+            a."vendor" AS "brand",
+            a."vendor_small_icon" AS "vendorSmallIcon",
+            a."vendor_large_icon" AS "vendorLargeIcon",
+            a."custom_flag" AS "customFlag",
+            a."description"
+        from  ${TBSNAME}."mw_cmdbmd_vendor_icon" a
+        where a."vendor" = #{name}
+    </select>
+
+    <delete id="deleteModelFirm">
+        delete from  ${TBSNAME}."mw_cmdbmd_vendor_icon"
+        where "id" =#{brandId}
+    </delete>
+
+    <delete id="deleteSpecificationByBrand">
+        delete from ${TBSNAME}."mw_cmdbmd_vendor_specification"
+        where "vendor_id" =#{brandId}
+    </delete>
+
+    <delete id="deleteBrandSpecification">
+        delete from ${TBSNAME}."mw_cmdbmd_vendor_specification"
+        where "id" IN (
+        <foreach collection="ids" item="list" separator=",">
+            #{list,jdbcType=INTEGER}
+        </foreach>
+        )
+    </delete>
+
+    <delete id="deleteMACInfo">
+        delete from ${TBSNAME}."mw_mac_oui"
+        where "mac" IN (
+        <foreach collection="macList" item="list" separator=",">
+            #{list,jdbcType=VARCHAR}
+        </foreach>
+        )
+    </delete>
+</mapper>

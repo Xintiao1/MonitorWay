@@ -1,0 +1,711 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.mw.monitor.alert.dao.MwAlertRuleDao">
+
+    <sql id="union_group">
+        <if test="groupIds!=null">
+            UNION
+            SELECT
+            <include refid="Base_Column_List"></include>
+            from ${TBSNAME}."mw_alert_rule" t1
+            left join
+            (SELECT a."type_id",a."group_id" FROM ${TBSNAME}."mw_group_mapper" a left join ${TBSNAME}."mw_datapermission" b ON a."type_id" =
+            b."type_id" where a."type"='RULE' and b."is_group"=1) t2 ON t2."type_id"=t1."rule_id"
+            where t1."delete_flag"=0 and "group_id" IN
+            <foreach collection="groupIds" item="item" index="index" open="(" separator="," close=")">
+                #{item.value}
+            </foreach>
+            <include refid="criteria"></include>
+        </if>
+    </sql>
+    <sql id="criteria">
+        <if test="ruleName != null and ruleName != ''">
+            and "rule_name" like CONCAT(CONCAT('%',#{ruleName}),'%')
+        </if>
+        <if test="ruleDesc != null and ruleDesc != ''">
+            and "rule_desc" like CONCAT(CONCAT('%',#{ruleDesc}),'%')
+        </if>
+        <if test="actionType != null and actionType != ''">
+            and "action_type"=#{actionType}
+        </if>
+        <if test="creator != null and creator != ''">
+            and "creator" = #{creator}
+        </if>
+        <if test="createDateStart != null">
+            and "create_date" >=  #{createDateStart}
+        </if>
+        <if test="createDateEnd != null">
+            and  #{createDateEnd} >= "create_date"
+        </if>
+        <if test="modifier != null and modifier != ''">
+            and "modifier" = #{modifier}
+        </if>
+        <if test="modificationDateStart != null">
+            and "modification_date" >=  #{modificationDateStart}
+        </if>
+        <if test="modificationDateEnd != null">
+            and   #{modificationDateEnd}>= "modification_date"
+        </if>
+
+    </sql>
+    <insert id="insertRule" parameterType="cn.mw.monitor.alert.param.AddAndUpdateAlertRuleParam">
+        insert into ${TBSNAME}."mw_alert_rule"("rule_id","rule_name","rule_desc","action_type","creator", "modifier","create_date" ,"modification_date","state","proxy_ip","proxy_port","proxy_account","proxy_paaword","proxy_state")
+        values(
+        #{ruleId},
+        #{ruleName},
+        #{ruleDesc},
+        #{actionType},
+        #{creator},
+        #{modifier},
+        sysdate,
+        sysdate,
+        #{enable},
+        #{proxyIp},
+        #{proxyPort},
+        #{proxyAccount},
+        #{proxyPassword},
+        #{proxyState}
+        )
+
+    </insert>
+    <update id="updateRule" parameterType="cn.mw.monitor.alert.param.AddAndUpdateAlertRuleParam">
+          update ${TBSNAME}."mw_alert_rule" set
+          "rule_name" = #{ruleName},
+          "rule_desc" = #{ruleDesc},
+          "action_type" = #{actionType},
+          "modifier" = #{modifier},
+          "modification_date" = sysdate,
+          "state" =  #{enable},
+          "proxy_ip" = #{proxyIp},
+          "proxy_port" = #{proxyPort},
+          "proxy_account" = #{proxyAccount},
+          "proxy_paaword" = #{proxyPassword},
+          "proxy_state" = #{proxyState}
+          where "rule_id" = #{ruleId}
+
+    </update>
+
+    <update id="updateRuleEnable" parameterType="cn.mw.monitor.alert.param.AlertAndRuleEnableParam">
+          update ${TBSNAME}."mw_alert_rule" set
+          "state" =  #{enable}
+          where "rule_id" = #{ruleId}
+    </update>
+
+    <update id="deleteRule" parameterType="java.util.ArrayList">
+        update ${TBSNAME}."mw_alert_rule" set "delete_flag"=1 where "rule_id" in
+        <foreach collection="list" item="id" index="index" separator="," open="(" close=")">
+            #{id}
+        </foreach>
+    </update>
+
+
+    <delete id="deleteTypeRule" parameterType="java.lang.String">
+        delete from ${TBSNAME}."${tableName}" where "rule_id" = #{ruleId}
+    </delete>
+    <!--    <delete id="deleteDingDingRule" parameterType="java.lang.String">-->
+    <!--        delete from mw_alert_dingding_rule where rule_id = #{ruleId}-->
+    <!--    </delete>-->
+    <!--    <delete id="deleteEmailRule" parameterType="java.lang.String">-->
+    <!--        delete from mw_alert_email_rule where rule_id = #{ruleId}-->
+    <!--    </delete>-->
+
+    <delete id="deleteRuleActionMapper">
+        delete from ${TBSNAME}."mw_alert_action_rule_mapper"
+        where "rule_id" in (
+        <foreach collection="list" item="deleteList" separator=",">
+            #{deleteList}
+        </foreach>
+        )
+    </delete>
+
+    <select id="selectRuleActionCount" resultType="java.lang.Integer" >
+        select count(0) from ${TBSNAME}."mw_alert_action_rule_mapper"
+        where "rule_id" in (
+        <foreach collection="list" item="deleteList" separator=",">
+            #{deleteList}
+        </foreach>
+        )
+    </select>
+
+    <delete id="deleteRuleReportMapper">
+        delete from ${TBSNAME}."mw_report_rule_mapper"
+        where "rule_id" in (
+        <foreach collection="list" item="deleteList" separator=",">
+            #{deleteList}
+        </foreach>
+        )
+    </delete>
+
+
+    <insert id="insertWeiXinRule" parameterType="cn.mw.monitor.alert.param.WeiXinParam">
+        insert into ${TBSNAME}."mw_alert_weixin_rule"("rule_id","agent_id","app_secret","token","alert_templeate","recovery_templeate")
+        values(
+        #{ruleId},
+        #{agentId},
+        #{appSecret},
+        #{token},
+        #{alertTempleate},
+        #{recoveryTempleate}
+        )
+    </insert>
+    <insert id="insertDingDingRule" parameterType="cn.mw.monitor.alert.param.DingDingParam">
+        insert into ${TBSNAME}."mw_alert_dingding_rule"("rule_id","agent_id","app_key","app_secret")
+        values(
+        #{ruleId},
+        #{agentId},
+        #{appKey},
+        #{appSecret}
+        )
+    </insert>
+    <insert id="insertEmailRule" parameterType="cn.mw.monitor.alert.param.EmailParam">
+        insert into ${TBSNAME}."mw_alert_email_rule"("rule_id","email_server_address","email_server_port","email_send_username","email_send_password","is_ssl","is_smtp","personal","title","logo","url","is_logo","is_delsuffix")
+        values(
+        #{ruleId},
+        #{emailServerAddress},
+        #{emailServerPort},
+        #{emailSendUserName},
+        #{emailSendPassword},
+        #{isSsl},
+        #{isSmtp},
+        #{personal},
+        #{emailHeaderTitle},
+        #{logo,jdbcType=VARCHAR},
+        #{url,jdbcType=VARCHAR},
+        #{isLogo,jdbcType=INTEGER},
+        #{isDelsuffix,jdbcType=INTEGER}
+        )
+    </insert>
+
+    <insert id="insertApplyWeiXin" parameterType="cn.mw.monitor.alert.param.ApplyWeiXinParam">
+        insert into ${TBSNAME}."mw_alert_apply_weixin_rule"("rule_id","apply_id","secret","agent_id")
+        values(
+        #{ruleId},
+        #{applyId},
+        #{secret},
+        #{agentId}
+        )
+    </insert>
+
+    <insert id="insertDingDingQunRule" parameterType="cn.mw.monitor.alert.param.DingDingQunParam">
+        insert into ${TBSNAME}."mw_alert_dingdingqun_rule"("rule_id","webhook","keyword","secret")
+        values(
+        #{ruleId},
+        #{webHook},
+        #{keyWord},
+        #{secret}
+        )
+    </insert>
+
+    <insert id="insertAliyunSMSRule" parameterType="cn.mw.monitor.alert.param.AliyunSmsParam">
+        insert into ${TBSNAME}."mw_alert_aliyunsms_rule"("rule_id","signName","templateCode","accessKeyId","accessKeySecret")
+        values(
+        #{ruleId},
+        #{signName},
+        #{templateCode},
+        #{accessKeyId},
+        #{accessKeySecret}
+        )
+    </insert>
+    <insert id="insertShenzhenSMSRule" parameterType="cn.mw.monitor.alert.param.ShenzhenSmsParam">
+        insert into ${TBSNAME}."mw_alert_shenzhenSMS_rule"("rule_id","app_id","app_pwd","biz_class_id","biz_type_id","biz_sub_type_id","ext_no","is_need_report","cust_id","app_sms_code","api_url","role_name")
+        values(
+        #{ruleId},
+        #{appID},
+        #{appPWD},
+        #{bizClassID},
+        #{bizTypeID},
+        #{bizSubTypeID},
+        #{extNo},
+        #{isNeedReport},
+        #{custID},
+        #{appSMSCode},
+        #{apiUrl},
+        #{apiRoleName}
+        )
+    </insert>
+    <insert id="insertSYSLogRule" parameterType="cn.mw.monitor.alert.param.SYSLogParam">
+        insert into ${TBSNAME}."mw_alert_tcp_udp_rule"("rule_id","host","port","agreement_type","algorithm","key_path","key_password")
+        values (#{ruleId},
+                #{host},
+                #{port},
+                #{agreementType},
+                #{algorithm},
+                #{path},
+                #{password})
+    </insert>
+    <insert id="insertCaiZhengTingSMsRule" parameterType="cn.mw.monitor.alert.param.MwCaiZhengTingSMSParam">
+        insert into ${TBSNAME}."mw_alert_caizhengju_sms_rule"("rule_id","url","app_id","app_key","sign","type","account","password","id")
+        values (#{ruleId},
+                #{url},
+                #{appID},
+                #{appKey},
+                #{sign},
+                #{type},
+                #{account},
+                #{password},
+                #{id}
+        )
+    </insert>
+
+    <insert id="insertAliyunYuYinRule" parameterType="cn.mw.monitor.util.entity.AliYunYuYinlParam">
+        insert into ${TBSNAME}."mw_alert_aliyun_yuyin_rule" ("rule_id","access_key_id","access_key_secret","tts_code","called_show_number")
+        VALUES (#{ruleId,jdbcType=VARCHAR},
+                #{accessKeyId,jdbcType=VARCHAR},
+                #{accessKeySecret,jdbcType=VARCHAR},
+                #{ttsCode,jdbcType=VARCHAR},
+                #{calledShowNumber,jdbcType=VARCHAR}
+        )
+    </insert>
+
+    <insert id="insertTengxunsmsRule" parameterType="cn.mw.monitor.util.entity.TengXunSmsFromEntity">
+        insert into ${TBSNAME}."mw_alert_tengxunsms_rule"("rule_id","sign_name","secret_id","secret_key","template_id","app_id","recovery_template_id")
+        VALUES (#{ruleId},
+                #{signName},
+                #{secretId},
+                #{secretKey},
+                #{templateId},
+                #{appId},
+                #{recoveryTemplateId}
+        )
+    </insert>
+
+    <insert id="insertHuaweismsRule" parameterType="cn.mw.monitor.util.entity.HuaWeiSmsFromEntity">
+        insert into ${TBSNAME}."mw_alert_huaweisms_rule" ("rule_id","app_key","app_secret","sender","template_id","sign_name","recovery_template_id")
+        values (#{ruleId},
+                #{appKey},
+                #{appSecret},
+                #{sender},
+                #{templateId},
+                #{signName},
+                #{recoveryTemplateId}
+        )
+    </insert>
+
+    <insert id="insertWeLinkRule" parameterType="cn.mw.monitor.service.alert.dto.WeLinkRuleParam">
+        insert into ${TBSNAME}."mw_alert_welink_rule" ("rule_id","app_id","app_secret","public_accid")
+        values (#{ruleId},
+                #{appId},
+                #{appSecret},
+                #{publicAccId}
+        )
+    </insert>
+
+    <insert id="insertHuaXingRule" parameterType="cn.mw.monitor.util.entity.HuaXingRuleParam">
+        INSERT INTO ${TBSNAME}."mw_alert_huaxing_rule" ("rule_id","app_id","app_key","plugin_id",
+        <if test="token != null and token != ''">
+            "token",
+        </if>
+        <if test="sender != null and sender != ''">
+            "sender",
+        </if>
+        <if test="sessionType != null and sessionType != ''">
+            "session_type",
+        </if>
+        "url")
+        VALUES (#{ruleId},
+                #{appId},
+                #{appSecret},
+                #{pluginId},
+                <if test="token != null and token != ''">
+                    #{token},
+                </if>
+                <if test="sender != null and sender != ''">
+                    #{sender},
+                </if>
+                <if test="sessionType != null and sessionType != ''">
+                    #{sessionType},
+                </if>
+                #{url}
+        )
+    </insert>
+
+    <insert id="insertHuaXingYuyinRule" parameterType="cn.mw.monitor.util.entity.HuaXingYuYinRuleParam">
+        INSERT INTO "mw_alert_huaxing_yuyin_table" ("rule_id","tpl_id","app_key","url")
+        values (
+                #{ruleId},
+                #{tplId},
+                #{appKey},
+                #{url}
+               )
+    </insert>
+
+    <update id="updateDingDingRule">
+        update ${TBSNAME}."mw_alert_dingding_rule" set "agent_id"= #{agentId},"app_key"= #{appKey},"app_secret"=#{appSecret}
+        where "rule_id"= #{ruleId}
+    </update>
+    <update id="updateWeiXinRule">
+       update ${TBSNAME}."mw_alert_weixin_rule" set
+       "agent_id"=#{agentId},
+       "app_secret"=#{appSecret},
+       "token"=#{token}
+       where "rule_id"= #{ruleId}
+    </update>
+    <update id="updateEmailRule">
+     update ${TBSNAME}."mw_alert_email_rule" set
+     "email_server_address"=#{emailServerAddress},
+     "email_server_port"=#{emailServerPort},
+     "email_send_username"=#{emailSendUserName},
+     "email_send_password"=#{emailSendPassword},
+     "is_ssl"=#{isSsl},
+     "is_smtp"=#{isSmtp},
+     "personal"=#{personal}
+     where "rule_id"= #{ruleId}
+    </update>
+    <update id="updateapplyWeiXinRule">
+      update ${TBSNAME}."mw_alert_apply_weixin_rule" set "apply_id"=#{applyId},"secret"=#{secret},"agent_id"=#{agentId}
+      where "rule_id"= #{ruleId}
+    </update>
+
+    <sql id="Base_Column_List">
+        "rule_id" as "ruleId",
+        "rule_name" as "ruleName",
+        "rule_desc" as "ruleDesc",
+        "action_type"  as "actionType",
+        "creator",
+        "modifier",
+        "create_date" as "createDate" ,
+        "modification_date" as "modificationDate",
+        "state" as "enable",
+        "proxy_ip" as "proxyIp",
+        "proxy_port" as "proxyPort",
+        "proxy_account" as "proxyAccount",
+        "proxy_paaword" as "proxyPassword",
+        "proxy_state" as "proxyState"
+     </sql>
+
+    <select id="selectPriRuleList" parameterType="java.util.Map" resultMap="ruleMap">
+        select
+        <include refid="Base_Column_List"></include>
+        from ${TBSNAME}."mw_alert_rule" t1
+        left join
+        (SELECT "type_id","user_id" FROM "mw_user_mapper" where type='RULE') t2 ON t1."rule_id" = t2."type_id"
+        where t1."delete_flag"=0 and
+        "user_id" =#{userId}
+        <include refid="criteria"></include>
+        <include refid="union_group"></include>
+    </select>
+
+
+    <select id="selectPubRuleList" parameterType="java.util.Map" resultMap="ruleMap">
+        select
+        <include refid="Base_Column_List"></include>
+        from ${TBSNAME}."mw_alert_rule" t1
+        <choose>
+            <when test="isAdmin==false">
+                LEFT JOIN (SELECT "type_id","org_id" FROM "mw_org_mapper" where type='RULE') t2 ON t1."rule_id" = t2."type_id"
+                WHERE t1."delete_flag" = 0
+                AND "org_id" IN
+                <foreach collection="orgIds" item="item" index="index" open="(" separator="," close=")">
+                    #{item.value}
+                </foreach>
+                <include refid="criteria"></include>
+                <include refid="union_group"></include>
+            </when>
+            <otherwise>
+                WHERE t1."delete_flag" = 0
+                <include refid="criteria"></include>
+            </otherwise>
+        </choose>
+    </select>
+
+    <select id="selectRuleList" parameterType="java.util.Map" resultType="cn.mw.monitor.alert.param.AlertRuleTable">
+        select
+        <include refid="Base_Column_List"></include>
+        from ${TBSNAME}."mw_alert_rule" t1
+        WHERE t1."delete_flag" = 0
+        <if test="isSystem == false">
+            and  instr( #{listSet},t1."rule_id")>0
+        </if>
+        <include refid="criteria"></include>
+    </select>
+
+    <select id="selectRuleById" parameterType="java.lang.String" resultMap="ruleMap1">
+        select
+        <include refid="Base_Column_List"></include>
+        from ${TBSNAME}."mw_alert_rule" t1
+        where "rule_id"=#{ruleId}
+    </select>
+
+    <select id="selectWeixinUserId" parameterType="java.util.ArrayList" resultType="java.lang.String">
+        select
+        "open_id"
+        from ${TBSNAME}."mw_sys_user"
+        where "user_id" in (
+        <foreach collection="list" item="item" separator=",">
+            #{item}
+        </foreach>
+        )
+    </select>
+
+    <select id="selectQyWeixinUserId" parameterType="java.util.ArrayList" resultType="java.lang.String">
+        select
+        "wechat_id"
+        from ${TBSNAME}."mw_sys_user"
+        where "user_id" in (
+        <foreach collection="list" item="item" separator=",">
+            #{item}
+        </foreach>
+        )
+    </select>
+
+    <select id="selectPhones" parameterType="java.util.ArrayList" resultType="java.lang.String">
+        select
+        "phone_number"
+        from ${TBSNAME}."mw_sys_user"
+        where "user_id" in (
+        <foreach collection="list" item="item" separator=",">
+            #{item}
+        </foreach>
+        )
+    </select>
+
+    <resultMap id="ruleMap" type="cn.mw.monitor.alert.param.AlertRuleTable">
+        <id column="ruleId" property="ruleId"></id>
+        <result column="ruleName" property="ruleName"></result>
+        <result column="ruleDesc" property="ruleDesc"></result>
+        <result column="actionType" property="actionType"></result>
+        <result column="creator" property="creator"></result>
+        <result column="modifier" property="modifier"></result>
+        <result column="createDate" property="createDate"></result>
+        <result column="modificationDate" property="modificationDate"></result>
+    </resultMap>
+    <resultMap id="ruleMap1" type="cn.mw.monitor.alert.param.AddAndUpdateAlertRuleParam" extends="ruleMap">
+    </resultMap>
+
+    <select id="selectEmail" resultType="cn.mw.monitor.alert.param.EmailParam">
+      select
+      "email_server_address" "emailServerAddress",
+      "email_server_port" "emailServerPort",
+      "email_send_username" "emailSendUsername",
+      "email_send_password" "emailSendPassword",
+      "is_ssl" "isSsl",
+      "is_smtp" "isSmtp",
+      "personal",
+      "title" as "emailHeaderTitle",
+      "logo",
+      "url",
+      "is_logo" as "isLogo",
+      "is_delsuffix" as "isDelsuffix"
+      from ${TBSNAME}."mw_alert_email_rule"  where "rule_id"=#{ruleId}
+    </select>
+
+    <select id="selectWeixin" resultType="cn.mw.monitor.alert.param.WeiXinParam">
+      select
+      "agent_id" "agentId",
+      "app_secret" "appSecret",
+      "token",
+      "alert_templeate" as "alertTempleate",
+      "recovery_templeate" as "recoveryTempleate"
+      from ${TBSNAME}."mw_alert_weixin_rule"  where "rule_id"=#{ruleId}
+    </select>
+
+    <select id="selectApplyWeixin" resultType="cn.mw.monitor.alert.param.ApplyWeiXinParam">
+     select
+      "agent_id" "agentId",
+      "secret" ,
+      "apply_id" "applyId"
+      from ${TBSNAME}."mw_alert_apply_weixin_rule"  where "rule_id"=#{ruleId}
+    </select>
+
+
+    <select id="selectDingDing" resultType="cn.mw.monitor.alert.param.DingDingParam">
+      select
+      "agent_id" "agentId",
+      "app_key" "appKey",
+      "app_secret" "appSecret"
+      from ${TBSNAME}."mw_alert_dingding_rule"  where "rule_id"=#{ruleId}
+    </select>
+
+    <select id="selectDingDingQun" resultType="cn.mw.monitor.alert.param.DingDingQunParam">
+      select
+      "webhook" "webHook",
+      "keyword" "keyWord",
+      "secret" "secret"
+      from ${TBSNAME}."mw_alert_dingdingqun_rule"  where "rule_id"=#{ruleId}
+    </select>
+
+    <select id="selectAliyunSms" resultType="cn.mw.monitor.alert.param.AliyunSmsParam">
+      select
+      "signName" "signName",
+      "templateCode" "templateCode",
+      "accessKeyId" "accessKeyId",
+      "accessKeySecret" "accessKeySecret"
+      from ${TBSNAME}."mw_alert_aliyunsms_rule"  where "rule_id"=#{ruleId}
+    </select>
+
+    <select id="selectShenzhenSms" resultType="cn.mw.monitor.alert.param.ShenzhenSmsParam">
+      select
+        "app_id" as  "appID",
+        "app_pwd" as "appPWD",
+        "biz_class_id" as "bizClassID",
+        "biz_type_id" as "bizTypeID",
+        "biz_sub_type_id" as "bizSubTypeID",
+        "ext_no" as "extNo",
+        "is_need_report" as "isNeedReport",
+        "cust_id" as "custID",
+        "app_sms_code" as "appSMSCode",
+        "api_url" as "apiUrl",
+        "role_name" as "apiRoleName"
+      from ${TBSNAME}."mw_alert_shenzhenSMS_rule"
+      where "rule_id"=#{ruleId}
+    </select>
+
+
+    <select id="selectSysLog" resultType="cn.mw.monitor.alert.param.SYSLogParam">
+        select "host" as "host",
+               "port" as "port",
+               "agreement_type" as "agreementType",
+               "algorithm" as "algorithm",
+               "key_path" as "path",
+               "key_password" as "password"
+        from ${TBSNAME}."mw_alert_tcp_udp_rule"
+        where "rule_id" = #{ruleId}
+    </select>
+
+    <select id="selectCaiZhengTingSMS" resultType="cn.mw.monitor.alert.param.MwCaiZhengTingSMSParam">
+        select "url",
+               "app_id",
+               "app_key",
+               "sign",
+               "type",
+               "account",
+               "password",
+               "id"
+        from ${TBSNAME}."mw_alert_caizhengju_sms_rule"
+        where "rule_id" = #{ruleId}
+    </select>
+
+    <select id="selectUser" parameterType="java.lang.String" resultType="cn.mw.monitor.service.action.param.UserDTO">
+        select
+        t1."user_id" "userId",
+        t1."login_name" "loginName",
+        t1."user_name" "userName"
+        from
+        ${TBSNAME}."mw_sys_user" t1
+        left join  "mw_user_mapper" t2 on t1."user_id" = t2."user_id"
+        where t2."type"='RULE' and t2."type_id" = #{ruleId}
+    </select>
+
+    <select id="selectOrg" parameterType="java.lang.String" resultType="cn.mw.monitor.service.action.param.OrgDTO">
+    select
+    t1."org_id" "orgId",
+    t1."org_name" "orgName",
+    t1."nodes"
+    from "mw_sys_org" t1
+    left join "mw_org_mapper" t2  on t1."org_id" = t2."org_id"
+    where t2."type"='RULE' and t2."type_id" = #{ruleId}
+  </select>
+
+    <select id="selectGroup" parameterType="java.lang.String" resultType="cn.mw.monitor.service.action.param.GroupDTO">
+        select
+        t1."group_id"  "groupId",
+        t1."group_name" "groupName"
+        from "mw_group_table"  t1
+        left join ${TBSNAME}."mw_group_mapper" t2 on t1."group_id" = t2."group_id"
+        where t2."type"='RULE' and t2."type_id" = #{ruleId}
+    </select>
+    <select id="getRuleListByActionTypeIds" resultType="java.util.Map">
+        select "rule_id" as "ruleId","rule_name" as "ruleName" from ${TBSNAME}."mw_alert_rule" where "delete_flag"=0
+        <if test="actionIds!=null and actionIds.size()>0">
+            and
+            "action_type" in
+            <foreach collection="actionIds" item="item" index="index" separator="," open="(" close=")">
+                #{item}
+            </foreach>
+        </if>
+        <if test="isSystem == false">
+            and FIND_IN_SET("rule_id",#{listSet})
+        </if>
+    </select>
+
+
+    <select id="getActionType" resultType="java.util.Map">
+     select "id","action_type" as "actionType" from ${TBSNAME}."mw_alert_action_type"
+    </select>
+    <select id="getActionTypeByRuleId" resultType="java.lang.Integer">
+        select "action_type" from ${TBSNAME}."mw_alert_rule" where "rule_id"=#{ruleId}
+    </select>
+
+    <select id="selectEmailByUser" parameterType="java.util.ArrayList" resultType="java.lang.String">
+        select
+        "email"
+        from ${TBSNAME}."mw_sys_user"
+        where "user_id" in (
+        <foreach collection="list" item="item" separator=",">
+            #{item}
+        </foreach>
+        )
+    </select>
+    <select id="findAliyunYuYinMessage" resultType="cn.mw.monitor.util.entity.AliYunYuYinlParam">
+        select "rule_id" "ruleId",
+            "access_key_id" "accessKeyId",
+            "access_key_secret" "accessKeySecret",
+            "tts_code" "ttsCode",
+            "called_show_number" "calledShowNumber"
+        from ${TBSNAME}."mw_alert_aliyun_yuyin_rule"
+        where "rule_id" = #{ruleId}
+    </select>
+
+    <select id="findTengxunsmsMessage" resultType="cn.mw.monitor.util.entity.TengXunSmsFromEntity">
+        select "rule_id" "ruleId",
+            "sign_name" "signName",
+            "secret_id" "secretId",
+            "secret_key" "secretKey",
+            "template_id" "templateId",
+            "app_id" "appId",
+            "recovery_template_id" "recoveryTemplateId"
+        from ${TBSNAME}."mw_alert_tengxunsms_rule"
+        where "rule_id" = #{ruleId}
+    </select>
+
+    <select id="findHuaweismsMessage" resultType="cn.mw.monitor.util.entity.HuaWeiSmsFromEntity">
+        select "rule_id" "ruleId",
+            "app_key" "appKey",
+            "app_secret" "appSecret",
+            "sender",
+            "template_id" "templateId",
+            "sign_name" "signName",
+            "recovery_template_id" "recoveryTemplateId"
+        from ${TBSNAME}."mw_alert_huaweisms_rule"
+        where "rule_id" = #{ruleId}
+    </select>
+
+    <select id="findWeLinkMessage" resultType="cn.mw.monitor.service.alert.dto.WeLinkRuleParam">
+        select "rule_id" "ruleId",
+            "app_id" "appId",
+            "app_secret" "appSecret",
+            "public_accid" "publicAccId"
+        from ${TBSNAME}."mw_alert_welink_rule"
+        where "rule_id" = #{ruleId}
+    </select>
+
+    <select id="findHuaXingMessage" resultType="cn.mw.monitor.util.entity.HuaXingRuleParam">
+        select "rule_id" "ruleId",
+            "app_id" "appId",
+            "app_key" "appSecret",
+            "plugin_id" "pluginId",
+            "token" "token",
+            "url" "url",
+            "sender" "sender",
+            "session_type" "sessionType"
+        from ${TBSNAME}."mw_alert_huaxing_rule"
+        where "rule_id" = #{ruleId}
+    </select>
+
+    <select id="findHuaXingYuyinMessage" resultType="cn.mw.monitor.util.entity.HuaXingYuYinRuleParam">
+        select "rule_id" "ruleId",
+               "tpl_id" "tplId",
+               "app_key" "appKey",
+               "url" "url"
+        from ${TBSNAME}."mw_alert_huaxing_yuyin_table"
+        where "rule_id" = #{ruleId}
+    </select>
+
+    <select id="selectSubUserId" resultType="java.lang.Integer">
+        SELECT t1."user_id"
+        FROM "mw_alert_user_subscribe_rule_table" t1,
+             "mw_alert_user_subscribe_modelsystem_table"  t2
+        WHERE t1."user_id"=t2."user_id" AND t2."model_system" = #{modelSystem} and t1."rule_id" = #{ruleId}
+    </select>
+
+</mapper>

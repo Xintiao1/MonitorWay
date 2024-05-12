@@ -1,0 +1,373 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.mw.monitor.TPServer.dao.MwTPServerTableDao">
+    <resultMap id="ParentMap" type="cn.mw.monitor.TPServer.model.MwTPServerTable">
+        <id column="id" jdbcType="INTEGER" property="id" />
+        <result column="monitoring_server_name" jdbcType="VARCHAR" property="monitoringServerName" />
+        <result column="monitoring_server_ip" jdbcType="VARCHAR" property="monitoringServerIp" />
+        <result column="monitoring_server_url" jdbcType="VARCHAR" property="monitoringServerUrl" />
+        <result column="monitoring_server_user" jdbcType="VARCHAR" property="monitoringServerUser" />
+        <result column="monitoring_server_password" jdbcType="VARCHAR" property="monitoringServerPassword" />
+        <result column="monitoring_server_version" jdbcType="VARCHAR" property="monitoringServerVersion" />
+        <result column="monitoring_server_type" jdbcType="VARCHAR" property="monitoringServerType" />
+        <result column="main_server" jdbcType="BIT" property="mainServer"/>
+        <result column="creator" jdbcType="VARCHAR" property="creator" />
+        <result column="create_date" jdbcType="TIMESTAMP" property="createDate" />
+        <result column="modifier" jdbcType="VARCHAR" property="modifier" />
+        <result column="modification_date" jdbcType="TIMESTAMP" property="modificationDate" />
+        <result column="delete_flag" jdbcType="BIT" property="deleteFlag"/>
+        <result column="encrypted_flag" jdbcType="BIT" property="encryptedFlag"/>
+    </resultMap>
+
+    <resultMap id="BaseResultMap" type="cn.mw.monitor.TPServer.dto.MwTPServerDTO" extends="ParentMap">
+    </resultMap>
+
+
+    <sql id="Select_Column_List">
+        "id",
+        "monitoring_server_name",
+        "monitoring_server_ip",
+        "monitoring_server_url",
+        "monitoring_server_user",
+        "monitoring_server_password",
+        "monitoring_server_version",
+        "monitoring_server_type",
+        "main_server",
+        "creator",
+        "create_date",
+        "modifier",
+        "modification_date",
+        "delete_flag",
+        "encrypted_flag"
+  </sql>
+
+    <sql id="Base_Column_List">
+        "monitoring_server_name",
+        "monitoring_server_ip",
+        "monitoring_server_url",
+        "monitoring_server_user,"
+        "monitoring_server_password",
+        "monitoring_server_version",
+        "monitoring_server_type",
+        "main_server,"
+        "creator",
+        "create_date",
+        "modifier",
+        "modification_date",
+        "delete_flag",
+        "encrypted_flag"
+  </sql>
+
+    <sql id="tb">
+    ${TBSNAME}."mw_thirdparty_server_table"
+  </sql>
+
+    <sql id="criteria">
+        <if test="monitoringServerName != null and monitoringServerName != ''">
+            and "monitoring_server_name" like '%'||#{monitoringServerName}||'%'
+        </if>
+        <if test="monitoringServerIp != null and monitoringServerIp !=''">
+            and "monitoring_server_ip" = #{monitoringServerIp}
+        </if>
+        <if test="monitoringServerUrl != null and monitoringServerUrl !=''">
+            and "monitoring_server_url" like '%'||#{monitoringServerUrl}||'%'
+        </if>
+        <if test="monitoringServerUser != null and monitoringServerUser !=''">
+            and "monitoring_server_user" = #{monitoringServerUser}
+        </if>
+        <if test="monitoringServerPassword != null and monitoringServerPassword !=''">
+            and "monitoring_server_password" = #{monitoringServerPassword}
+        </if>
+        <if test="monitoringServerVersion != null and monitoringServerVersion !=''">
+            and "monitoring_server_version" = #{monitoringServerVersion}
+        </if>
+        <if test="monitoringServerType != null and monitoringServerType !=''">
+            and "monitoring_server_type" = #{monitoringServerType}
+        </if>
+        <if test="mainServer != null">
+            and "main_server" = #{mainServer}
+        </if>
+        <if test="creator != null and creator != ''">
+            and "creator" = #{creator}
+        </if>
+        <if test="createDateStart != null">
+            AND  <![CDATA[#{createDateStart} <= "create_date" ]]>
+        </if>
+        <if test="createDateEnd != null">
+            AND <![CDATA[#{createDateEnd} >= "create_date" ]]>
+        </if>
+        <if test="modifier != null and modifier != ''">
+            AND modifier LIKE '%'||#{modifier}||'%'
+        </if>
+        <if test="modificationDateStart != null">
+            AND  <![CDATA[#{modificationDateStart} <= "modification_date" ]]>
+        </if>
+        <if test="modificationDateEnd != null">
+            AND <![CDATA[#{modificationDateEnd} >= "modification_date" ]]>
+        </if>
+        <if test="fuzzyQuery!= null and fuzzyQuery !='' ">
+            and (
+            NVL( "monitoring_server_name", '' )||
+            NVL( "monitoring_server_ip", '' )||
+            NVL( "monitoring_server_url", '' )||
+            NVL( "monitoring_server_type", '' )||
+            NVL( "monitoring_server_version", '' )||
+            NVL( "creator", '' )||
+            NVL( "modifier", '' )
+            ) LIKE '%'||#{fuzzyQuery}||'%'
+            ORDER BY
+            ( CASE WHEN INSTR( "monitoring_server_name", #{fuzzyQuery}) > 0 THEN 0 ELSE 1 END ),
+            ( CASE WHEN INSTR( "monitoring_server_ip", #{fuzzyQuery}) > 0 THEN 0 ELSE 1 END ),
+            ( CASE WHEN INSTR( "monitoring_server_type", #{fuzzyQuery}) > 0 THEN 0 ELSE 1 END ),
+            ( CASE WHEN INSTR( "monitoring_server_version", #{fuzzyQuery}) > 0 THEN 0 ELSE 1 END ),
+            ( CASE WHEN INSTR( "modifier", #{fuzzyQuery}) > 0 THEN 0 ELSE 1 END ),
+            ( CASE WHEN INSTR( "creator", #{fuzzyQuery} ) > 0 THEN 0 ELSE 1 END )
+        </if>
+        <if test="systemUser == false">
+            and instr(#{list},"id")>0
+        </if>
+    </sql>
+
+    <select id="selectById" parameterType="int" resultMap="BaseResultMap">
+        select
+        <include refid="Select_Column_List" />
+        from
+        <include refid="tb" /> t1
+        where t1."id" = #{id,jdbcType=INTEGER}
+    </select>
+
+    <update id="delete" parameterType="java.util.List">
+        update
+        <include refid="tb" />
+        set "delete_flag" = 1
+        where "id" in (
+        <foreach collection="list" item="id" separator=",">
+            #{id,jdbcType=INTEGER}
+        </foreach>
+        )
+    </update>
+
+    <insert id="insert" parameterType="cn.mw.monitor.TPServer.dto.AddOrUpdateTPServerParam">
+        <selectKey keyProperty="id" order="BEFORE" resultType="java.lang.Integer">
+            select  ${TBSNAME}.SEQ_MW_THIRDPARTY_SERVER_TABLE.NEXTVAL as "id" from DUAL
+        </selectKey>
+        insert into
+        <include refid="tb"/>
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            "id",
+            <if test="monitoringServerName != null">
+                "monitoring_server_name",
+            </if>
+            <if test="monitoringServerIp != null">
+                "monitoring_server_ip",
+            </if>
+            <if test="monitoringServerUrl != null">
+                "monitoring_server_url",
+            </if>
+            <if test="monitoringServerUser != null">
+                "monitoring_server_user",
+            </if>
+            <if test="monitoringServerPassword != null">
+                "monitoring_server_password",
+            </if>
+            <if test="monitoringServerVersion != null">
+                "monitoring_server_version",
+            </if>
+            <if test="monitoringServerType != null">
+                "monitoring_server_type",
+            </if>
+            <if test="mainServer != null">
+                "main_server",
+            </if>
+            <if test="creator != null">
+                "creator",
+            </if>
+            "create_date",
+            <if test="modifier != null">
+                "modifier",
+            </if>
+            "modification_date",
+            <if test="deleteFlag != null">
+                "delete_flag"
+            </if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+           #{id},
+            <if test="monitoringServerName != null">
+                #{monitoringServerName},
+            </if>
+            <if test="monitoringServerIp != null">
+                #{monitoringServerIp},
+            </if>
+            <if test="monitoringServerUrl != null">
+                #{monitoringServerUrl},
+            </if>
+            <if test="monitoringServerUser != null">
+                #{monitoringServerUser},
+            </if>
+            <if test="monitoringServerPassword != null">
+                #{monitoringServerPassword},
+            </if>
+            <if test="monitoringServerVersion != null">
+                #{monitoringServerVersion},
+            </if>
+            <if test="monitoringServerType != null">
+                #{monitoringServerType},
+            </if>
+            <if test="mainServer != null">
+                #{mainServer},
+            </if>
+            <if test="creator != null">
+                #{creator},
+            </if>
+            SYSDATE,
+            <if test="modifier != null">
+                #{modifier},
+            </if>
+            SYSDATE,
+            <if test="deleteFlag != null">
+                #{deleteFlag}
+            </if>
+        </trim>
+    </insert>
+
+    <update id="update" parameterType="cn.mw.monitor.TPServer.dto.AddOrUpdateTPServerParam">
+        update
+        <include refid="tb"/>
+        <set>
+            <if test="monitoringServerName != null">
+                "monitoring_server_name" = #{monitoringServerName},
+            </if>
+            <if test="monitoringServerIp != null">
+                "monitoring_server_ip" = #{monitoringServerIp},
+            </if>
+            <if test="monitoringServerUrl != null">
+                "monitoring_server_url" = #{monitoringServerUrl},
+            </if>
+            <if test="monitoringServerUser != null">
+                "monitoring_server_user" = #{monitoringServerUser},
+            </if>
+            <if test="monitoringServerPassword != null">
+                "monitoring_server_password" = #{monitoringServerPassword},
+            </if>
+            <if test="monitoringServerVersion != null">
+                "monitoring_server_version" = #{monitoringServerVersion},
+            </if>
+            <if test="monitoringServerType != null">
+                "monitoring_server_type" = #{monitoringServerType},
+            </if>
+            <if test="mainServer != null">
+                "main_server" = #{mainServer},
+            </if>
+            <if test="modifier != null">
+                "modifier" = #{modifier},
+            </if>
+            <if test="modificationDate != null">
+                "modification_date" = SYSDATE,
+            </if>
+            <if test="deleteFlag != null">
+                "delete_flag" = #{deleteFlag}
+            </if>
+        </set>
+        where "id" = #{id}
+    </update>
+
+
+    <select id="selectPubList" parameterType="cn.mw.monitor.TPServer.dto.QueryTPServerParam"
+            resultMap="BaseResultMap">
+        select
+        <include refid="Select_Column_List"></include>
+        from  ${TBSNAME}."mw_thirdparty_server_table"
+        where "delete_flag" = 0
+        <include refid="criteria"></include>
+    </select>
+
+    <select id="selectDropdownListByType" resultType="cn.mw.monitor.TPServer.dto.TPServerDropdownDTO">
+        select "id","monitoring_server_name" as "monitoringServerName"
+        from
+        <include refid="tb"></include>
+        where "delete_flag" = 0
+    </select>
+
+    <select id="selectDropdownList" resultType="cn.mw.monitor.service.dropdown.param.DropdownDTO">
+        select "id" as "dropKey", "monitoring_server_name" as "dropValue"
+        from
+        <include refid="tb"></include>
+        where "delete_flag" = 0
+    </select>
+
+    <select id="selectByMainServerIsTrue" resultType="cn.mw.monitor.TPServer.dto.TPServerDropdownDTO">
+        select "id","monitoring_server_name" as "monitoringServerName"
+        from
+        <include refid="tb"></include>
+        where "delete_flag" = 0 and "main_server" = 1
+    </select>
+
+    <select id="check" resultType="cn.mw.monitor.TPServer.dto.TPServerDropdownDTO" parameterType="java.lang.String">
+        select "id","monitoring_server_name" as "monitoringServerName"
+        from
+        <include refid="tb"></include>
+        where "delete_flag" = 0 and "monitoring_server_ip" = #{ip}
+    </select>
+
+    <select id="selectAssetsByMonitorServer" resultType="java.lang.String" parameterType="java.util.List">
+        select "id" from ${TBSNAME}."mw_tangibleassets_table" where "delete_flag" = 0 and "monitor_server_id" in (
+        <foreach collection="list" item="id" separator=",">
+            #{id}
+        </foreach>)
+    </select>
+
+    <select id="selectEngineByMonitorServer" resultType="java.lang.String" parameterType="java.util.List">
+        select "id" from ${TBSNAME}."mw_enginemanage_table" where "delete_flag" = 0 and "monitor_server_id" in (
+        <foreach collection="list" item="id" separator=",">
+            #{id}
+        </foreach>)
+    </select>
+
+    <select id="fuzzSearchAllFiled" resultType="java.util.Map">
+        SELECT
+            "monitoring_server_name",
+            "monitoring_server_ip",
+            "monitoring_server_type",
+            "monitoring_server_version",
+            "creator",
+            "modifier"
+        FROM
+            ${TBSNAME}."mw_thirdparty_server_table"
+        WHERE
+        "delete_flag" = 0
+        and (
+            NVL( "monitoring_server_name", '' )||
+            NVL( "monitoring_server_ip", '' )||
+            NVL( "monitoring_server_url", '' )||
+            NVL( "monitoring_server_type", '' )||
+            NVL( "monitoring_server_version", '' )||
+            NVL( "creator", '' )||
+            NVL( "modifier", '' )
+            ) LIKE '%'||#{fuzzyQuery}||'%'
+            ORDER BY
+            ( CASE WHEN INSTR( "monitoring_server_name", #{fuzzyQuery}) > 0 THEN 0 ELSE 1 END ),
+            ( CASE WHEN INSTR( "monitoring_server_ip", #{fuzzyQuery}) > 0 THEN 0 ELSE 1 END ),
+            ( CASE WHEN INSTR( "monitoring_server_type", #{fuzzyQuery}) > 0 THEN 0 ELSE 1 END ),
+            ( CASE WHEN INSTR( "monitoring_server_version", #{fuzzyQuery}) > 0 THEN 0 ELSE 1 END ),
+            ( CASE WHEN INSTR( "modifier", #{fuzzyQuery}) > 0 THEN 0 ELSE 1 END ),
+            ( CASE WHEN INSTR( "creator", #{fuzzyQuery} ) > 0 THEN 0 ELSE 1 END )
+    </select>
+
+    <select id="selectAll" parameterType="int" resultMap="BaseResultMap">
+        select
+        <include refid="Select_Column_List" />
+        from
+        <include refid="tb" /> t1
+        where t1."delete_flag" = 0
+    </select>
+    <select id="selectTpServerByIps" resultType="cn.mw.monitor.service.tpserver.dto.MwTpServerCommonsDto" parameterType="java.lang.String">
+        select "id" as "serverId","monitoring_server_name" as "monitoringServerName"
+        from
+        <include refid="tb"></include>
+        where "delete_flag" = 0 and "monitoring_server_ip" in (
+        <foreach collection="ips" item="id" separator=",">
+            #{id ,jdbcType=INTEGER}
+        </foreach>)
+    </select>
+</mapper>

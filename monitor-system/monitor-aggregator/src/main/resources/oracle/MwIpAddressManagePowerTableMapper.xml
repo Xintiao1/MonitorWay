@@ -1,0 +1,1859 @@
+<?xml version="1.0" encoding="UTF-8"?>
+        <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.mw.monitor.ipaddressmanage.dao.MwIpAddressManagePowerTableDao">
+
+
+<sql id="timeGroup">
+        (
+          SELECT '00' "create_time" FROM dual union all SELECT '12' "create_time" FROM dual union all
+        SELECT '01' "create_time" FROM dual union all SELECT  '13' "create_time" FROM dual union all
+        SELECT '02' "create_time" FROM dual union all SELECT '14' "create_time" FROM dual union all
+        SELECT '03' "create_time" FROM dual union all SELECT '15' "create_time" FROM dual union all
+        SELECT '04' "create_time" FROM dual union all SELECT '16' "create_time" FROM dual union all
+        SELECT '05' "create_time" FROM dual union all SELECT '17' "create_time" FROM dual union all
+        SELECT '06' "create_time" FROM dual union all SELECT '18' "create_time" FROM dual union all
+        SELECT '07' "create_time" FROM dual union all SELECT '19' "create_time" FROM dual union all
+        SELECT '08' "create_time" FROM dual union all SELECT '20' "create_time" FROM dual union all
+        SELECT '09' "create_time" FROM dual union all SELECT '21' "create_time" FROM dual union all
+        SELECT '10' "create_time" FROM dual union all SELECT '22' "create_time" FROM dual union all
+        SELECT '11' "create_time" FROM dual union all SELECT '23' "create_time" FROM dual) a
+    </sql>
+
+
+<select id="selectListbrow" resultType="java.lang.String">
+  select "已使用" as drop_value from dual
+  </select>
+
+<select id="selectCountDistribution" resultType="java.lang.Integer">
+    <choose>
+        <when test="s=='IPv4'">
+            SELECT count(*) FROM ${TBSNAME}."mw_ipaddressmanagelist_table" WHERE "id" in
+            <foreach collection="ids" item="id" separator="," open="(" close=")">
+                #{id}
+            </foreach>
+            AND "distribution_status" = #{status}
+        </when>
+        <otherwise>
+            SELECT count(*) FROM "mw_ipv6managelist_table" WHERE "id" in
+            <foreach collection="ids" item="id" separator="," open="(" close=")">
+                #{id}
+            </foreach>
+            AND "distribution_status" = #{status}
+        </otherwise>
+    </choose>
+</select>
+
+<select id="selectResponIpDistributtionParam"
+        resultType="cn.mw.monitor.ipaddressmanage.param.ResponIpDistributtionParam">
+    <choose>
+        <when test="s=='IPv4'">
+            SELECT a."ip_address" as "primary_ip",a."id" FROM ${TBSNAME}."mw_ipaddressmanagelist_table" a WHERE "id"
+            =#{id}
+        </when>
+        <otherwise>
+            SELECT a."ip_address" as "primary_ip",a."id" FROM "mw_ipv6managelist_table" a WHERE "id" =#{id}
+        </otherwise>
+    </choose>
+</select>
+
+<select id="selectListradio" resultType="cn.mw.monitor.ipaddressmanage.param.Check">
+                SELECT a.label as key_name ,a.id as key_value,false as radio_status, false as key_test_value_type FROM
+                "mw_ipaddressmanage_table" a WHERE radio_status =1
+            union all
+                SELECT a.label as key_name ,a.id as key_value,false as radio_status, true as key_test_value_type FROM
+                "mw_ipv6manage_table" a WHERE radio_status =1
+    </select>
+
+<select id="selectListradioTwo" resultType="cn.mw.monitor.ipaddressmanage.param.Check">
+    SELECT a.label as label ,a.id as key_value,false as radio_status, false as key_test_value_type FROM
+    "mw_ipaddressmanage_table" a WHERE id in
+    <foreach collection="id" item="id" separator="," open="(" close=")">
+        #{id}
+    </foreach>
+</select>
+
+<select id="selectIPaddress" resultType="java.lang.Integer">
+    SELECT "id" FROM ${TBSNAME}."mw_ipaddressmanagelist_table" where "ip_address" in
+    <foreach collection="strings" item="strings" separator="," open="(" close=")">
+        #{strings}
+    </foreach>
+    AND "distribution_status" = #{i}
+    UNION ALL
+    SELECT "id" FROM "mw_ipv6managelist_table" where "ip_address" in
+    <foreach collection="strings" item="strings" separator="," open="(" close=")">
+        #{strings}
+    </foreach>
+    AND "distribution_status" = #{i}
+</select>
+
+<insert id="inster">
+    INSERT All
+    <foreach collection="responIpDistributtionParamsAdd" item="strings">
+        INTO "mw_ip_distribution"("id", "primary_ip", "primary_type", "iplist_type",
+        <if test="requestIpAddressDistributtionSeniorParam.orgIds!=null">
+            "orgIds",
+        </if>
+        <if test="requestIpAddressDistributtionSeniorParam.orgtext!=null">
+            "orgtext",
+        </if>
+        <if test="requestIpAddressDistributtionSeniorParam.oa!=null">
+            "oa",
+        </if>
+        <if test="requestIpAddressDistributtionSeniorParam.oatext!=null">
+            "oatext",
+        </if>
+        <if test="requestIpAddressDistributtionSeniorParam.oaurl!=null">
+            "oaurl",
+        </if>
+        <if test="requestIpAddressDistributtionSeniorParam.oaurltext!=null">
+            "oaurltext",
+        </if>
+        <if test="requestIpAddressDistributtionSeniorParam.oaurltext!=null">
+            "oaurltext",
+        </if>
+        "iplist_id","ipgroup_id","ipgroup_type", "bang_distri") VALUES
+        (
+        null,
+        #{strings.id},
+        #{tyle},
+        #{strings.choseType},
+        <if test="requestIpAddressDistributtionSeniorParam.orgIds!=null">
+            #{org},
+        </if>
+        <if test="requestIpAddressDistributtionSeniorParam.orgtext!=null">
+            #{orgtest},
+        </if>
+        <if test="requestIpAddressDistributtionSeniorParam.oa!=null">
+            #{requestIpAddressDistributtionSeniorParam.oa},
+        </if>
+        <if test="requestIpAddressDistributtionSeniorParam.oatext!=null">
+            #{requestIpAddressDistributtionSeniorParam.oatext},
+        </if>
+        <if test="requestIpAddressDistributtionSeniorParam.oaurl!=null">
+            #{requestIpAddressDistributtionSeniorParam.oaurl},
+        </if>
+        <if test="requestIpAddressDistributtionSeniorParam.oaurltext!=null">
+            #{requestIpAddressDistributtionSeniorParam.oaurltext},
+        </if>
+        #{strings.chose},
+        #{strings.keyValue},
+        #{strings.choseType},
+        #{strings.bangDistri}
+        )
+    </foreach>
+    SELECT 1 from dual
+</insert>
+
+<update id="UpdateIPListDistributionTrue">
+    UPDATE ${TBSNAME}."mw_ipaddressmanagelist_table" SET "distribution_status" = #{type} WHERE "id" in
+    <foreach collection="id" item="strings" separator="," open="(" close=")">
+        #{strings}
+    </foreach>
+</update>
+
+<update id="UpdateIPV6ListDistributionTrue">
+    UPDATE "mw_ipv6managelist_table" SET "distribution_status" = #{type} WHERE "id" in
+    <foreach collection="id" item="strings" separator="," open="(" close=")">
+        #{strings}
+    </foreach>
+</update>
+
+
+<insert id="insterApplicant" parameterType="cn.mw.monitor.ipaddressmanage.dto.IpamProcessHistoryDTO">
+    <selectKey keyProperty="id" order="BEFORE" resultType="java.lang.Integer">
+        select ${TBSNAME}.SEQ_MW_SOLAR_TIME.NEXTVAL as "id" from DUAL
+    </selectKey>
+    INSERT INTO "mw_ipam_process_history"("id","applicant", "applicant_date") VALUES (#{id}, #{applicant}, SYSDATE)
+  </insert>
+
+<insert id="insterOperHistoryDTO">
+    INSERT INTO "mw_ipam_oper_history"("id", "type", "creator", "create_date", "applicant", "ip_type", "rlist_id","descript","bang_distri")
+     VALUES
+    (${TBSNAME}.SEQ_MW_VISUALIZED_CLASSIFY.NEXTVAL,
+    #{ipamOperHistoryDTO.type}, #{ipamOperHistoryDTO.creator}, #{ipamOperHistoryDTO.createDate}, #{ipamOperHistoryDTO.applicant}, #{ipamOperHistoryDTO.ipType}, #{ipamOperHistoryDTO.rlistId},#{ipamOperHistoryDTO.desc},#{ipamOperHistoryDTO.bangDistri})
+
+  </insert>
+
+
+<select id="selectIPaddressId" resultType="java.lang.Integer">
+        SELECT "id" FROM ${TBSNAME}."mw_ipaddressmanagelist_table" where "ip_address" = #{keyTestValue}
+    <if test="signId==1">
+        and  ("sign_id"=#{signId} or "sign_id" is null)
+    </if>
+    <if test="signId!=1">
+        and  "sign_id"=#{signId}
+    </if>
+        UNION ALL
+        SELECT "id" FROM "mw_ipv6managelist_table" where "ip_address" = #{keyTestValue}
+    <if test="signId==1">
+        and  ("sign_id"=#{signId} or "sign_id" is null)
+    </if>
+    <if test="signId!=1">
+        and  "sign_id"=#{signId}
+    </if>
+    </select>
+
+<select id="selectCheck" resultType="cn.mw.monitor.ipaddressmanage.param.CleanParam">
+    <choose>
+        <when test="iptype=='IPv4'">
+            SELECT a."label" as "key_name" , b.id,a."id" as "key_value",'true' as "radio_status", 'false' as
+            "key_test_value_type",'false' as "new_radio",
+            b.ip_address as key_test_value FROM
+            "mw_ipaddressmanage_table" a,(SELECT b.id,b.ip_address,a.iplist_type,a.ipgroup_id FROM
+            "mw_ip_distribution"
+            a,mw_ipaddressmanagelist_table b where primary_ip = #{s} AND primary_type = 0 AND a.iplist_id = b.id) b
+            where a.id
+            =b.ipgroup_id
+            UNION ALL
+            SELECT a.label as key_name ,b.id,a.id as key_value,true as radio_status, true as
+            key_test_value_type,false as new_radio,
+            b.ip_address as key_test_value FROM
+            "mw_ipaddressmanage_table" a,(SELECT b.id, b.ip_address,a.iplist_type,a.ipgroup_id FROM
+            "mw_ip_distribution"
+            a,mw_ipv6managelist_table b where primary_ip = #{s} AND primary_type = 0 AND a.iplist_id = b.id) b where
+            a.id =b.ipgroup_id
+        </when>
+        <otherwise>
+            SELECT a.label as key_name , b.id,a.id as key_value,true as radio_status, false as
+            key_test_value_type,false as new_radio,
+            b.ip_address as key_test_value FROM
+            "mw_ipaddressmanage_table" a,(SELECT b.id,b.ip_address,a.iplist_type,a.ipgroup_id FROM
+            "mw_ip_distribution"
+            a,mw_ipaddressmanagelist_table b where primary_ip = #{s} AND primary_type = 1 AND a.iplist_id = b.id
+
+            ) b where a.id
+            =b.ipgroup_id
+            UNION ALL
+            SELECT a.label as key_name ,b.id,a.id as key_value,true as radio_status, true as
+            key_test_value_type,false as new_radio,
+            b.ip_address as key_test_value FROM
+            "mw_ipaddressmanage_table" a,(SELECT b."id", b."ip_address",a."iplist_type",a."ipgroup_id" FROM
+            "mw_ip_distribution"
+            a,"mw_ipv6managelist_table" b where "primary_ip" = #{s} AND "primary_type" = 1 AND a."iplist_id" =
+            b."id"
+
+            ) b where a."id" =b."ipgroup_id"
+        </otherwise>
+    </choose>
+
+
+</select>
+
+
+<select id="selectPrimary" resultType="java.util.Map">
+    <choose>
+        <when test="iptype=='IPv4'">
+            SELECT "ipgroup_id" as "primary_ip",
+            "ipgroup_type" as "primary_type" FROM (
+            SELECT "ipgroup_id" ,"ipgroup_type" FROM "mw_ip_distribution" WHERE "primary_ip" = #{s} AND
+            "primary_type" =0
+            <if test="getBangDistri != '' and getBangDistri != null">
+                and "bang_distri" = #{getBangDistri}
+            </if>
+            <if test="getBangDistri == '' or getBangDistri == null">
+                and ("bang_distri" is null or "bang_distri"='')
+            </if>
+            union all
+            SELECT "ipgroup_id", "ipgroup_type" FROM "mw_ip_distribution" WHERE "iplist_id" = #{s} AND "iplist_type"
+            =0
+            <if test="getBangDistri != '' and getBangDistri != null">
+                and "bang_distri" = #{getBangDistri}
+            </if>
+            <if test="getBangDistri == '' or getBangDistri == null">
+                and ("bang_distri" is null or bang_distri='')
+            </if>
+            ) a
+           where rownum =1
+        </when>
+        <otherwise>
+            SELECT "ipgroup_id" as "primary_ip",
+            "ipgroup_type" as "primary_type" FROM (
+            SELECT "ipgroup_id" ,"ipgroup_type" FROM "mw_ip_distribution" WHERE "primary_ip" = #{s} AND
+            "primary_type" =1
+            <if test="getBangDistri != '' and getBangDistri != null">
+                and "bang_distri" = #{getBangDistri}
+            </if>
+            <if test="getBangDistri == '' or getBangDistri == null">
+                and ("bang_distri" is null or "bang_distri"='')
+            </if>
+            union all
+            SELECT "ipgroup_id", "ipgroup_type" FROM "mw_ip_distribution" WHERE "iplist_id" = #{s} AND "iplist_type"
+            =1
+            <if test="getBangDistri != '' and getBangDistri != null">
+                and "bang_distri" = #{getBangDistri}
+            </if>
+            <if test="getBangDistri == '' or getBangDistri == null">
+                and ("bang_distri" is null or "bang_distri"='')
+            </if>
+            ) a
+            where rownum =1
+        </otherwise>
+    </choose>
+</select>
+
+
+<select id="selectAplicant" resultType="cn.mw.monitor.ipaddressmanage.dto.IpamProcessHistoryDTO">
+    <choose>
+        <when test="iptype=='IPv4'">
+            SELECT * FROM ( SELECT a.*,b."create_date" as "create_time" FROM "mw_ipam_process_history" a,
+            "mw_ipam_oper_history" b WHERE a."id" = b."applicant" AND b."rlist_id" = #{s} AND b."ip_type" = 0 AND
+            b."type" = 0
+            <if test="getBangDistri != '' and getBangDistri != null">
+                and (b."bang_distri" = #{getBangDistri} or b."bang_distri" is null )
+            </if>
+            <if test="getBangDistri == '' or getBangDistri == null">
+                and b."bang_distri" is null
+            </if>
+            )
+            c where rownum =1 ORDER BY "create_time" desc
+        </when>
+        <otherwise>
+            SELECT * FROM ( SELECT a.*,b."create_date" as "create_time" FROM "mw_ipam_process_history" a,
+            "mw_ipam_oper_history" b WHERE a."id" = b."applicant" AND b."rlist_id" = #{s} AND b."ip_type" = 1 AND
+            b."type" = 0
+            <if test="getBangDistri != '' and getBangDistri != null">
+                and b."bang_distri" = #{getBangDistri}
+            </if>
+            <if test="getBangDistri == '' or getBangDistri == null">
+                and b."bang_distri" is null
+            </if>
+            )
+            c where rownum =1 ORDER BY "create_time" desc
+        </otherwise>
+    </choose>
+</select>
+
+<select id="selectAplicantById" resultType="cn.mw.monitor.ipaddressmanage.dto.IpamProcessHistoryDTO">
+        SELECT * FROM "mw_ipam_process_history" where  "id" =#{s}
+    </select>
+
+<select id="selectAplicantGroupbyApplicant" resultType="cn.mw.monitor.ipaddressmanage.dto.IpamOperHistoryDTO">
+    SELECT * FROM "mw_ipam_oper_history" WHERE 1=1 and "create_date" &lt; '2022-09-01'
+    <if test="type!=-1 ">
+        and "type" =#{type}
+    </if>
+    <if test="applicant!=-1">
+        and "applicant" = #{applicant}
+    </if>
+    <if test="group==1">
+        group by "applicant"
+    </if>
+</select>
+
+<delete id="deleteDstribution">
+   DELETE from "mw_ip_distribution" WHERE "primary_ip" =#{s}  AND  "primary_type" =#{type}
+    </delete>
+
+<select id="selectOperHistory" resultType="cn.mw.monitor.ipaddressmanage.param.ResponseIpAddressOperHistoryParamOB">
+    SELECT
+    f.*,
+    g."login_name" AS "applicant"
+    FROM
+    (
+    SELECT
+    d.*,
+    e."applicant" AS "user_id",
+    e."applicant_date",
+    e."id" AS "labelLinkId"
+    FROM
+    (
+    SELECT
+    a.*,
+    b."recovery_date",
+    b."director",
+    b."recoveryer",
+    b."recovery_id"
+    FROM
+    (
+    SELECT
+    "create_date" AS "distributtion_date",
+    "id" AS "distributtion_id",
+    "rlist_id" AS "save_id",
+    "applicant" AS "applicant_id",
+    "creator" AS "distributtioner"
+    FROM
+    "mw_ipam_oper_history"
+    WHERE
+    "ip_type" = #{type}
+    AND "type" = 0
+    AND "rlist_id" = #{s}
+    ) a
+    LEFT JOIN (
+    SELECT
+    "create_date" AS "recovery_date",
+    "id" AS "recovery_id",
+    "rlist_id" AS "kill_id",
+    "applicant",
+    "creator" AS "recoveryer",
+    "creator" AS "director"
+    FROM
+    "mw_ipam_oper_history"
+    WHERE
+    "ip_type" = #{type}
+    AND "type" = 1
+    AND "rlist_id" = #{s}
+    ) b ON a."save_id" = b."kill_id"
+    AND a."applicant_id" = b."applicant"
+    ) d
+    LEFT JOIN "mw_ipam_process_history" e ON e."id" = d."applicant_id"
+    ) f
+    LEFT JOIN "mw_sys_user" g ON f."user_id" = g."user_id"
+    WHERE 1=1
+    <if test="keytype==0 and updateDateStart!= null">
+        and "distributtion_date" BETWEEN #{updateDateStart} AND #{updateDateEnd}
+    </if>
+    <if test="keytype==1 and updateDateStart!= null ">
+        and "recovery_date" BETWEEN #{updateDateStart} AND #{updateDateEnd}
+    </if>
+    group by "distributtion_date" asc
+</select>
+
+<select id="selectOperHistoryByApplicant"
+        resultType="cn.mw.monitor.ipaddressmanage.param.ResponseIpAddressOperHistoryParamOB">
+ SELECT
+    f.*,
+    g."login_name" AS "applicant"
+    FROM
+        (
+        SELECT
+            d.*,
+            e."applicant" AS "user_id",
+            e."applicant_date",
+            e."id" AS "labelLinkId"
+        FROM
+            (
+            SELECT
+                a.*,
+                b."recovery_date",
+                b."director",
+                b."recoveryer",
+                b."recovery_id"
+            FROM
+                (
+                SELECT
+                    "create_date" AS "distributtion_date",
+                    "id" AS "distributtion_id",
+                    "rlist_id" AS "save_id",
+                    "applicant" AS "applicant_id",
+                    "creator" AS "distributtioner",
+                    "descript" as "dis_desc"
+                FROM
+                    "mw_ipam_oper_history"
+                WHERE
+                    "applicant" =#{labelLinkId}
+                     and  "rlist_id" = #{linkId}
+                    AND "type" = 0
+                ) a
+                LEFT JOIN (
+                SELECT
+                    "create_date" AS "recovery_date",
+                    "id" AS "recovery_id",
+                    "rlist_id" AS "kill_id",
+                    "applicant",
+                    "creator" AS "recoveryer",
+                    "creator" AS "director",
+                        "descript" as "rec_desc"
+                FROM
+                    "mw_ipam_oper_history"
+                WHERE
+                     "applicant" =#{labelLinkId}
+                     and  "rlist_id" = #{linkId}
+                    AND "type" = 1
+                ) b ON a."save_id" = b."kill_id"
+                AND a."applicant_id" = b."applicant"
+            ) d
+            LEFT JOIN "mw_ipam_process_history" e ON e."id" = d."applicant_id"
+        ) f
+        LEFT JOIN "mw_sys_user" g ON f."user_id" = g."user_id"
+         where  rownum =1
+    </select>
+
+<select id="selectLabel" resultType="cn.mw.monitor.ipaddressmanage.param.Label">
+    SELECT
+        *
+        FROM
+        (
+        SELECT
+        "label_id",
+        "label_name",
+        "input_format",
+        "choose_add",
+        "early_warning",
+        "report",
+        "screen",
+        "dropdown_value",
+        "label_code",
+        "delete_restrict",
+        "enable",
+        "creator",
+        "create_date",
+        "modifier",
+        "modification_date",
+        "delete_flag",
+        "is_required",
+        "id",
+        "label_drop",
+        "label_drop_id",
+        "label_ip_id",
+        "test_value",
+        "drop_value",
+				"label_ip_type",
+        row_number ( ) over ( partition BY "label_id" ORDER BY "label_id" ASC ) AS "kall"
+        FROM
+        (
+        SELECT
+        c.*,
+        d."drop_value" AS "drop_value"
+        FROM
+        (
+        SELECT
+        a.*,
+        b."label_drop_id",
+        b."label_ip_id",
+		(case WHEN #{idType}='IP' THEN 1 else 0 END ) as "label_ip_type",
+        b."test_value"
+        FROM
+        (
+        SELECT
+        k.*,
+        "label_id" AS "id",
+        "label_code" AS "label_drop"
+        FROM
+        ${TBSNAME}."mw_labelmanage_table" k
+        WHERE
+        "label_id" IN ( SELECT "label_id" FROM ${TBSNAME}."mw_label_module_mapper" WHERE "module_id" = #{labelLevel} AND "delete_flag" = 0 )
+        AND "enable" = 'ACTIVE'
+        ) a
+        LEFT JOIN (
+        SELECT
+        *
+        FROM
+        (
+        SELECT
+        "type_id" AS "label_ip_id",
+        "label_id",
+        1 AS "type_label",
+        0 AS "label_drop_id",
+        to_char( "tagboard" ) AS "test_value",
+        "module_type"
+        FROM
+        ${TBSNAME}."mw_label_mapper" UNION ALL
+        SELECT
+        "type_id" AS "label_ip_id",
+        "label_id",
+        2 AS "type_label",
+        0 AS "label_drop_id",
+        to_char( "date_tagboard", 'yyyy-mm-dd hh:mm:ss' ) AS "test_value",
+        "module_type"
+        FROM
+        ${TBSNAME}."mw_label_date_mapper" UNION ALL
+        SELECT
+        "type_id" AS "label_ip_id",
+        "label_id",
+        3 AS "type_label",
+        "drop_tagboard" AS "label_drop_id",
+        '0' AS "test_value",
+        "module_type"
+        FROM
+        ${TBSNAME}."mw_label_drop_mapper"
+        ) e 	WHERE  "module_type" = 'IP' AND
+								"label_ip_id" = #{id}
+        ) b ON a."id" = b."label_id"
+        ) c
+        LEFT JOIN ${TBSNAME}."mw_dropdown_table" d ON c."label_drop_id" = d."drop_id"
+        WHERE
+        1 = 1
+        )
+        )
+        WHERE
+        "kall" = 1
+  </select>
+
+<insert id="createLabel" useGeneratedKeys="true" keyProperty="dropId"
+        parameterType="cn.mw.monitor.ipaddressmanage.param.LabelCheck">
+    INSERT INTO "mw_dropdown_table" ( "drop_id","drop_code", "drop_key", "drop_value", "update_time", "delete_flag", "drop_val" )
+    VALUES
+	(${TBSNAME}.SEQ_MW_VISUALIZED_CLASSIFY.NEXTVAL,#{param.labelDrop}, #{param.dropKey}, #{param.dropValue}, SYSDATE, 0, NULL )
+	</insert>
+
+
+<update id="deleteLabel">
+	UPDATE "mw_dropdown_table" SET  "delete_flag" = 1 WHERE "drop_id" = #{id}
+    </update>
+
+
+<select id="browDrop" resultType="cn.mw.monitor.ipaddressmanage.param.LabelCheck">
+        SELECT * FROM(
+        SELECT "drop_value" AS "dropValue", row_number ( ) over ( partition BY "drop_value" ORDER BY "drop_value" ASC ) AS "kall","drop_id" AS "dropId", "drop_code" AS "labelDrop" FROM ${TBSNAME}."mw_dropdown_table"
+        WHERE "drop_code" = #{name}
+        AND "delete_flag" = 0
+        )WHERE  "kall" = 1
+  </select>
+
+
+<select id="selectSonList" resultType="cn.mw.monitor.ipaddressmanage.param.QueryIpAddressManageListParam">
+    select * from
+    "mw_ipaddressmanagelist_table"
+    where
+    1=1 and "is_include"= 1
+    <if test="disStatus==false">
+        and "distribution_status" = 0
+    </if>
+    <if test="disStatus==true">
+        and "distribution_status" = 1
+    </if>
+    <if test="searchId !=null">
+        <if test="isALL==false">
+            and "link_id" in
+            <foreach collection="searchId" item="strings" separator="," open="(" close=")">
+                #{strings}
+            </foreach>
+        </if>
+    </if>
+    <if test="linkId !=null and linkId != ''">
+        and "link_id" = #{linkId}
+    </if>
+    <if test="search !=null and search != ''">
+        and "ip_address" like concat('%',#{search,jdbcType=VARCHAR},'%')
+    </if>
+    <if test="ipState !=null">
+        and "ip_state" = #{ipState,jdbcType=INTEGER}
+    </if>
+    <if test="online !=null">
+        and "online" = #{online,jdbcType=INTEGER}
+    </if>
+    <if test="mac !=null and mac != ''">
+        and "mac" like concat('%',#{mac,jdbcType=VARCHAR},'%')
+    </if>
+    <if test="creator !=null and creator != ''">
+        and creator like concat('%',#{creator,jdbcType=VARCHAR},'%')
+    </if>
+    <if test="createDateStart !=null">
+        and <![CDATA[#{createDateStart,jdbcType=TIMESTAMP} <= "create_date" ]]>
+    </if>
+    <if test="createDateEnd !=null">
+        and <![CDATA[#{createDateEnd,jdbcType=TIMESTAMP} > "create_date" ]]>
+    </if>
+    <if test="modifier !=null and modifier != ''">
+        and "modifier" like concat('%',#{modifier,jdbcType=VARCHAR},'%')
+    </if>
+    <if test="vendor !=null and vendor != ''">
+        and "vendor" like concat('%',#{vendor,jdbcType=VARCHAR},'%')
+    </if>
+    <if test="accessEquip !=null and accessEquip != ''">
+        and "access_equip" like concat('%',#{accessEquip,jdbcType=VARCHAR},'%')
+    </if>
+    <if test="accessPort !=null and accessPort != ''">
+        and "access_port_name" like concat('%',#{accessPortName,jdbcType=VARCHAR},'%')
+    </if>
+    <if test="assetsName !=null and assetsName != ''">
+        and "assets_name" like concat('%',#{assetsName,jdbcType=VARCHAR},'%')
+    </if>
+    <if test="assetsType !=null and assetsType != ''">
+        and "assets_type" like concat('%',#{assetsType,jdbcType=VARCHAR},'%')
+    </if>
+    <if test="remarks !=null and remarks != ''">
+        and "remarks" like concat('%',#{remarks,jdbcType=VARCHAR},'%')
+    </if>
+    <if test="modificationDateStart !=null">
+        and <![CDATA[#{modificationDateStart,jdbcType=TIMESTAMP} <= "modification_date"]]>
+    </if>
+    <if test="modificationDateEnd !=null">
+        and <![CDATA[#{modificationDateEnd,jdbcType=TIMESTAMP} > "modification_date"]]>
+    </if>
+    <if test="searchAll !=null and searchAll !='' ">
+        or "ip_address" like concat('%',#{searchAll,jdbcType=VARCHAR},'%')
+        or "assets_name" like concat('%',#{searchAll,jdbcType=VARCHAR},'%')
+        or "remarks" like concat('%',#{searchAll,jdbcType=VARCHAR},'%')
+        or "assets_type" like concat('%',#{searchAll,jdbcType=VARCHAR},'%')
+        or "access_port_name" like concat('%',#{searchAll,jdbcType=VARCHAR},'%')
+        or "access_equip" like concat('%',#{searchAll,jdbcType=VARCHAR},'%')
+        or "vendor" like concat('%',#{searchAll,jdbcType=VARCHAR},'%')
+        or "modifier" like concat('%',#{searchAll,jdbcType=VARCHAR},'%')
+        or "creator" like concat('%',#{searchAll,jdbcType=VARCHAR},'%')
+        or "mac" like concat('%',#{searchAll,jdbcType=VARCHAR},'%')
+    </if>
+
+    <choose>
+        <when test="orderName !=null and orderType != null and orderName !='' and orderType != ''">
+            ORDER BY &quot;${orderName}&quot;${orderType}
+        </when>
+        <otherwise>
+            ORDER BY TO_NUMBER(SUBSTR("ip_address",INSTR("ip_address", '.', -1, 1) + 1))+100
+        </otherwise>
+    </choose>
+</select>
+
+
+<select id="selectDisHave" resultType="cn.mw.monitor.ipaddressmanage.param.QueryIpAddressManageListParam">
+    select * from
+    "mw_ipaddressmanagelist_table"
+    where "distribution_status" = 1   ORDER BY SUBSTRING_INDEX("ip_address",'.',-1)+100 asc
+    </select>
+<select id="selectIpv6SonList" resultType="cn.mw.monitor.ipaddressmanage.param.QueryIpAddressManageListParam">
+    select * from
+    "mw_ipv6managelist_table"
+    where
+    1=1
+    <if test="searchId !=null">
+        and "distribution_status" = 0
+        and "link_id" in
+        <foreach collection="searchId" item="strings" separator="," open="(" close=")">
+            #{strings}
+        </foreach>
+    </if>
+    <if test="linkId !=null and linkId != ''">
+        and "link_id" = "linkId"
+    </if>
+    <if test="search !=null and search != ''">
+        and "ip_address" like concat('%',#{search,jdbcType=VARCHAR},'%')
+    </if>
+    <if test="ipState !=null">
+        and "ip_state" = #{ipState,jdbcType=INTEGER}
+    </if>
+    <if test="online !=null">
+        and "online" = #{online,jdbcType=INTEGER}
+    </if>
+    <if test="mac !=null and mac != ''">
+        and "mac" like concat('%',#{mac,jdbcType=VARCHAR},'%')
+    </if>
+    <if test="creator !=null and creator != ''">
+        and "creator" like concat('%',#{creator,jdbcType=VARCHAR},'%')
+    </if>
+    <if test="createDateStart !=null">
+        and <![CDATA[#{createDateStart,jdbcType=TIMESTAMP} <= "create_date" ]]>
+    </if>
+    <if test="createDateEnd !=null">
+        and <![CDATA[#{createDateEnd,jdbcType=TIMESTAMP} > "create_date" ]]>
+    </if>
+    <if test="modifier !=null and modifier != ''">
+        and "modifier" like concat('%',#{modifier,jdbcType=VARCHAR},'%')
+    </if>
+    <if test="modificationDateStart !=null">
+        and <![CDATA[#{modificationDateStart,jdbcType=TIMESTAMP} <= "modification_date"]]>
+    </if>
+    <if test="modificationDateEnd !=null">
+        and <![CDATA[#{modificationDateEnd,jdbcType=TIMESTAMP} > "modification_date"]]>
+    </if>
+    <if test="searchAll !=null and searchAll !='' ">
+        or "ip_address" like concat('%',#{searchAll,jdbcType=VARCHAR},'%')
+        or "assets_name" like concat('%',#{searchAll,jdbcType=VARCHAR},'%')
+        or "remarks" like concat('%',#{searchAll,jdbcType=VARCHAR},'%')
+        or "assets_type" like concat('%',#{searchAll,jdbcType=VARCHAR},'%')
+        or "access_port_name" like concat('%',#{searchAll,jdbcType=VARCHAR},'%')
+        or "access_equip" like concat('%',#{searchAll,jdbcType=VARCHAR},'%')
+        or "vendor" like concat('%',#{searchAll,jdbcType=VARCHAR},'%')
+        or "modifier" like concat('%',#{searchAll,jdbcType=VARCHAR},'%')
+        or "creator" like concat('%',#{searchAll,jdbcType=VARCHAR},'%')
+        or "mac" like concat('%',#{searchAll,jdbcType=VARCHAR},'%')
+    </if>
+    <choose>
+        <when test="orderName !=null and orderType != null and orderName !='' and orderType != ''">
+            ORDER BY &quot;${orderName}&quot; ${orderType}
+        </when>
+        <otherwise>
+            ORDER BY  TO_NUMBER(SUBSTR("ip_address",INSTR("ip_address", '.', -1, 1) + 1))+100
+        </otherwise>
+    </choose>
+</select>
+
+<insert id="insterIpaddressDrop">
+    INSERT INTO "mw_ipaddress_drop_mapper"( "label_ip_id", "label_id", "label_drop_id", "label_ip_type")
+    VALUES
+     (#{label.labelIpId}, #{label.labelId}, #{label.labelDropId},#{label.labelIpType} );
+	</insert>
+
+<update id="updateIpaddressDrop">
+	UPDATE "mw_ipaddress_drop_mapper" SET  "label_drop_id" = #{label.labelDropId}
+	 WHERE "label_id" = #{label.labelId} and "label_ip_id" = #{label.labelIpId} and "label_ip_type" = #{label.labelIpType}
+
+    </update>
+
+<select id="selectipv6rand" resultType="java.lang.Integer">
+        SELECT "id" FROM "mw_ipv6manage_table" where "ip_rand_start" &lt;= #{intrand}  AND "ip_rand_end" &gt;= #{intrand} and "ip_addresses" like 'FC00%'
+    </select>
+
+
+<select id="selectIpv6" resultType="java.lang.Integer">
+        SELECT count(*) FROM "mw_ipv6managelist_table" where "ip_address" = #{param}
+        <if test="signId==1">
+            and  ("sign_id"=#{signId} or "sign_id" is null)
+        </if>
+        <if test="signId!=1">
+            and  "sign_id"=#{signId}
+        </if>
+    </select>
+
+<insert id="insterIpv6list">
+        INSERT INTO "mw_ipv6managelist_table" (
+            "id",
+             "link_id",
+            "ip_address",
+            "ip_state",
+            "creator",
+            "create_date",
+            "modifier",
+            "modification_date",
+            "sign_id"
+            )
+        VALUES
+            (${TBSNAME}.SEQ_MW_VISUALIZED_CLASSIFY.NEXTVAL,
+                #{llinkid},
+                #{param},
+                0,
+                #{loginName},
+                SYSDATE,
+                #{loginName},
+                SYSDATE,
+                #{signId}
+            )
+    </insert>
+
+<select id="selectIpAddressManageTableParam"
+        resultType="cn.mw.monitor.ipaddressmanage.param.IpAddressManageTableParam">
+        SELECT * FROM ${TBSNAME}."mw_ipaddressmanage_table" where "id" = #{id}
+    </select>
+
+<select id="selectIpv6AddressManageTableParam"
+        resultType="cn.mw.monitor.ipaddressmanage.param.IpAddressManageTableParam">
+        SELECT * FROM ${TBSNAME}."mw_ipv6manage_table" where "id" = #{id}
+    </select>
+
+<select id="selectIpAddressManageTableListParam"
+        resultType="cn.mw.monitor.ipaddressmanage.param.QueryIpAddressManageListParam">
+        SELECT * FROM ${TBSNAME}."mw_ipaddressmanagelist_table" where "id" = #{id}
+    </select>
+
+
+<select id="selectIpv6ddressManageTableListParam"
+        resultType="cn.mw.monitor.ipaddressmanage.param.QueryIpAddressManageListParam">
+        SELECT * FROM ${TBSNAME}."mw_ipv6managelist_table" where "id" = #{id}
+    </select>
+
+<select id="selectIpParent" resultType="java.lang.Integer">
+        SELECT "link_id" FROM ${TBSNAME}."mw_ipaddressmanagelist_table" where "id" = #{id}
+    </select>
+
+<select id="selectIpvsixParent" resultType="java.lang.Integer">
+        SELECT "link_id" FROM ${TBSNAME}."mw_ipv6managelist_table" where "id" = #{id}
+    </select>
+
+
+<select id="selectDistributtionSenior"
+        resultType="cn.mw.monitor.ipaddressmanage.param.IpAddressDistributtionSeniorParam">
+    SELECT * FROM ${TBSNAME}."mw_ip_distribution" where "iplist_id" =#{ip}
+    <if test="iptype == 'IPv4'">
+        and "ipgroup_type" = 0
+    </if>
+    <if test="iptype == 'IPv6'">
+        and "ipgroup_type" = 1
+    </if>
+    <if test="getDristi != '' and getDristi != null">
+        and "bang_distri" = #{getDristi}
+    </if>
+    <if test="getDristi == '' or getDristi == null">
+        and ("bang_distri" is null or "bang_distri"='')
+    </if>
+</select>
+
+<select id="selectUserName" resultType="java.lang.String">
+         SELECT "login_name" FROM ${TBSNAME}."mw_sys_user" where "user_id" =  #{id}
+  </select>
+
+<select id="selectCountDistributionByIp" resultType="java.lang.Integer">
+    SELECT sum(a."sumcount") FROM (
+    SELECT count(*) AS "sumcount" FROM ${TBSNAME}."mw_ipaddressmanagelist_table" WHERE "ip_address" in
+    <foreach collection="ipList" item="ip" separator="," open="(" close=")">
+        #{ip}
+    </foreach>
+    AND "distribution_status" = #{status}
+    UNION ALL
+    SELECT count(*) AS "sumcount" FROM ${TBSNAME}."mw_ipv6managelist_table" WHERE "ip_address" in
+    <foreach collection="ipList" item="ip" separator="," open="(" close=")">
+        #{ip}
+    </foreach>
+    AND "distribution_status" = #{status}) a
+</select>
+
+
+<delete id="deleteDstributionByIpv4">
+    DELETE from ${TBSNAME}."mw_ip_distribution" WHERE "iplist_id" in
+    <foreach collection="ipList" item="ip" separator="," open="(" close=")">
+        #{ip}
+    </foreach>
+    AND "iplist_type" = 0
+    <if test="getDistri != '' and getDistri != null">
+        and "bang_distri" = #{getDistri}
+    </if>
+    <if test="getDistri == '' or getDistri == null">
+        and ("bang_distri" is null or "bang_distri"='')
+    </if>
+</delete>
+
+<delete id="deleteDstributionByIpv6">
+    DELETE from ${TBSNAME}."mw_ip_distribution" WHERE "iplist_id" in
+    <foreach collection="ipList" item="ip" separator="," open="(" close=")">
+        #{ip}
+    </foreach>
+    AND "iplist_type" =1
+    <if test="getDistri != '' and getDistri != null">
+        and "bang_distri" = #{getDistri}
+    </if>
+    <if test="getDistri == '' or getDistri == null">
+        and ("bang_distri" is null or "bang_distri"='')
+    </if>
+</delete>
+
+
+<select id="selectIPaddressById" resultType="java.lang.String">
+    <choose>
+        <when test="type==0">
+            SELECT "ip_address" FROM ${TBSNAME}."mw_ipaddressmanagelist_table" where "id" = #{id}
+        </when>
+        <otherwise>
+            SELECT "ip_address" FROM "mw_ipv6managelist_table" where "id" = #{id}
+        </otherwise>
+    </choose>
+</select>
+
+<select id="selectIPaddressByIds" resultType="java.lang.String">
+    <choose>
+        <when test="type==0">
+            SELECT "ip_address" FROM ${TBSNAME}."mw_ipaddressmanagelist_table" where "id" in
+            <foreach collection="ids" item="ip" separator="," open="(" close=")">
+                #{ip}
+            </foreach>
+        </when>
+        <otherwise>
+            SELECT "ip_address" FROM "mw_ipv6managelist_table" where "id" in
+            <foreach collection="ids" item="ip" separator="," open="(" close=")">
+                #{ip}
+            </foreach>
+        </otherwise>
+    </choose>
+</select>
+
+
+<insert id="insterDes">
+    INSERT INTO "mw_ip_distribution"( "id","primary_ip", "primary_type", "iplist_type",
+    <if test="requestIpAddressDistributtionSeniorParam.orgIds!=null">
+        "orgIds",
+    </if>
+    <if test="requestIpAddressDistributtionSeniorParam.orgtext!=null">
+        "orgtext",
+    </if>
+    <if test="requestIpAddressDistributtionSeniorParam.oa!=null">
+        "oa",
+    </if>
+    <if test="requestIpAddressDistributtionSeniorParam.oatext!=null">
+        "oatext",
+    </if>
+    <if test="requestIpAddressDistributtionSeniorParam.oaurl!=null">
+        "oaurl",
+    </if>
+    <if test="requestIpAddressDistributtionSeniorParam.oaurltext!=null">
+        "oaurltext",
+    </if>
+    "iplist_id","ipgroup_id","ipgroup_type") VALUES
+    (
+    ${TBSNAME}.SEQ_MW_VISUALIZED_CLASSIFY.NEXTVAL,
+    #{id},
+    #{type},
+    #{i},
+    <if test="requestIpAddressDistributtionSeniorParam.orgIds!=null">
+        #{requestIpAddressDistributtionSeniorParam.orgIds},
+    </if>
+    <if test="requestIpAddressDistributtionSeniorParam.orgtext!=null">
+        #{requestIpAddressDistributtionSeniorParam.orgtext},
+    </if>
+    <if test="requestIpAddressDistributtionSeniorParam.oa!=null">
+        #{requestIpAddressDistributtionSeniorParam.oa},
+    </if>
+    <if test="requestIpAddressDistributtionSeniorParam.oatext!=null">
+        #{requestIpAddressDistributtionSeniorParam.oatext},
+    </if>
+    <if test="requestIpAddressDistributtionSeniorParam.oaurl!=null">
+        #{requestIpAddressDistributtionSeniorParam.oaurl},
+    </if>
+    <if test="requestIpAddressDistributtionSeniorParam.oaurltext!=null">
+        #{requestIpAddressDistributtionSeniorParam.oaurltext},
+    </if>
+    #{integer},
+    #{groupid},
+    0
+    )
+
+</insert>
+
+
+<select id="selectCountIPDIsEnabel" resultType="java.lang.String">
+    SELECT "label" FROM ${TBSNAME}."mw_ipaddressmanage_table" WHERE "type" = 'iPaddresses' and "id" in
+    <foreach collection="searchId" item="ip" separator="," open="(" close=")">
+        #{ip}
+    </foreach>
+    and "radio_status" = 0
+
+</select>
+
+<select id="fuzzSeachAllFiledData" resultType="java.util.Map">
+		SELECT *  FROM (SELECT
+		"ip_address" as "keyName", 'ipAddress' as "type"
+		FROM    ${TBSNAME}.${table} WHERE "link_id" =   #{linkId}
+		UNION
+		SELECT
+		"modifier" as "keyName", 'modifier' as "type"
+		FROM    ${TBSNAME}.${table} WHERE "link_id" =   #{linkId}
+		UNION
+		SELECT
+		"creator" as "keyName", 'creator' as "type"
+		FROM    ${TBSNAME}.${table} WHERE "link_id" =   #{linkId}
+		UNION
+		SELECT
+		"mac" as "keyName", 'mac' as "type"
+		FROM    ${TBSNAME}.${table} WHERE "link_id" =   #{linkId}
+		UNION
+		SELECT
+		"vendor" as "keyName", 'vendor' as "type"
+		FROM    ${TBSNAME}.${table} WHERE "link_id" =   #{linkId}
+		UNION
+		SELECT
+		"access_equip" as "keyName", 'accessEquip' as "type"
+		FROM    ${TBSNAME}.${table} WHERE "link_id" =   #{linkId}
+		UNION
+		SELECT
+		"access_port" as "keyName", 'accessPort' as "type"
+		FROM    ${TBSNAME}.${table} WHERE "link_id" =   #{linkId}
+		UNION
+		SELECT
+		"remarks" as "keyName", 'remarks' as "type"
+		FROM    ${TBSNAME}.${table} WHERE "link_id" =   #{linkId}
+		UNION
+		SELECT
+		"assets_name" as "keyName", 'assetsName' as "type"
+		FROM    ${TBSNAME}.${table} WHERE "link_id" =   #{linkId}
+		UNION
+		SELECT
+		"access_port_name" as "keyName", 'accessPortName' as "type"
+		FROM    ${TBSNAME}.${table} WHERE "link_id" =   #{linkId}    ) a  WHERE "keyName" is not null ORDER BY "keyName" ASC
+    </select>
+
+
+<insert id="insterNew">
+    INSERT INTO "mw_ip_distribution"( "primary_ip", "primary_type", "iplist_type",
+    <if test="requestIpAddressDistributtionSeniorParam.orgIds!=null">
+        "orgIds",
+    </if>
+    <if test="requestIpAddressDistributtionSeniorParam.orgtext!=null">
+        "orgtext",
+    </if>
+    <if test="requestIpAddressDistributtionSeniorParam.oa!=null">
+        "oa",
+    </if>
+    <if test="requestIpAddressDistributtionSeniorParam.oatext!=null">
+        "oatext",
+    </if>
+    <if test="requestIpAddressDistributtionSeniorParam.oaurl!=null">
+        "oaurl",
+    </if>
+    <if test="requestIpAddressDistributtionSeniorParam.oaurltext!=null">
+        "oaurltext",
+    </if>
+    "iplist_id","ipgroup_id","ipgroup_type","bang_distri") VALUES
+    <foreach collection="map" item="strings" separator=",">
+        (
+        #{strings.parenId},
+        #{strings.parenIdType},
+        #{strings.idType},
+        <if test="requestIpAddressDistributtionSeniorParam.orgIds!=null">
+            #{org},
+        </if>
+        <if test="requestIpAddressDistributtionSeniorParam.orgtext!=null">
+            #{orgtest},
+        </if>
+        <if test="requestIpAddressDistributtionSeniorParam.oa!=null">
+            #{requestIpAddressDistributtionSeniorParam.oa},
+        </if>
+        <if test="requestIpAddressDistributtionSeniorParam.oatext!=null">
+            #{requestIpAddressDistributtionSeniorParam.oatext},
+        </if>
+        <if test="requestIpAddressDistributtionSeniorParam.oaurl!=null">
+            #{requestIpAddressDistributtionSeniorParam.oaurl},
+        </if>
+        <if test="requestIpAddressDistributtionSeniorParam.oaurltext!=null">
+            #{requestIpAddressDistributtionSeniorParam.oaurltext},
+        </if>
+        #{strings.id},
+        #{strings.sourceId},
+        #{strings.sourceIdType},
+        #{getDistri}
+        )
+    </foreach>
+</insert>
+
+
+<select id="selectDIs" resultType="java.util.Map">
+    SELECT * FROM "mw_ip_distribution" WHERE ipgroup_id = #{parentId} and ipgroup_type = #{Type}
+    <if test="getDistri != '' and getDistri != null">
+        and bang_distri = #{getDistri}
+    </if>
+    <if test="getDistri == '' or getDistri == null">
+        and (bang_distri is null or bang_distri='')
+    </if>
+</select>
+
+<select id="selectIPaddressMapById" resultType="java.util.Map">
+        SELECT id,ip_address, 0 as ip_type FROM ${TBSNAME}."mw_ipaddressmanagelist_table"
+        UNION
+        SELECT id,ip_address,1 as ip_type  FROM "mw_ipv6managelist_table"
+    </select>
+
+
+<update id="updateApplicant">
+        UPDATE "mw_ipam_oper_history" SET "applicant" = #{applicantId}, "descript" = #{s}
+         WHERE "applicant"  = #{applicant} and "rlist_id" = #{integer} and  "ip_type"=#{b}
+    </update>
+
+
+<select id="slecetParentLabel" resultType="java.util.Map">
+    SELECT e.label,e.parent_id,f.list_id,f.ip_type,f.ip_address from mw_ipaddressmanage_table e RIGHT JOIN (
+		 SELECT d.label,d.parent_id,c.list_id,c.ip_type,c.ip_address from mw_ipaddressmanage_table d RIGHT JOIN (  SELECT f.*, 0 AS ip_type FROM (
+   SELECT link_id,id as list_id,ip_address FROM ${TBSNAME}."mw_ipaddressmanagelist_table" b RIGHT JOIN  (SELECT iplist_id,iplist_type FROM "mw_ip_distribution" WHERE ipgroup_id =  #{parentId}  and ipgroup_type =  #{Type}
+	 AND iplist_type = 0 ) a ON a.iplist_id =b.id
+	 ) f WHERE link_id is not NULL) c on c.link_id = d.id
+UNION
+SELECT d.label,d.parent_id,c.list_id,c.ip_type,c.ip_address from mw_ipv6manage_table d RIGHT JOIN ( SELECT f.*, 1 AS ip_type FROM (
+   SELECT link_id,id as list_id,ip_address FROM "mw_ipv6managelist_table" b RIGHT JOIN  (SELECT iplist_id,iplist_type FROM "mw_ip_distribution" WHERE ipgroup_id =  #{parentId}  and ipgroup_type = #{Type} AND iplist_type =  1) a ON a.iplist_id =b.id
+	 ) f WHERE link_id is not NULL) c on c.link_id = d.id
+) f on  e.id = f.parent_id
+  </select>
+
+<select id="selectAllManage" resultType="java.util.Map">
+    SELECT "id","parent_id","label" FROM "mw_ipaddressmanage_table"
+    <if test="grouping!=null">
+        WHERE "type" = #{grouping}
+    </if>
+</select>
+
+<select id="checkIP" resultType="java.util.Map">
+    SELECT a."ip_address", case when b."distribution_status" is null THEN -1 ELSE b."distribution_status" END as
+    "distribution_status" FROM (
+    <foreach collection="ip" item="strings" separator=" UNION ">
+        SELECT #{strings} AS "ip_address"
+    </foreach>
+    ) a LEFT JOIN (SELECT "ip_address","distribution_status" FROM "mw_ipaddressmanagelist_table" ) b on
+    a."ip_address" =
+    b."ip_address" ORDER BY "distribution_status" asc
+</select>
+
+<select id="selectIPDristi"
+        resultType="cn.mw.monitor.ipaddressmanage.param.RequestIpAddressDistributtionNewParamList">
+    SELECT "primary_ip","primary_type",
+    "bang_distri" from "mw_ip_distribution" WHERE "iplist_id" = #{id}
+    <if test="iptype=='IPv4'">
+        AND "iplist_type" = 0
+    </if>
+    <if test="iptype=='IPv6'">
+        AND "iplist_type" = 1
+    </if>
+</select>
+
+
+<select id="checkStauts" resultType="java.lang.Integer">
+    SELECT "iplist_id" from "mw_ip_distribution" WHERE "iplist_id" in(
+    <foreach collection="ips" item="strings" separator=" UNION ">
+        SELECT ${strings} AS "iplist_id"
+    </foreach>
+    )
+    <if test="iptype=='IPv4'">
+        AND "iplist_type" = 0
+    </if>
+    <if test="iptype=='IPv6'">
+        AND "iplist_type" = 1
+    </if>
+</select>
+
+
+<select id="selectLin" resultType="cn.mw.monitor.ipaddressmanage.param.IpAddressManageTableParam">
+      select * FROM ${TBSNAME}."mw_ipaddressmanage_table" WHERE "id" in ( SELECT "link_id" FROM ${TBSNAME}."mw_ipaddressmanagelist_table" WHERE "is_tem" = 1)
+    </select>
+<select id="selectIPv6Lin" resultType="cn.mw.monitor.ipaddressmanage.param.IpAddressManageTableParam">
+      select * FROM ${TBSNAME}."mw_ipv6manage_table" WHERE "id" in ( SELECT "link_id" FROM ${TBSNAME}."mw_ipv6managelist_table" WHERE "is_tem" = 1)
+    </select>
+
+<select id="selectLabelAll" resultType="cn.mw.monitor.ipaddressmanage.param.Label">
+    SELECT
+    *
+    FROM
+    (
+    SELECT
+    "label_id",
+    "label_name",
+    "input_format",
+    "choose_add",
+    "early_warning",
+    "report",
+    "screen",
+    "dropdown_value",
+    "label_code",
+    "delete_restrict",
+    "enable",
+    "creator",
+    "create_date",
+    "modifier",
+    "modification_date",
+    "delete_flag",
+    "is_required",
+    "id",
+    "label_drop",
+    "label_drop_id",
+    "label_ip_id",
+    "test_value",
+    "drop_value",
+    row_number ( ) over ( partition BY "label_id" ORDER BY "label_id" ASC ) AS "kall"
+    FROM
+    (
+    SELECT
+    c.*,
+    d."drop_value" AS "drop_value"
+    FROM
+    (
+    SELECT
+    a.*,
+    b."label_drop_id",
+    b."label_ip_id",
+    b."test_value"
+    FROM
+    (
+    SELECT
+    k.*,
+    "label_id" AS "id",
+    "label_code" AS "label_drop"
+    FROM
+    ${TBSNAME}."mw_labelmanage_table" k
+    WHERE
+    "label_id" IN ( SELECT "label_id" FROM ${TBSNAME}."mw_label_module_mapper" WHERE "module_id" = #{ labelLevel }
+    AND "delete_flag" = 0 )
+    AND "enable" = 'ACTIVE'
+    ) a
+    LEFT JOIN (
+    SELECT
+    *
+    FROM
+    (
+    SELECT
+    "type_id" AS "label_ip_id",
+    "label_id",
+    1 AS "type_label",
+    0 AS "label_drop_id",
+    to_char( "tagboard" ) AS "test_value",
+    "module_type"
+    FROM
+    ${TBSNAME}."mw_label_mapper" UNION ALL
+    SELECT
+    "type_id" AS "label_ip_id",
+    "label_id",
+    2 AS "type_label",
+    0 AS "label_drop_id",
+    to_char( "date_tagboard", 'yyyy-mm-dd hh:mm:ss' ) AS "test_value",
+    "module_type"
+    FROM
+    ${TBSNAME}."mw_label_date_mapper" UNION ALL
+    SELECT
+    "type_id" AS "label_ip_id",
+    "label_id",
+    3 AS "type_label",
+    "drop_tagboard" AS "label_drop_id",
+    '0' AS "test_value",
+    "module_type"
+    FROM
+    ${TBSNAME}."mw_label_drop_mapper"
+    ) e
+    ) b ON a."id" = b."label_id"
+    ) c
+    LEFT JOIN ${TBSNAME}."mw_dropdown_table" d ON c."label_drop_id" = d."drop_id"
+    WHERE
+    1 = 1
+    <if test="input!=-1">
+        and c."input_format" = #{input}
+    </if>
+    )
+    )
+    WHERE
+    "kall" = 1
+</select>
+
+
+<select id="selectLabelText" resultType="java.util.Map">
+    SELECT a."type_id",b."drop_value",c."label_name", a."label_id" FROM "mw_label_drop_mapper" a
+    LEFT JOIN "mw_dropdown_table" b on   a."drop_tagboard" = b."drop_id" AND  "module_type" = 'IPHIS'
+    LEFT JOIN "mw_labelmanage_table" c on a."label_id" = c."label_id"
+    WHERE  a."type_id" =#{applicant} AND c."delete_flag" = 0 AND c."enable" = 'ACTIVE'
+  </select>
+
+<select id="selectIPdisByApplicant" resultType="java.util.Map">
+    SELECT *FROM(
+
+    SELECT * FROM "mw_ip_distribution" d
+    RIGHT JOIN (
+    SELECT a."rlist_id",a."create_date",a."applicant" FROM "mw_ipam_oper_history" a
+            left join  "mw_ipam_process_history" b on a."applicant" = b."id"
+            WHERE a."applicant" =#{applicant} AND a."id" not in (
+            SELECT a."id" FROM "mw_ipam_oper_history" a WHERE a."applicant" =#{applicant} AND a."type" = 1
+    ) ) c on d."iplist_id" = c."rlist_id" AND "ipgroup_id" IN (
+    SELECT a."rlist_id" FROM "mw_ipam_oper_history" a
+            WHERE a."applicant" =#{applicant} AND a."id" not in (
+            SELECT a."id" FROM "mw_ipam_oper_history" a WHERE a."applicant" =#{applicant} AND a."type" = 1
+    )
+    )
+
+    ) k
+
+    GROUP BY "iplist_id"  HAVING count("iplist_id")=1
+  </select>
+
+
+<select id="selectLabelTextNotDrop" resultType="java.util.Map">
+   SELECT a.* ,c."label_name"
+	FROM(
+	SELECT  "type_id","tagboard" as "drop_value","label_id" FROM "mw_label_mapper" WHERE "module_type" = 'IPHIS'
+	UNION All
+	SELECT  "type_id","date_tagboard" as "drop_value","label_id"	FROM "mw_label_date_mapper" WHERE "module_type" = 'IPHIS'
+	) a  LEFT JOIN "mw_labelmanage_table" c on a."label_id" = c."label_id"
+	 WHERE   c."delete_flag" = 0 AND c."enable" = 'ACTIVE' AND a."type_id" =#{applicant}
+  </select>
+
+
+<select id="selectTreeAllbyIPids" resultType="java.util.Map">
+    SELECT a.*, b."ip_address", b."link_id" as "parentId" ,#{applicant} as "applicantId" FROM "mw_ip_distribution" a
+    ,"mw_ipaddressmanagelist_table" b
+    WHERE "ipgroup_id" in (
+    <foreach collection="ipids" item="item" index="index" separator=",">
+        #{item}
+    </foreach>
+    )
+    and b."id" = a."iplist_id" and "iplist_type" = 0
+    <if test="s!=null and s!=''">
+        AND "bang_distri" =#{s}
+    </if>
+    <if test="s==null || s==''">
+        AND ("bang_distri" is null OR "bang_distri" = '')
+    </if>
+    UNION ALL
+    SELECT a.*, b."ip_address", b."link_id" as "parentId" ,#{applicant} as "applicantId" FROM "mw_ip_distribution" a
+    ,"mw_ipv6managelist_table" b
+    WHERE "ipgroup_id" in (
+    <foreach collection="ipids" item="item" index="index" separator=",">
+        #{item}
+    </foreach>
+    )
+    and b."id" = a."iplist_id" and "iplist_type" = 1
+    <if test="s!=null and s!=''">
+        AND "bang_distri" =#{s}
+    </if>
+    <if test="s==null || s==''">
+        AND ("bang_distri" is null OR "bang_distri" = '')
+    </if>
+</select>
+
+<select id="getApplicantBydisttri" resultType="cn.mw.monitor.ipaddressmanage.dto.IpamOperHistoryDTO">
+    SELECT a.* FROM "mw_ipam_oper_history" a ,
+    (SELECT * FROM "mw_ip_distribution" WHERE "id" in (
+    <foreach collection="ids" item="item" index="index" separator=",">
+        #{item}
+    </foreach>
+    )) b
+    WHERE a."rlist_id" = b."iplist_id"
+    and a."applicant"= #{s}
+</select>
+
+
+<select id="countNumList" resultType="cn.mw.monitor.ipaddressmanage.param.IPCountNum">
+                SELECT
+            *
+        FROM
+            (
+            SELECT
+                sum( case WHEN "ip_state" = 1 or "ip_state" = null  THEN 1 ELSE 0 end )  AS "ip_state",
+                sum( case WHEN "ip_state" = 0 or "ip_state" = null  THEN 1 ELSE 0 end ) AS "ip_un_state",
+                        sum( case WHEN "ip_state" = 2 or "ip_state" = null  THEN 1 ELSE 0 end )  AS "ip_reserve_state",
+                        sum( case WHEN "distribution_status" = 1 or "distribution_status" = null  THEN 1 ELSE 0 end ) AS "distribution_status",
+                    sum( case WHEN "distribution_status" = 0 or "distribution_status" = null  THEN 1 ELSE 0 end ) AS "distribution_un_status",
+                    sum( case WHEN "assets_type" = '已知'  or "assets_type" = null  THEN 1 ELSE 0 end ) AS "have_manage",
+                    sum( case WHEN "assets_type" = '未知'  or "assets_type" = null  THEN 1 ELSE 0 end )  AS "un_have_manage",
+                1 AS "id"
+            FROM
+                ${TBSNAME}."mw_ipaddressmanagelist_table"
+            ) b
+            LEFT JOIN (
+            SELECT
+                sum( case WHEN "ip_state" = 1 or "ip_state" = null  THEN 1 ELSE 0 end )  AS "ip_state",
+                sum( case WHEN "ip_state" = 0 or "ip_state" = null  THEN 1 ELSE 0 end ) AS "ip_un_state",
+                        sum( case WHEN "ip_state" = 2 or "ip_state" = null  THEN 1 ELSE 0 end )  AS "ip_reserve_state",
+                        sum( case WHEN "distribution_status" = 1 or "distribution_status" = null  THEN 1 ELSE 0 end ) AS "distribution_status",
+                    sum( case WHEN "distribution_status" = 0 or "distribution_status" = null  THEN 1 ELSE 0 end ) AS "distribution_un_status",
+                    sum( case WHEN "assets_type" = '已知'  or "assets_type" = null  THEN 1 ELSE 0 end ) AS "have_manage",
+                    sum( case WHEN "assets_type" = '未知'  or "assets_type" = null  THEN 1 ELSE 0 end )  AS "un_have_manage",
+                1 AS "id"
+            FROM
+            ${TBSNAME}."mw_ipv6managelist_table"
+            ) a ON b."id" = a."id"
+    </select>
+
+
+<select id="countCreateByhour" resultType="cn.mw.monitor.ipaddressmanage.param.IPCountPrictureDetails">
+    SELECT a."create_time" ,b."counts" FROM
+    <include refid="timeGroup"></include>LEFT JOIN
+    (
+    select TO_CHAR("create_date",'hh24') AS "create_time",
+    count(*) as "counts" from
+    ${TBSNAME}."mw_ipaddressmanagelist_table" WHERE "create_date">TO_DATE(#{start}, 'yyyy-mm-dd hh24:mi:ss')
+    <if test="end!='' and end!=null">
+        AND "create_date" &lt; TO_DATE(#{end}, 'yyyy-mm-dd hh24:mi:ss')
+    </if>
+    GROUP BY TO_CHAR("create_date",'hh24') ORDER BY "create_time" ASC
+    ) b on a."create_time" = b."create_time"
+</select>
+
+
+<select id="countDeleteByhour" resultType="cn.mw.monitor.ipaddressmanage.param.IPCountPrictureDetails">
+    SELECT a."create_time" ,b."counts" FROM
+    <include refid="timeGroup"></include>LEFT JOIN
+    (
+    select TO_CHAR("delete_time",'hh24') AS "create_time",
+    count(*) as "counts" from ${TBSNAME}."mw_ipaddress_delete" WHERE
+    "delete_time"> TO_DATE(#{start}, 'yyyy-mm-dd hh24:mi:ss')
+    <if test="end!='' and end!=null">
+        AND "delete_time" &lt; TO_DATE(#{end}, 'yyyy-mm-dd hh24:mi:ss')
+    </if>
+    GROUP BY TO_CHAR("delete_time",'hh24') ORDER BY "create_time" ASC
+    ) b on a."create_time" = b."create_time"
+</select>
+
+<select id="countHavingByhour" resultType="cn.mw.monitor.ipaddressmanage.param.IPCountPrictureDetails">
+    SELECT a."create_time" ,b."counts" FROM
+    <include refid="timeGroup"></include>LEFT JOIN
+    (
+    SELECT
+    TO_CHAR("create_date",'hh24') AS "create_time",
+    count(*) as "counts"
+    FROM
+    ${TBSNAME}."mw_ipam_oper_history"
+    WHERE
+    "create_date"> TO_DATE(#{start}, 'yyyy-mm-dd hh24:mi:ss')
+    <if test="end!='' and end!=null">
+        AND "create_date" &lt; TO_DATE(#{end}, 'yyyy-mm-dd hh24:mi:ss')
+    </if>
+    AND "type" = #{type}
+    GROUP BY TO_CHAR("create_date",'hh24') ORDER BY "create_time" ASC
+    ) b on a."create_time" = b."create_time"
+</select>
+
+<select id="countDeleteByDay" resultType="cn.mw.monitor.ipaddressmanage.param.IPCountPrictureDetails">
+    SELECT a."create_time" ,b."counts" FROM (
+    <foreach collection="s" item="item" index="index" separator="union all">
+        SELECT #{item} "create_time" from dual
+    </foreach>
+    )
+    a LEFT JOIN
+    (
+    SELECT TO_NUMBER(TO_CHAR("delete_time",'dd')) as "create_time", count(*) as "counts" FROM
+    ${TBSNAME}."mw_ipaddress_delete"
+    WHERE "delete_time">TO_DATE(#{solarDataStart}, 'yyyy-mm-dd hh24:mi:ss') AND "delete_time" &lt;
+    TO_DATE(#{solarDataEnd}, 'yyyy-mm-dd hh24:mi:ss')
+    GROUP BY TO_CHAR("delete_time",'dd') ORDER BY "create_time"
+    )
+    b on a."create_time" = b."create_time"
+</select>
+
+
+<select id="countCreateByDay" resultType="cn.mw.monitor.ipaddressmanage.param.IPCountPrictureDetails">
+    SELECT a."create_time" ,b."counts" FROM (
+    <foreach collection="s" item="item" index="index" separator="union all">
+        SELECT #{item} "create_time" from dual
+    </foreach>
+    )
+    a LEFT JOIN
+    (
+    SELECT TO_NUMBER(TO_CHAR("create_date",'dd')) as "create_time", count(*) as "counts" FROM
+    ${TBSNAME}."mw_ipaddressmanagelist_table"
+    WHERE "create_date">TO_DATE(#{solarDataStart}, 'yyyy-mm-dd hh24:mi:ss') AND "create_date" &lt;
+    TO_DATE(#{solarDataEnd}, 'yyyy-mm-dd hh24:mi:ss')
+    GROUP BY TO_CHAR("create_date",'dd') ORDER BY "create_time"
+    )
+    b on a."create_time" = b."create_time"
+</select>
+
+
+<select id="countHavingByDay" resultType="cn.mw.monitor.ipaddressmanage.param.IPCountPrictureDetails">
+    SELECT a."create_time" ,b."counts" FROM (
+    <foreach collection="s" item="item" index="index" separator="union all">
+        SELECT #{item} "create_time" from dual
+    </foreach>
+    )
+    a LEFT JOIN
+    (
+    SELECT TO_NUMBER(TO_CHAR("create_date",'dd')) as "create_time", count(*) as "counts" from
+    ${TBSNAME}."mw_ipam_oper_history" WHERE "create_date">TO_DATE(#{start}, 'yyyy-mm-dd hh24:mi:ss')
+    <if test="end!='' and end!=null">
+        AND "create_date" &lt; TO_DATE(#{end}, 'yyyy-mm-dd hh24:mi:ss')
+    </if>
+    AND "type" = #{type}
+    GROUP BY TO_CHAR("create_date",'dd') ORDER BY "create_time" ASC
+    ) b on a."create_time" = b."create_time"
+</select>
+
+
+<select id="selectrealdtri"
+        resultType="cn.mw.monitor.ipaddressmanage.param.IpDestribution">
+        SELECT * FROM mw_ip_distribution a,
+        (SELECT ipgroup_id,bang_distri FROM mw_ip_distribution WHERE id = #{distriId}  ) b
+        WHERE a.ipgroup_id = b.ipgroup_id AND (a.bang_distri = b.bang_distri OR (b.bang_distri is null  AND a.bang_distri is null))
+     </select>
+
+
+<select id="selectGroups" resultType="java.util.Map">
+    SELECT * FROM
+    (SELECT n.* FROM
+    (
+    SELECT a.ipgroup_id,g.applicant,g.creator,g.create_date FROM mw_ip_distribution a LEFT JOIN mw_ipam_oper_history
+    g
+    on a.iplist_id = g.rlist_id WHERE applicant not in (SELECT applicant FROM mw_ipam_oper_history WHERE type = 1)
+    ) n
+    group by ipgroup_id ) h
+    ,
+    (SELECT * FROM (
+    SELECT p.drop_value,q.* from (
+    select b.drop_value , c.type_id from mw_label_drop_mapper c LEFT JOIN mw_dropdown_table b on drop_tagboard =
+    b.drop_id WHERE label_id = #{labelId} AND module_type = 'IPHIS'
+    ) p
+    LEFT JOIN (
+    select b.drop_value as drop_values , c.type_id from mw_label_drop_mapper c LEFT JOIN mw_dropdown_table b on
+    drop_tagboard = b.drop_id WHERE label_id = #{searchid} AND module_type = 'IPHIS'
+    ) q on p.type_id = q.type_id where 1=1
+    <if test="sreach!=null and sreach!=''">
+        and q.type_id
+        in
+        (select c.type_id from mw_label_drop_mapper c LEFT JOIN mw_dropdown_table b on drop_tagboard = b.drop_id
+        WHERE label_id = #{srechidby} AND module_type = 'IPHIS' AND drop_value like
+        concat('%',#{sreach,jdbcType=VARCHAR},'%')
+        )
+    </if>
+    ) m
+    ORDER BY drop_value,drop_values desc) l where h.applicant = l.type_id
+    <if test="drop_value==''">
+        and drop_value is null
+    </if>
+    <if test="drop_values==''">
+        and drop_values is null
+    </if>
+    <if test="drop_values!=null and drop_values!=''">
+        and drop_values = #{drop_values}
+    </if>
+    <if test="drop_value!=null and drop_value!=''">
+        and drop_value = #{drop_value}
+    </if>
+    AND creator = #{creator}
+</select>
+
+<select id="selectIPaddressByDtriGroup" resultType="java.lang.String">
+    SELECT ip_address FROM mw_ipaddressmanagelist_table WHERE id in (
+    SELECT iplist_id FROM mw_ip_distribution where iplist_type = 0 and ipgroup_id in (
+    <foreach collection="s" item="item" index="index" separator=",">
+        #{item}
+    </foreach>
+    )
+    )
+    UNION All
+    SELECT ip_address FROM mw_ipv6managelist_table WHERE id in
+    (
+    SELECT iplist_id FROM mw_ip_distribution where iplist_type = 1 and ipgroup_id in (
+    <foreach collection="s" item="item" index="index" separator=",">
+        #{item}
+    </foreach>
+    )
+    )
+</select>
+
+
+<insert id="insertDstr">
+    INSERT INTO "mw_ip_distribution"("id","primary_ip", "primary_type", "iplist_type",
+    <if test="o.orgIds!=null">
+        "orgIds",
+    </if>
+    <if test="o.orgtext!=null">
+        "orgtext",
+    </if>
+    <if test="o.oa!=null">
+        "oa",
+    </if>
+    <if test="o.oatext!=null">
+        "oatext",
+    </if>
+    <if test="o.oaurl!=null">
+        "oaurl",
+    </if>
+    <if test="o.oaurltext!=null">
+        "oaurltext",
+    </if>
+    "iplist_id","ipgroup_id","ipgroup_type","bang_distri") VALUES
+    (
+    SEQ_AD_INFO_MAPPER.NEXTVAL,
+    #{o.primaryIp},
+    #{o.primaryType},
+    #{o.iplistType},
+    <if test="o.orgIds!=null">
+        #{o.orgIds},
+    </if>
+    <if test="o.orgtext!=null">
+        #{o.orgtext},
+    </if>
+    <if test="o.oa!=null">
+        #{o.oa},
+    </if>
+    <if test="o.oatext!=null">
+        #{o.oatext},
+    </if>
+    <if test="o.oaurl!=null">
+        #{o.oaurl},
+    </if>
+    <if test="o.oaurltext!=null">
+        #{o.oaurltext},
+    </if>
+    #{o.iplistId},
+    #{o.ipgroupId},
+    #{o.ipgroupType},
+    #{o.bangDistri}
+    )
+</insert>
+
+
+<insert id="insertOperHis">
+INSERT INTO ${TBSNAME}."mw_ip_distribution_oper_history"
+( "id","map_key_value", "map_old_key_value", "dis_ipaddress", "dis_old_ipaddress", "group_id", "oper_time", "oper_int", "applicant_time", "applicant_old_time", "recall_num", "ip_discription","ip_old_discription","ipaddress_relation","oper_user","bang_distri") VALUES
+(SEQ_AD_INFO_MAPPER.NEXTVAL,#{map_key_value},#{map_old_key_value},#{dis_ipaddress},#{dis_old_ipaddress},#{group_id},#{oper_time},#{oper_int},#{applicant_time},#{applicant_old_time},#{recall_num},#{ip_discription},#{ip_old_discription},#{ipaddress_relation},#{oper_user},#{getDistri})
+    </insert>
+
+<select id="selectIPdisOperHis" resultType="java.util.Map">
+    SELECT "id", TO_CHAR("map_key_value") as "map_key_value", TO_CHAR("map_old_key_value") as"map_old_key_value",
+    TO_CHAR("dis_ipaddress") as"dis_ipaddress", TO_CHAR("dis_old_ipaddress") as"dis_old_ipaddress", "group_id",
+    "oper_time", "oper_int", "applicant_time", "applicant_old_time", "recall_num", TO_CHAR("ip_discription")
+    as"ip_discription", TO_CHAR("ip_old_discription") as"ip_old_discription", TO_CHAR("ipaddress_relation")
+    as"ipaddress_relation", "oper_user", "bang_distri"
+    FROM ${TBSNAME}."mw_ip_distribution_oper_history"
+    where 1=1
+    <if test="integer!=0">
+        and "id" =#{integer}
+    </if>
+    <if test="distributtioner!='' and distributtioner!=null ">
+        and "oper_user" like '%'||#{distributtioner}||'%'
+    </if>
+    <if test="ipAddresses!='' and ipAddresses!=null ">
+        and "ipaddress_relation" like '%'||#{ipAddresses}||'%'
+    </if>
+    <if test="operInt!='' and operInt!=null ">
+        and "oper_int" =#{operInt}
+    </if>
+    <if test="start!='' and start!=null ">
+        and "applicant_time" > #{start}
+    </if>
+    <if test="end!='' and end!=null ">
+        and "applicant_time" &lt; #{end}
+    </if>
+    <if test="operStart!='' and operStart!=null ">
+        and "oper_time" > #{operStart}
+    </if>
+    <if test="operEnd!='' and operEnd!=null ">
+        and "oper_time" &lt; #{operEnd}
+    </if>
+    <if test="applicator!='' and applicator!=null ">
+        and "map_key_value" like '%'||#{applicator}||'%'
+    </if>
+    <if test="applicaturl!='' and applicaturl!=null ">
+        and "map_key_value" like '%'||#{applicaturl}||'%'
+    </if>
+    <if test="group_id!='' and group_id!=null ">
+        and "group_id" = #{group_id}
+    </if>
+    <if test="group==-1">
+        and
+        "id" in (
+        SELECT max("id") FROM ${TBSNAME}."mw_ip_distribution_oper_history" WHERE 1 = 1 GROUP BY "group_id"
+        )
+
+    </if>
+    <if test="orderType=='' or orderType==null">
+        ORDER BY "oper_time" desc
+    </if>
+    <if test="orderType!='' and orderType!=null">
+        ORDER BY
+        <if test="orderName=='applicantDate'">
+            "applicant_time"
+        </if>
+        <if test="orderName=='distributtioner'">
+            "oper_user"
+        </if>
+        <if test="orderName=='operTime'">
+            "oper_time"
+        </if>
+        <if test="orderName=='operInt'">
+            "oper_int"
+        </if>
+        <if test="orderType == 'desc' ">
+            desc
+        </if>
+        <if test="orderType == 'asc' ">
+            asc
+        </if>
+    </if>
+</select>
+
+
+<select id="selectClean" resultType="java.util.Map">
+    SELECT *  FROM (
+    SELECT "oper_time",count("oper_time") as "bill" FROM ${TBSNAME}."mw_ip_distribution_oper_history"WHERE "oper_int" = 1 GROUP BY "oper_time"
+    ) a WHERE a.bill>1
+  </select>
+
+<select id="selectIPdisOperHisByOperTimt" resultType="java.util.Map">
+   SELECT * FROM ${TBSNAME}."mw_ip_distribution_oper_history" WHERE "oper_time" = #{date}
+  </select>
+
+<delete id="deleteOperHis">
+    DELETE FROM ${TBSNAME}."mw_ip_distribution_oper_history" WHERE "id" in
+    (
+    <foreach collection="id" item="item" index="index" separator=",">
+        #{item}
+    </foreach>
+    )
+</delete>
+
+
+<select id="getCountIssue" resultType="java.lang.Integer">
+    SELECT count(*) FROM (
+    SELECT id FROM ${TBSNAME}."mw_ipaddressmanagelist_table" a WHERE a.link_id in(
+    <foreach collection="id" item="item" index="index" separator=",">
+        #{item}
+    </foreach>
+    ) AND distribution_status = #{i}
+    UNION All
+    SELECT id FROM "mw_ipv6managelist_table" b WHERE b.link_id in (
+    <foreach collection="id" item="item" index="index" separator=",">
+        -#{item}
+    </foreach>
+    ) AND distribution_status = #{i}
+    ) c
+</select>
+
+
+<select id="selectFIPaddress" resultType="java.lang.Integer">
+
+    (
+    <foreach collection="id" item="item" index="index" separator=",">
+        #{item}
+    </foreach>
+    )
+</select>
+
+<select id="getRelation" resultType="java.util.Map">
+    SELECT ipgroup_id as sourceId,ipgroup_type as sourceIdType,primary_ip as parenId, primary_type as parenIdType,id
+    as updateId ,iplist_id as id,iplist_type as idType FROM "mw_ip_distribution" WHERE primary_ip = #{mainId} AND
+    primary_type = #{mainIdType}
+    <if test="bangDistri=='-1'">
+        AND (bang_distri is Null or bang_distri = '')
+    </if>
+    <if test="bangDistri!='-1'">
+        AND bang_distri = #{bangDistri}
+    </if>
+</select>
+
+<select id="selectBangString" resultType="java.lang.String">
+        SELECT bang_distri FROM "mw_ipam_oper_history" where  id = #{recoveryId}
+    </select>
+
+
+<select id="selectOperCleanHis" resultType="java.util.Map">
+    SELECT * FROM ${TBSNAME}."mw_ip_distribution_oper_history"
+    where oper_int = 2
+    <if test="ipaddress!='' and ipaddress!=null ">
+        and ipaddress_relation like CONCAT ('%',#{ipaddress},'%')
+    </if>
+    <if test="bang_distri!='' and bang_distri!=null ">
+        and bang_distri = #{bang_distri}
+    </if>
+    and rownum =1
+    ORDER BY id desc
+</select>
+
+
+<select id="selectParenIds" resultType="cn.mw.monitor.service.ipmanage.model.IpManageTree">
+    select "link_id" as "id",count("link_id") as "countCha" from ${TBSNAME}."mw_ipaddressmanagelist_table" where "ip_address" in
+    (
+    <foreach collection="strings" item="item" index="index" separator=",">
+        #{item}
+    </foreach>
+    )
+    GROUP BY "link_id"
+</select>
+
+<select id="getDes" resultType="java.util.Map">
+        SELECT * FROM `mw_ip_distribution_oper_history`  WHERE ip_discription like  CONCAT ('%',CONCAT('"bandIp":%',#{integer},'%,'),'%')
+    </select>
+
+
+<select id="getIpSign" resultType="cn.mw.monitor.ipaddressmanage.param.IpAllRequestBody">
+       SELECT * FROM "mw_ip_name_space" where  1=1
+    <if test="id!=null">
+        and "id"=#{id}
+    </if>
+</select>
+
+    <delete id="deleteIpsign">
+    DELETE FROM "mw_ip_name_space" WHERE "id" = #{id}
+    </delete>
+
+    <insert id="insertIpSign" parameterType="cn.mw.monitor.ipaddressmanage.param.IpAllRequestBody">
+        INSERT INTO "mw_ip_name_space"("id","namespace") VALUES (${TBSNAME}.SEQ_MW_VISUALIZED_CLASSIFY.NEXTVAL,#{ipAllRequestBody.namespace})
+    </insert>
+
+
+    <update id="updateOperHistory">
+        <foreach collection="maps" item="item" index="index" separator=";">
+            UPDATE "mw_ipam_oper_history" SET "descript" = #{item.ip_discription} WHERE "rlist_id" = (SELECT "id" FROM "mw_ipaddressmanagelist_table" WHERE "ip_address" = #{item.ipAddress}  ) AND "descript" is null
+        </foreach>
+    </update>
+
+    <update id="updateOtherBelong">
+        <foreach collection="maps" item="item" index="index" separator=";">
+            UPDATE "mw_ipaddressmanagelist_table" SET
+            "modification_date" = SYSDATE
+            <if test="item.mac!=null and item.mac!=''">
+                ,"mac"=#{item.mac}
+            </if>
+            <if test="item.vendor!=null and item.vendor!=''">
+                ,"vendor"=#{item.vendor}
+            </if>
+            <if test="item.access_equip!=null and item.access_equip!=''">
+                ,"access_equip"=#{item.access_equip}
+            </if>
+            <if test="item.access_port!=null and item.access_port!=''">
+                ,"access_port"=#{item.access_port}
+            </if>
+            <if test="item.assets_name!=null and item.assets_name!=''">
+                ,"assets_name"=#{item.assets_name}
+            </if>
+            <if test="item.assets_type!=null and item.assets_type!=''">
+                ,"assets_type"=#{item.assets_type}
+            </if>
+            <if test="item.remarks!=null and item.remarks!=''">
+                ,"remarks"=#{item.remarks}
+            </if>
+            WHERE "ip_address" = #{item.ipAddress}
+            <if test="signId==1">
+                and ("sign_id"=#{signId} or "sign_id" is null)
+            </if>
+            <if test="signId!=1">
+                and "sign_id"=#{signId}
+            </if>
+        </foreach>
+    </update>
+</mapper>

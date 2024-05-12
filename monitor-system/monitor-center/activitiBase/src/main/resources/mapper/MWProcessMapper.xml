@@ -1,0 +1,351 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.mw.monitor.activiti.dao.ProcessDao">
+
+    <resultMap id="BaseResultMap" type="cn.mw.monitor.activiti.dto.ProcessModuleBindDTO">
+        <id column="id" property="id" javaType="java.lang.Integer"/>
+        <result column="process_definition_id" jdbcType="VARCHAR" property="processDefinitionId" />
+        <result column="model_name" jdbcType="VARCHAR" property="modelName" />
+        <result column="action" jdbcType="VARCHAR" property="action" />
+    </resultMap>
+
+    <resultMap id="ProcessDefMap" type="cn.mw.monitor.activiti.dto.ProcessDefDTO">
+        <id column="id" property="id" javaType="java.lang.Integer"/>
+        <result column="activiti_process_id" jdbcType="VARCHAR" property="processDefinitionId" />
+        <result column="process_data" jdbcType="VARCHAR" property="processData" />
+        <result column="status" jdbcType="INTEGER" property="status" />
+        <collection property="userIds" javaType="java.util.ArrayList" ofType="java.lang.Integer" >
+            <id column="user_id" />
+        </collection>
+
+        <collection property="organizes" javaType="java.util.ArrayList" ofType="java.lang.Integer" >
+            <id column="org_id" />
+        </collection>
+
+        <collection property="groupIds" javaType="java.util.ArrayList" ofType="java.lang.Integer" >
+            <id column="group_id" />
+        </collection>
+    </resultMap>
+
+    <sql id="tb">
+        mw_process_module_bind
+    </sql>
+
+    <sql id="tb_process_def">
+        mw_process_def
+    </sql>
+
+    <sql id="baseColumn">
+        id, activiti_process_id, model_id,process_instance_key,model_id
+    </sql>
+
+    <sql id="process_def_column">
+        id, activiti_process_id, process_data,process_instance_key,status
+    </sql>
+
+    <select id="getProcessModuleBindDTO" parameterType="java.util.Map" resultMap="BaseResultMap">
+        select <include refid="baseColumn"/>
+        from <include refid="tb"/>
+        where 1 = 1
+        <if test="modelName !=null and modelName != ''">
+            and model_name = #{modelName,jdbcType=VARCHAR}
+        </if>
+        <if test="action !=null and action != ''">
+            and action = #{action,jdbcType=VARCHAR}
+        </if>
+        <if test="processDefinitionId !=null and processDefinitionId != ''">
+            and activiti_process_id = #{processDefinitionId,jdbcType=VARCHAR}
+        </if>
+    </select>
+
+    <update id="updateProcessModuleBindDTO" parameterType="cn.mw.monitor.activiti.dto.ProcessModuleBindDTO">
+        update <include refid="tb"/>
+           set process_definition_id = #{processDefinitionId,jdbcType=VARCHAR}
+            <if test="modelName != null and modelName != ''" >
+                , model_name = #{modelName,jdbcType=VARCHAR}
+            </if>
+            <if test="action != null and action != ''" >
+                , action = #{action,jdbcType=VARCHAR}
+            </if>
+          where id = #{id,jdbcType=INTEGER}
+    </update>
+
+    <insert id="insertProcessDef" parameterType="cn.mw.monitor.activiti.dto.ProcessDefDTO">
+        insert into <include refid="tb_process_def"/>
+        (activiti_process_id, process_data,process_instance_key,`version`,`create_time`,`status` )
+        values (
+        #{processDefinitionId,jdbcType=VARCHAR}
+        ,#{processData,jdbcType=VARCHAR}
+        ,#{processInstanceKey,jdbcType=VARCHAR}
+        ,#{version,jdbcType=INTEGER}
+        ,now()
+        ,0
+        )
+    </insert>
+
+    <update id="updateProcessDef" parameterType="cn.mw.monitor.activiti.dto.ProcessDefDTO">
+        update <include refid="tb_process_def"/>
+           set process_data = #{processData,jdbcType=VARCHAR}
+
+            <if test="newProcessDefinitionId != null and newProcessDefinitionId != ''" >
+            , activiti_process_id = #{newProcessDefinitionId,jdbcType=VARCHAR}
+            , process_instance_key = #{processInstanceKey,jdbcType=VARCHAR}
+            , process_data = #{processData,jdbcType=VARCHAR}
+            </if>
+
+         where activiti_process_id = #{processDefinitionId,jdbcType=VARCHAR}
+    </update>
+
+    <select id="getProcessDefDTO" parameterType="java.util.Map" resultMap="ProcessDefMap">
+        select <include refid="process_def_column"/>
+            ,t2.user_id user_id
+            ,t3.org_id org_id
+            ,t4.group_id group_id
+          from <include refid="tb_process_def"/>
+          left join  mw_user_mapper t2 on activiti_process_id = t2.type_id
+          left join  mw_org_mapper t3 on activiti_process_id = t3.type_id
+          left join  mw_group_mapper t4 on activiti_process_id = t4.type_id
+         where activiti_process_id = #{processDefinitionId,jdbcType=VARCHAR}
+    </select>
+
+    <select id="listProcessDefDTO"  resultMap="ProcessDefMap">
+        select <include refid="process_def_column"/>
+        ,t2.user_id user_id
+        ,t3.org_id org_id
+        ,t4.group_id group_id
+        from <include refid="tb_process_def"/>
+        left join  mw_user_mapper t2 on activiti_process_id = t2.type_id
+        left join  mw_org_mapper t3 on activiti_process_id = t3.type_id
+        left join  mw_group_mapper t4 on activiti_process_id = t4.type_id
+        where  mw_process_def.status!=#{sreachtype}
+        and
+         activiti_process_id in
+        <foreach collection="map.ids" item="item" index="index" open="(" separator="," close=")">
+            #{item,jdbcType=INTEGER}
+        </foreach>
+    </select>
+
+
+
+    <select id="selectProcessId" resultType="java.lang.String">
+        SELECT activiti_process_id from mw_process_def WHERE  activiti_process_id in (
+        SELECT activiti_process_id FROM `mw_process_module_bind` WHERE model_id in
+        <foreach collection="modeIds" separator="," open="(" close=")" index="index" item="item">
+            #{item}
+        </foreach>
+        AND action in
+        <foreach collection="set" separator="," open="(" close=")" index="index" item="item">
+            #{item}
+        </foreach>
+        <if test="processId!=null">
+            AND activiti_process_id != #{processId}
+        </if>
+        and status != 2
+        ) AND status!= 2
+    </select>
+
+    <select id="selectProcessInstanceKey" resultType="java.lang.String">
+        SELECT process_instance_key FROM `mw_process_module_bind` WHERE model_id = #{modeId} AND action =   #{operInt}  AND status = 0
+    </select>
+
+    <update id="deleteProcessAndMoudle">
+        UPDATE mw_process_module_bind SET status = #{status} WHERE activiti_process_id = #{noProcess}
+    </update>
+
+
+    <insert id="insertProcessStartActiviti">
+    INSERT INTO `monitor`.`mw_process_start_activiti`( `module_id`, `process_instance_id`, `process_def_id`,`action`, `status`)
+     VALUES
+        (#{moudleId}, #{processInstanceId}, #{processDefinitionId},#{oper} ,#{status})
+    </insert>
+
+    <insert id="insertProcessAndMoudle">
+        INSERT INTO `monitor`.`mw_process_module_bind`(`activiti_process_id`, `model_id`, `action`,`process_instance_key` ) VALUES
+        <foreach collection="set"   item="item" separator=",">
+        <foreach collection="modeId" item="mid" index="index" separator="," >
+                (#{defId},#{mid},#{item},#{id})
+            </foreach>
+        </foreach>
+    </insert>
+
+
+    <update id="deleteProcessDef">
+        UPDATE mw_process_def SET status = #{status} , delete_time = now() WHERE activiti_process_id = #{s}
+    </update>
+
+
+    <update id="updateProcessedToMoudle">
+        UPDATE mw_process_module_bind SET activiti_process_id = #{definitionNewId},process_instance_key = #{instanceKey}   WHERE activiti_process_id = #{definitionId}
+    </update>
+
+    <update id="updateProcessedToTable">
+        UPDATE mw_process_model_tree_bind SET activiti_process_id = #{definitionNewId}  WHERE activiti_process_id = #{definitionId}
+    </update>
+    <insert id="insertProcessMyTask">
+       INSERT INTO `monitor`.`mw_process_my_task`( `process_instance_id`, `login_name`) VALUES (#{processInstanceId}, #{loginName})
+    </insert>
+
+    <select id="selectTaskProcessId" resultType="java.lang.String">
+        SELECT process_instance_id FROM `mw_process_my_task` WHERE login_name = #{loginName}
+    </select>
+
+
+    <select id="selectOper" resultType="java.lang.Integer">
+        SELECT  `action`  FROM `mw_process_start_activiti` WHERE process_instance_id = #{processInstanceId}
+    </select>
+
+    <select id="selectModel" resultType="java.lang.Integer">
+        SELECT  `module_id`  FROM `mw_process_start_activiti` WHERE process_instance_id = #{processInstanceId} and action = #{s}
+    </select>
+
+    <select id="selectHaveProcess" resultType="java.lang.String">
+        SELECT login_name FROM `my_unfinish_process` WHERE login_name in
+        <foreach collection="loginName" separator="," open="(" close=")" index="index" item="item">
+            #{item}
+        </foreach>
+    </select>
+
+    <update id="UpdateCount">
+        UPDATE `monitor`.`my_unfinish_process` SET `un_finish_process` =
+          <if test="type==0">
+              un_finish_process + #{i}
+          </if>
+        <if test="type==1">
+            #{i}
+        </if>
+          WHERE `login_name` in
+        <foreach collection="strings" separator="," open="(" close=")" index="index" item="item">
+            #{item}
+        </foreach>
+    </update>
+
+    <update id="insertProcessCount">
+        INSERT INTO `monitor`.`my_unfinish_process`(`login_name`, `un_finish_process`) VALUES
+        <foreach collection="addstrings" separator=","  index="index" item="item">
+            (#{item},#{i})
+        </foreach>
+    </update>
+
+
+    <insert id="insetBandTask">
+        INSERT INTO `monitor`.`mw_process_task_module_bind`( `activiti_process_id`, `process_instance_key`, `model_id`, `task_id`,`is_start`) VALUES
+        <foreach collection="bindTasks"   item="item" separator=",">
+        (#{activitiId},#{defId},#{item.modelId},#{item.taskId},#{item.isStart})
+        </foreach>
+    </insert>
+    <select id="selectNumBind" resultType="java.lang.Integer">
+        SELECT count(id) FROM mw_process_model_tree_bind WHERE model_id = #{moudleId}
+    </select>
+
+    <insert id="insertMoudelBind">
+        INSERT INTO `mw_process_model_tree_bind`(`activiti_process_id`, `model_id`) VALUES
+            (#{processId},#{moudleId})
+    </insert>
+
+    <select id="selectmodelAndprocess" resultType="java.util.Map">
+        SELECT * FROM mw_process_model_tree_bind WHERE model_id = #{moudleId}
+    </select>
+
+    <select id="selectStartTask" resultType="cn.mw.monitor.activiti.param.BindTask">
+        SELECT * FROM mw_process_task_module_bind WHERE process_instance_key =  #{activitiId} and is_start = 1
+    </select>
+
+    <delete id="candleMoudle">
+        delete from mw_process_model_tree_bind where model_id = #{moudleId}
+    </delete>
+
+    <update id="addMoudleLine">
+    UPDATE `monitor`.`mw_process_model_tree_bind` SET `position` = #{position} WHERE model_id = #{moudleId}
+    </update>
+
+    <select id="selectPosition" resultType="java.lang.String">
+        SELECT `position` FROM mw_process_model_tree_bind WHERE model_id =  #{moudleId}
+    </select>
+
+    <select id="selectProcessTaskBindModel" resultType="java.util.Map">
+         SELECT
+            c.*,d.process_instance_key as start_id
+        FROM
+        mw_process_model_tree_bind c
+
+            LEFT JOIN mw_process_def d ON d.activiti_process_id = c.activiti_process_id
+            AND d.`status` = 0
+            	WHERE  c.id is not NULL and c.model_id = #{modelId}
+    </select>
+
+
+    <insert id="createTaskList">
+        INSERT INTO `monitor`.`mw_process_task_list`( `task_name`, `create_date`, `task_submit_creator`, `is_successful`,`moudel_id`,`model_instance_id`,`model_id`,`process_instance_id`,`task_type`)
+       VALUES (#{name}, now(), #{loginName}, #{successful},#{modelid},#{instanceId},#{mouldId},#{processInstanceId},#{type})
+    </insert>
+
+
+    <select id="proccessListBrowse" resultType="java.util.Map">
+    SELECT * FROM `mw_process_task_list` where moudel_id = #{searchParam.moudleId}
+        <if test="searchParam.task_name != null and searchParam.task_name !=''">
+            and task_name like  CONCAT('%',#{searchParam.task_name},'%')
+        </if>
+        <if test="searchParam.create_dateStart != null">
+            AND create_date &gt;= #{searchParam.create_dateStart, jdbcType=TIMESTAMP, javaType=java.util.Date}
+        </if>
+        <if test="searchParam.create_dateEnd != null">
+            AND create_date &lt;= #{searchParam.create_dateEnd, jdbcType=TIMESTAMP, javaType=java.util.Date}
+        </if>
+        <if test="searchParam.task_submit_creator != null and searchParam.task_submit_creator !=''">
+            and task_submit_creator like  CONCAT('%',#{searchParam.task_submit_creator},'%')
+        </if>
+        <if test="searchParam.is_successful != null and searchParam.is_successful !=''">
+            and is_successful=  #{searchParam.is_successful}
+        </if>
+        <if test="searchParam.task_type != null and searchParam.task_type !=''">
+            and task_type=  #{searchParam.task_type}
+        </if>
+        ORDER BY create_date desc
+    </select>
+
+
+    <select id="selectByTaskId" resultType="java.util.Map">
+    SELECT * FROM `mw_process_task_module_bind` where task_id like  CONCAT('%',#{taskId}) and process_instance_key= #{definitionId}
+    </select>
+
+    <update id="UpdateTaskList">
+        UPDATE `monitor`.`mw_process_task_list` SET `is_successful` = #{i} WHERE `process_instance_id` = #{processInstanceId}
+     </update>
+
+    <insert id="insertTaskCompleteNotifier">
+        INSERT INTO `monitor`.`mw_process_task_complete_notifier`( `task_id`, `notifier`) VALUES
+        <foreach collection="notifier.keys"   item="item" separator="," >
+            <foreach collection="notifier[item]"   item="index" separator="," >
+                (#{item},#{index})
+            </foreach>
+        </foreach>
+    </insert>
+
+    <select id="selectByDefintId" parameterType="java.util.HashSet" resultType="cn.mw.monitor.service.user.model.MWUser">
+        select
+        login_name as loginName,
+        oa as oa,
+        user_name as userName,
+        password as password,
+        user_id as userId
+        from mw_sys_user a
+        right  join  mw_process_task_complete_notifier c
+        on  c.notifier = a.user_id
+        where delete_flag = 0 and user_state = 'ACTIVE' and  task_id = #{taskDefinitionKey}
+    </select>
+
+    <delete id="proccessListDelete" >
+        DELETE FROM `monitor`.`mw_process_task_list` WHERE `id` in
+        (
+        <foreach collection="processId" item="deleteList" separator=",">
+            #{deleteList.value,jdbcType=INTEGER}
+        </foreach>
+        )
+    </delete>
+
+
+    <select id="checkMoudelAndModel" resultType="java.lang.Integer">
+    SELECT count(*) from mw_process_model_tree_bind a,mw_process_task_module_bind b WHERE a.model_id = #{modelId}
+    AND a.activiti_process_id = b.process_instance_key AND is_start=1 AND b.model_id = #{moudleId}
+    </select>
+</mapper>

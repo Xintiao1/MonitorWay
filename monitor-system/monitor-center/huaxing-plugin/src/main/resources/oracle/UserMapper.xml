@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.huaxing.user.dao.UserMapper">
+
+    <select id="selectAdServerInfo" resultType="cn.huaxing.user.entity.AdServerInfo">
+        SELECT
+            "ad_apartment_name" serverName,
+            "ad_ip_add" ipAddress,
+            "ad_port" PORT,
+            "ad_account" adAccount,
+            "ad_passwd" adPasswd
+        FROM
+            ${TBSNAME}."mw_adAuthentic_mapper"
+    </select>
+
+</mapper>

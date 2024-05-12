@@ -1,0 +1,618 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.mw.monitor.model.dao.MWModelTemplateDao">
+
+
+    <insert id="insert" parameterType="cn.mw.monitor.model.param.AddAndUpdateModelTemplateParam" keyColumn="id"
+            keyProperty="id" useGeneratedKeys="true">
+        <selectKey resultType="java.lang.Integer" keyProperty="id" order="BEFORE">
+            select ${TBSNAME}.SEQ_MW_CMDBMD_TEMPLATE_TABLE.NEXTVAL AS "id" from dual
+        </selectKey>
+        insert into ${TBSNAME}."mw_cmdbmd_template_table"
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            "id",
+            <if test="templateName != null">
+                "template_name",
+            </if>
+            <if test="description != null">
+                "description",
+            </if>
+            <if test="brand != null">
+                "brand",
+            </if>
+            <if test="specification != null">
+                "specification",
+            </if>
+            <if test="modelGroupId != null">
+                "assets_type_id",
+            </if>
+            <if test="modelId != null">
+                "sub_assets_type_id",
+            </if>
+            <if test="systemObjid != null and systemObjid != ''">
+                "system_objid",
+            </if>
+            <if test="monitorMode != null">
+                "monitor_mode",
+            </if>
+            <if test="creator != null">
+                "creator",
+            </if>
+            "create_date",
+            <if test="modifier != null">
+                "modifier",
+            </if>
+            <if test="interfacesType != null">
+                "interfaces_type",
+            </if>
+            "status",
+            "modification_date"
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            #{id},
+            <if test="templateName != null">
+                #{templateName,jdbcType=VARCHAR},
+            </if>
+            <if test="description != null">
+                #{description,jdbcType=VARCHAR},
+            </if>
+            <if test="brand != null">
+                #{brand,jdbcType=VARCHAR},
+            </if>
+            <if test="specification != null">
+                #{specification,jdbcType=VARCHAR},
+            </if>
+            <if test="modelGroupId != null">
+                #{modelGroupId,jdbcType=INTEGER},
+            </if>
+            <if test="modelId != null">
+                #{modelId,jdbcType=INTEGER},
+            </if>
+            <if test="systemObjid != null and systemObjid != ''">
+                #{systemObjid,jdbcType=VARCHAR},
+            </if>
+            <if test="monitorMode != null">
+                #{monitorMode,jdbcType=INTEGER},
+            </if>
+            <if test="creator != null">
+                #{creator,jdbcType=VARCHAR},
+            </if>
+            SYSDATE,
+            <if test="modifier != null">
+                #{modifier,jdbcType=VARCHAR},
+            </if>
+            <if test="interfacesType != null">
+                #{interfacesType,jdbcType=INTEGER},
+            </if>
+            '1',
+            SYSDATE
+        </trim>
+    </insert>
+
+    <insert id="insertBatchTemplateServerMap" parameterType="java.util.List" keyColumn="id" keyProperty="id">
+        <selectKey resultType="java.lang.Integer" keyProperty="id" order="BEFORE">
+            select ${TBSNAME}.SEQ_MW_CMDBMD_TEMPLATE_SERVER_MAPPER.NEXTVAL AS "id" from dual
+        </selectKey>
+        INSERT INTO ${TBSNAME}."mw_cmdbmd_template_server_mapper" ("id","assetstemplate_id", "server_id", "template_id")
+        SELECT ${TBSNAME}.SEQ_MW_CMDBMD_TEMPLATE_SERVER_MAPPER.NEXTVAL,t.*
+        FROM(
+        <foreach collection="list" item="item" index="index" separator="UNION ALL">
+            SELECT
+            #{item.assetstemplateId,jdbcType=INTEGER},
+            #{item.serverId,jdbcType=INTEGER},
+            #{item.templateId,jdbcType=VARCHAR}
+            FROM DUAL
+        </foreach>
+        ) t
+    </insert>
+
+    <insert id="insertBatchGroupServerMap" parameterType="java.util.List">
+        INSERT INTO ${TBSNAME}."mw_cmdbmd_modelgroup_server_mapper" ("id","group_id", "monitor_server_id", "model_group_id")
+        SELECT ${TBSNAME}.SEQ_MW_CMDBMD_MODELGROUP_SERVER_MAPPER.NEXTVAL,t.*
+        FROM(
+        <foreach collection="list" item="item" index="index" separator="UNION ALL">
+            SELECT
+            #{item.groupId,jdbcType=VARCHAR},
+            #{item.monitorServerId,jdbcType=INTEGER},
+            #{item.assetsSubtypeId,jdbcType=INTEGER}
+            FROM DUAL
+        </foreach>
+        ) t
+    </insert>
+
+
+    <update id="update" parameterType="cn.mw.monitor.model.param.AddAndUpdateModelTemplateParam">
+        update ${TBSNAME}."mw_cmdbmd_template_table"
+        <set>
+            <if test="templateName != null">
+                "template_name" = #{templateName,jdbcType=VARCHAR},
+            </if>
+            <if test="description != null">
+                "description" = #{description,jdbcType=VARCHAR},
+            </if>
+            <if test="brand != null">
+                "brand" = #{brand,jdbcType=VARCHAR},
+            </if>
+            <if test="specification != null">
+                "specification" = #{specification,jdbcType=VARCHAR},
+            </if>
+            <if test="systemObjid != null and systemObjid != ''">
+                "system_objid" = #{systemObjid,jdbcType=VARCHAR},
+            </if>
+            <if test="modelGroupId != null">
+                "assets_type_id" = #{modelGroupId,jdbcType=INTEGER},
+            </if>
+            <if test="modelId != null">
+                "sub_assets_type_id" = #{modelId,jdbcType=INTEGER},
+            </if>
+            <if test="monitorMode != null">
+                "monitor_mode" = #{monitorMode,jdbcType=INTEGER},
+            </if>
+            <if test="interfacesType != null">
+                "interfaces_type" = #{interfacesType,jdbcType=INTEGER},
+            </if>
+            "modifier" = #{modifier,jdbcType=VARCHAR},
+            "modification_date" = SYSDATE
+        </set>
+        where "id" = #{id,jdbcType=INTEGER}
+    </update>
+
+    <select id="selectModelGroupNames" resultType="cn.mw.monitor.model.param.ModelGroupAsSubDeviceType">
+        SELECT
+            "model_group_id" AS "groupId",
+            "model_group_name" AS "groupName",
+            CASE WHEN ("network" is null or "network" ='') THEN CONCAT('Model_',"model_group_name") ELSE "network" END AS "network",            "pid",
+            "nodes"
+        from  ${TBSNAME}."mw_cmdbmd_group"
+        WHERE
+            "nodes" like '%,0,%'
+			and "pid" != -1
+    </select>
+
+    <select id="check" parameterType="cn.mw.monitor.model.param.QueryModelTemplateParam"
+            resultType="cn.mw.monitor.service.model.param.MwModelTemplateTable">
+        select "id", "creator", "brand", "specification" from  ${TBSNAME}."mw_cmdbmd_template_table"
+        where 1=1
+        <if test="id != null">
+            and "id" != #{id,jdbcType=INTEGER}
+        </if>
+        <if test="templateName != null">
+            and "template_name" = #{templateName,jdbcType=VARCHAR}
+        </if>
+        <if test="specification != null">
+            and "specification" = #{specification,jdbcType=VARCHAR}
+        </if>
+        <if test="systemObjid != '' and systemObjid != null">
+            and "system_objid" = #{systemObjid,jdbcType=VARCHAR}
+        </if>
+        <if test="description != '' and description != null">
+            and TO_CHAR("description") = #{description,jdbcType=VARCHAR}
+        </if>
+    </select>
+
+    <delete id="deleteBatch" parameterType="java.util.List">
+        delete from  ${TBSNAME}."mw_cmdbmd_template_table"
+        where "id" in (
+        <foreach collection="list" item="deleteList" separator=",">
+            #{deleteList.value,jdbcType=INTEGER}
+        </foreach>
+        )
+    </delete>
+
+    <delete id="deleteBatchTemplateServerMap" parameterType="java.util.List">
+        delete from ${TBSNAME}."mw_cmdbmd_template_server_mapper"
+        where "assetstemplate_id" in (
+        <foreach collection="list" item="deleteList" separator=",">
+            #{deleteList.value,jdbcType=INTEGER}
+        </foreach>
+        )
+    </delete>
+
+
+    <select id="selectPortList" parameterType="java.util.Map" resultMap="BaseResultByTepmplateList">
+        SELECT
+        t1."id",
+        t1."port",
+        t1."monitor_port",
+        t1."template_name",
+        t1."assets_type_id",
+        t1."sub_assets_type_id",
+        t1."monitor_mode",
+        t1."creator",
+        t1."create_date",
+        t1."modifier",
+        t1."modification_date",
+        t1."template_id",
+        t3."model_group_name" AS "assets_type_name"
+        ,t3."nodes"
+        ,t5."model_name" AS "sub_assets_type_name"
+        t4."drop_value" AS "monitor_mode_name"
+        from  ${TBSNAME}."mw_assets_port_template" t1
+        LEFT JOIN ${TBSNAME}."mw_cmdbmd_group" t3 ON t1."assets_type_id" = t3."model_group_id"
+        LEFT JOIN ${TBSNAME}."mw_dropdown_table" t4 ON t1."monitor_mode" = t4."drop_key" AND t4."drop_code" = 'monitor_mode'
+        LEFT JOIN ${TBSNAME}."mw_cmdbmd_manage" t5 ON t1."sub_assets_type_id" = t5."model_id"
+        where 1=1
+        <include refid="criteria"><property name="alias" value="t1."/></include>
+    </select>
+
+    <select id="selectList" parameterType="java.util.Map" resultMap="BaseResultByTepmplateList">
+        SELECT
+        t1."id"
+        , t1."template_name"
+        , t1."system_objid"
+        , TO_CHAR(t1."description") AS "description"
+        , t1."brand"
+        , t1."specification"
+        , t1."sub_assets_type_id"
+        , t1."assets_type_id"
+        , t1."monitor_mode"
+        , t1."creator"
+        , t1."create_date"
+        , t1."modifier"
+        , t1."modification_date"
+        , t1."interfaces_type"
+        ,t1."status"
+        ,t3."model_group_name" AS "assets_type_name"
+        ,t3."nodes"
+        ,t5."model_name" AS "sub_assets_type_name"
+        , t4."drop_value" AS "monitor_mode_name"
+        <if test="serverId != null and serverId != 0">
+            ,t6."id" AS "t2id"
+            ,t6."assetstemplate_id"
+            ,t6."server_id"
+            ,t6."template_id"
+        </if>
+        from  ${TBSNAME}."mw_cmdbmd_template_table" t1
+        LEFT JOIN ${TBSNAME}."mw_cmdbmd_group" t3 ON t1."assets_type_id" = t3."model_group_id"
+        LEFT JOIN ${TBSNAME}."mw_dropdown_table" t4 ON t1."monitor_mode" = t4."drop_key" AND t4."drop_code" = 'monitor_mode'
+        LEFT JOIN ${TBSNAME}."mw_cmdbmd_manage" t5 ON t1."sub_assets_type_id" = t5."model_id"
+        <if test="serverId != null and serverId != 0">
+            LEFT JOIN
+            ${TBSNAME}."mw_cmdbmd_template_server_mapper"
+            t6 ON t1."id" = t6."assetstemplate_id"
+        </if>
+        where 1=1
+        <include refid="criteria"><property name="alias" value="t1."/></include>
+        <if test="serverId != null and serverId != 0">
+            and t6."server_id" = #{serverId,jdbcType=INTEGER}
+        </if>
+    </select>
+
+
+    <select id="selectTPServerById" parameterType="int" resultMap="BaseResultMap">
+        select
+            "id", "monitoring_server_name", "monitoring_server_ip", "monitoring_server_url",
+            "monitoring_server_user", "monitoring_server_password", "monitoring_server_version",
+            "monitoring_server_type", "main_server", "creator", "create_date", "modifier", "modification_date",
+            "delete_flag", "encrypted_flag"
+        from  ${TBSNAME}."mw_thirdparty_server_table"
+        where "id" = #{id,jdbcType=INTEGER}
+    </select>
+
+    <select id="fuzzSearchAllFiled" resultType="java.util.Map">
+        SELECT
+            a."template_name" AS "templateName",
+            a."system_objid" AS "systemObjid",
+            TO_CHAR(a."description") AS "description",
+            a."brand",
+            a."specification",
+            a."creator",
+            a."modifier",
+            b."model_group_name" AS "typeName",
+            c."model_name" AS "subTapeName",
+            d."drop_value" AS "monitorModeName"
+        FROM
+            ${TBSNAME}."mw_assetstemplate_table" a
+            LEFT JOIN ${TBSNAME}."mw_cmdbmd_group" b ON a."assets_type_id" = b."model_group_id"
+            LEFT JOIN ${TBSNAME}."mw_cmdbmd_manage" c ON a."sub_assets_type_id" = c."model_id"
+            LEFT JOIN ${TBSNAME}."mw_dropdown_table" d ON d."drop_code" = 'monitor_mode'
+            AND d."drop_key" = a."monitor_mode"
+        WHERE
+            (NVL( a."template_name", '' ) || NVL( a."system_objid", '' ) || NVL( a."description", '' ) || NVL( a."brand", '' ) || NVL( a."specification", '' ) || NVL( a."creator", '' ) || NVL( a."modifier", '' ) || NVL( d."drop_value", '' ) || NVL( b."model_group_name", '' ) || NVL( c."model_name", '' )
+            ) like ('%'||#{value,jdbcType=VARCHAR}||'%')
+        ORDER BY
+            ( CASE WHEN INSTR( a."template_name", #{value} ) > 0 THEN 0 ELSE 1 END ),
+            ( CASE WHEN INSTR( a."system_objid", #{value} ) > 0 THEN 0 ELSE 1 END ),
+            ( CASE WHEN INSTR( a."description", #{value} ) > 0 THEN 0 ELSE 1 END ),
+            ( CASE WHEN INSTR( a."brand", #{value} ) > 0 THEN 0 ELSE 1 END ),
+            ( CASE WHEN INSTR( d."drop_value", #{value} ) > 0 THEN 0 ELSE 1 END ),
+            ( CASE WHEN INSTR( a."specification", #{value} ) > 0 THEN 0 ELSE 1 END ),
+            ( CASE WHEN INSTR( b."model_group_name", #{value} ) > 0 THEN 0 ELSE 1 END ),
+            ( CASE WHEN INSTR( c."model_name", #{value} ) > 0 THEN 0 ELSE 1 END ),
+            ( CASE WHEN INSTR( a."creator", #{value} ) > 0 THEN 0 ELSE 1 END ),
+            ( CASE WHEN INSTR( a."modifier", #{value} ) > 0 THEN 0 ELSE 1 END )
+    </select>
+
+    <select id="getAssetsTemplateId" resultType="cn.mw.monitor.model.param.MwModelTemplateInfo">
+        SELECT
+            t1."assetstemplate_id" AS "templateId",
+            t1."template_id" AS "serverTemplateId",
+            t1."server_id" AS "serverId",
+            t2."specification" AS "specification"
+        FROM
+            ${TBSNAME}."mw_cmdbmd_template_server_mapper" t1
+            LEFT JOIN ${TBSNAME}."mw_cmdbmd_template_table" t2 ON t1."assetstemplate_id" = t2."id"
+    </select>
+
+    <select id="selectTepmplateTableList" parameterType="java.util.Map" resultMap="BaseResultByTepmplateList">
+        select * from (
+        SELECT
+        <if test="selectAssetsFlag">
+            m2."id" AS "assetsIds",
+        </if>
+        t1."id"
+        ,t1."template_name"
+        ,t1."system_objid"
+        ,TO_CHAR(t1."description") AS "description"
+        ,t1."brand"
+        ,t1."specification"
+        ,t1."sub_assets_type_id"
+        ,t1."assets_type_id"
+        ,t1."monitor_mode"
+        ,t1."creator"
+        ,t1."create_date"
+        ,t1."modifier"
+        ,t1."modification_date"
+        ,t1."interfaces_type"
+        ,t1."status"
+        ,t3."model_group_name" AS "assets_type_name"
+        ,t3."nodes"
+        ,t5."model_name" AS "sub_assets_type_name"
+        ,t4."drop_value" AS "monitor_mode_name"
+        from  ${TBSNAME}."mw_cmdbmd_template_table" t1
+        LEFT JOIN ${TBSNAME}."mw_cmdbmd_group" t3 ON t1."assets_type_id" = t3."model_group_id"
+        LEFT JOIN ${TBSNAME}."mw_dropdown_table" t4 ON t1."monitor_mode" = t4."drop_key" AND t4."drop_code" = 'monitor_mode'
+        LEFT JOIN ${TBSNAME}."mw_cmdbmd_manage" t5 ON t1."sub_assets_type_id" = t5."model_id"
+        <if test="selectAssetsFlag">
+            LEFT JOIN ${TBSNAME}."mw_cmdbmd_template_server_mapper" m1 on m1."assetstemplate_id" = t1."id"
+            LEFT JOIN ${TBSNAME}."mw_tangibleassets_table" m2 on m2."template_id" = m1."template_id" and m2."specifications" =
+            t1."specification" and m2."delete_flag" = 0
+        </if>
+        where 1=1
+        <if test="fuzzyQuery!= null and fuzzyQuery !='' ">
+            and (
+            NVL( t1."template_name", '' )||
+            NVL( t1."system_objid", '' )||
+            NVL( t1."brand", '' )||
+            NVL( t4."drop_value", '' )||
+            NVL( t3."model_group_name", '' )||
+            NVL( t5."model_name", '' )||
+            NVL( t1."description", '' )||
+            NVL( t1."specification", '' )
+            ) LIKE ('%'||#{fuzzyQuery,jdbcType=VARCHAR}||'%')
+            ORDER BY
+            ( CASE WHEN INSTR( t1."template_name", #{fuzzyQuery}) > 0 THEN 0 ELSE 1 END ),
+            ( CASE WHEN INSTR( t1."system_objid", #{fuzzyQuery}) > 0 THEN 0 ELSE 1 END ),
+            ( CASE WHEN INSTR( t1."brand", #{fuzzyQuery} ) > 0 THEN 0 ELSE 1 END ),
+            ( CASE WHEN INSTR( t1."specification", #{fuzzyQuery}) > 0 THEN 0 ELSE 1 END )
+        </if>
+        <include refid="criteria"><property name="alias" value="t1."/></include>
+        ) t2
+        order by t2."modification_date" desc
+    </select>
+
+    <select id="getMonitorModeId" resultType="java.lang.Integer">
+        select "drop_key"
+        from ${TBSNAME}."mw_dropdown_table"
+        where "drop_value" = #{name}
+        and "drop_code" = 'monitor_mode'
+    </select>
+
+    <select id="getAssetsType" resultType="java.lang.Integer">
+        select "model_group_id"
+        from ${TBSNAME}."mw_cmdbmd_group"
+        where "model_group_name" = #{name}
+        and "sync_zabbix" = 1
+    </select>
+
+    <select id="getAssetsSubType" resultType="java.lang.Integer">
+        select "model_id"
+        from ${TBSNAME}."mw_cmdbmd_manamge"
+        where "model_name" = #{typeSubName}
+        and "delete_flag" = 0
+    </select>
+
+
+    <delete id="cleanGroupServerMap">
+        truncate table ${TBSNAME}."mw_cmdbmd_modelgroup_server_mapper"
+    </delete>
+
+    <delete id="cleanTemplateServerMap">
+        truncate table ${TBSNAME}."mw_cmdbmd_template_server_mapper"
+    </delete>
+
+    <update id="updateTemplateStatus" parameterType="java.util.List">
+        <foreach collection="list" item="updateList" separator=";" close="; END ;" open="BEGIN ">
+            UPDATE ${TBSNAME}."mw_cmdbmd_template_table"
+            SET "status" = #{updateList.status}
+            WHERE
+            "id" = #{updateList.id}
+        </foreach>
+    </update>
+
+    <select id="selectTemplateById" parameterType="java.lang.Integer" resultMap="BaseResultByTepmplateList">
+        select
+            t1."id"
+            ,t1."template_name"
+            ,t1."system_objid"
+            ,TO_CHAR(t1."description") AS "description"
+            ,t1."brand"
+            ,t1."specification"
+            ,t1."sub_assets_type_id"
+            ,t1."assets_type_id"
+			,t2."nodes"
+            ,t1."monitor_mode"
+            ,t1."creator"
+            ,t1."create_date"
+            ,t1."modifier"
+            ,t1."status"
+            ,t1."modification_date"
+            ,t1."interfaces_type"
+        from  ${TBSNAME}."mw_cmdbmd_template_table" t1
+        LEFT JOIN ${TBSNAME}."mw_cmdbmd_group" t2 on t1."assets_type_id" = t2."model_group_id"
+        where t1."id" = #{id,jdbcType=INTEGER}
+    </select>
+
+    <select id="selectTemplateNames" resultType="cn.mw.monitor.model.dto.MwModelTemplateNamesDto">
+        select
+        "id",
+        "template_name" AS "templateName",
+        "assets_type_id" AS "assetsTypeId"
+        from  ${TBSNAME}."mw_cmdbmd_template_table"
+    </select>
+
+
+    <sql id="criteria">
+        <if test="assetsTypeName != null and assetsTypeName != '' ">
+            and t3."model_group_name" like ('%'||#{assetsTypeName,jdbcType=VARCHAR}||'%')
+        </if>
+        <if test="subAssetsTypeName != null and subAssetsTypeName != '' ">
+            and t5."model_name" like ('%'||#{subAssetsTypeName,jdbcType=VARCHAR}||'%')
+        </if>
+        <if test="templateName != null">
+            and ${alias}"template_name" like ('%'||#{templateName,jdbcType=VARCHAR}||'%')
+        </if>
+        <if test="brand != null">
+            and ${alias}"brand" like  ('%'||#{brand,jdbcType=VARCHAR}||'%')
+        </if>
+        <if test="description != null">
+            and TO_CHAR(${alias}"description") like  ('%'||#{description,jdbcType=VARCHAR}||'%')
+        </if>
+        <if test="specification != null">
+            and ${alias}"specification" like  ('%'||#{specification,jdbcType=VARCHAR}||'%')
+        </if>
+        <if test="systemObjid != null">
+            and ${alias}"system_objid" like  ('%'||#{systemObjid,jdbcType=VARCHAR}||'%')
+        </if>
+        <if test="assetsTypeId != null">
+            and ${alias}"assets_type_id" = #{assetsTypeId,jdbcType=VARCHAR}
+        </if>
+        <if test="subAssetsTypeId != null">
+            and ${alias}"sub_assets_type_id" = #{subAssetsTypeId,jdbcType=VARCHAR}
+        </if>
+        <if test="monitorModes != null">
+            and ${alias}"monitor_mode" in
+            <foreach collection="monitorModes" item="monitorMode" separator="," open="(" close=")">
+                #{monitorMode}
+            </foreach>
+        </if>
+        <if test="creator != null and creator != ''">
+            and ${alias}"creator" = #{creator,jdbcType=VARCHAR}
+        </if>
+        <if test="createDateStart != null">
+            AND  <![CDATA[#{createDateStart,jdbcType=TIMESTAMP} <= ${alias}"create_date" ]]>
+        </if>
+        <if test="createDateEnd != null">
+            AND <![CDATA[#{createDateEnd,jdbcType=TIMESTAMP} >= ${alias}"create_date" ]]>
+        </if>
+        <if test="modifier != null and modifier != ''">
+            AND ${alias}"modifier" = #{modifier,jdbcType=VARCHAR}
+        </if>
+        <if test="modificationDateStart != null">
+            AND  <![CDATA[#{modificationDateStart,jdbcType=TIMESTAMP} <= ${alias}"modification_date" ]]>
+        </if>
+        <if test="modificationDateEnd != null">
+            AND <![CDATA[#{modificationDateEnd,jdbcType=TIMESTAMP} >= ${alias}"modification_date" ]]>
+        </if>
+    </sql>
+
+    <select id="selectListByModel" parameterType="java.util.Map" resultMap="BaseResultByTepmplateList">
+        SELECT
+        t1."id"
+        , t1."template_name"
+        , t1."system_objid"
+        , TO_CHAR(t1."description") AS "description"
+        , t1."brand"
+        , t1."specification"
+        , t1."sub_assets_type_id"
+        , t1."assets_type_id"
+        , t1."monitor_mode"
+        , t1."creator"
+        , t1."create_date"
+        , t1."modifier"
+        , t1."modification_date"
+        , t1."interfaces_type"
+        ,t1."status"
+        ,t3."model_group_id"
+        ,t3."model_group_name" AS "assets_type_name"
+        ,t3."nodes"
+        ,t5."model_name" AS "sub_assets_type_name"
+        , t4."drop_value" AS "monitor_mode_name"
+        <if test="serverId != null and serverId != 0">
+            ,t6."id" AS "t2id"
+            ,t6."assetstemplate_id"
+            ,t6."server_id"
+            ,t6."template_id"
+        </if>
+        from  ${TBSNAME}."mw_cmdbmd_template_table" t1
+        LEFT JOIN ${TBSNAME}."mw_cmdbmd_group" t3 ON t1."assets_type_id" = t3."model_group_id"
+        LEFT JOIN ${TBSNAME}."mw_dropdown_table" t4 ON t1."monitor_mode" = t4."drop_key" AND t4."drop_code" = 'monitor_mode'
+        LEFT JOIN ${TBSNAME}."mw_cmdbmd_manage" t5 ON t1."sub_assets_type_id" = t5."model_id"
+        <if test="serverId != null and serverId != 0">
+            LEFT JOIN
+            ${TBSNAME}."mw_cmdbmd_template_server_mapper"
+            t6 ON t1."id" = t6."assetstemplate_id"
+        </if>
+        where t1."status" = '1'
+        <include refid="criteria"><property name="alias" value="t1."/></include>
+        <if test="serverId != null and serverId != 0">
+            and t6."server_id" = #{serverId,jdbcType=INTEGER}
+        </if>
+    </select>
+
+    <resultMap id="BaseResultByTepmplateList" type="cn.mw.monitor.service.model.param.MwModelTemplateDTO">
+        <id column="id" jdbcType="INTEGER" property="id"/>
+        <result column="port" jdbcType="INTEGER" property="port"/>
+        <result column="monitor_port" jdbcType="INTEGER" property="monitorPort"/>
+        <result column="template_name" jdbcType="VARCHAR" property="templateName"/>
+        <result column="system_objid" jdbcType="VARCHAR" property="systemObjid"/>
+        <result column="description" jdbcType="VARCHAR" property="description"/>
+        <result column="brand" jdbcType="VARCHAR" property="brand"/>
+        <result column="specification" jdbcType="VARCHAR" property="specification"/>
+        <result column="assets_type_id" jdbcType="VARCHAR" property="modelGroupId"/>
+        <result column="sub_assets_type_id" jdbcType="VARCHAR" property="modelId"/>
+        <result column="nodes" jdbcType="INTEGER" property="groupNodes"/>
+        <result column="monitor_mode" jdbcType="INTEGER" property="monitorMode"/>
+        <result column="creator" jdbcType="VARCHAR" property="creator"/>
+        <result column="create_date" jdbcType="TIMESTAMP" property="createDate"/>
+        <result column="modifier" jdbcType="VARCHAR" property="modifier"/>
+        <result column="modification_date" jdbcType="TIMESTAMP" property="modificationDate"/>
+        <result column="model_group_id" jdbcType="INTEGER" property="groupId"/>
+        <result column="assets_type_name" jdbcType="VARCHAR" property="assetsTypeName"/>
+        <result column="sub_assets_type_name" jdbcType="VARCHAR" property="subAssetsTypeName"/>
+        <result column="monitor_mode_name" jdbcType="VARCHAR" property="monitorModeName"/>
+        <result column="interfaces_type" jdbcType="INTEGER" property="interfacesType"/>
+        <result column="status" jdbcType="BIT" property="status"/>
+
+        <collection property="template" javaType="java.util.ArrayList"
+                    ofType="cn.mw.monitor.service.model.param.MwModelZabbixTemplateParam">
+            <id column="t2id" property="id"/>
+            <result column="assetstemplate_id" property="assetstemplateId"/>
+            <result column="server_id" property="serverId"/>
+            <result column="template_id" property="templateId"/>
+        </collection>
+        <collection property="assetsIds" javaType="java.util.ArrayList" ofType="java.lang.String"/>
+    </resultMap>
+
+    <resultMap id="BaseResultMap" type="cn.mw.monitor.model.param.MwModelTPServerTable" extends="ParentMap">
+    </resultMap>
+
+    <resultMap id="ParentMap" type="cn.mw.monitor.model.param.MwModelTPServerTable">
+        <id column="id" jdbcType="INTEGER" property="id"/>
+        <result column="monitoring_server_name" jdbcType="VARCHAR" property="monitoringServerName"/>
+        <result column="monitoring_server_ip" jdbcType="VARCHAR" property="monitoringServerIp"/>
+        <result column="monitoring_server_url" jdbcType="VARCHAR" property="monitoringServerUrl"/>
+        <result column="monitoring_server_user" jdbcType="VARCHAR" property="monitoringServerUser"/>
+        <result column="monitoring_server_password" jdbcType="VARCHAR" property="monitoringServerPassword"/>
+        <result column="monitoring_server_version" jdbcType="VARCHAR" property="monitoringServerVersion"/>
+        <result column="monitoring_server_type" jdbcType="VARCHAR" property="monitoringServerType"/>
+        <result column="main_server" jdbcType="BIT" property="mainServer"/>
+        <result column="creator" jdbcType="VARCHAR" property="creator"/>
+        <result column="create_date" jdbcType="TIMESTAMP" property="createDate"/>
+        <result column="modifier" jdbcType="VARCHAR" property="modifier"/>
+        <result column="modification_date" jdbcType="TIMESTAMP" property="modificationDate"/>
+        <result column="delete_flag" jdbcType="BIT" property="deleteFlag"/>
+        <result column="encrypted_flag" jdbcType="BIT" property="encryptedFlag"/>
+    </resultMap>
+
+</mapper>

@@ -1,0 +1,598 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.mw.monitor.model.dao.MwModelRelationsDao">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="cn.mw.monitor.model.dto.ModelRelationGroupDTO">
+        <result column="id" jdbcType="INTEGER" property="id"/>
+        <result column="own_model_id" jdbcType="INTEGER" property="ownModelId"/>
+        <result column="relation_group_name" jdbcType="VARCHAR" property="relationGroupName"/>
+        <result column="relation_group_desc" jdbcType="VARCHAR" property="relationGroupDesc"/>
+        <result column="creator" jdbcType="VARCHAR" property="creator"/>
+        <result column="create_date" jdbcType="TIMESTAMP" property="createDate"/>
+        <result column="modifier" jdbcType="VARCHAR" property="modifier"/>
+        <result column="modification_date" jdbcType="TIMESTAMP" property="modificationDate"/>
+        <result column="delete_flag" jdbcType="BOOLEAN" property="deleteFlag"/>
+        <result column="defaut_group_flag" jdbcType="BOOLEAN" property="defautGroupFlag"/>
+    </resultMap>
+
+    <resultMap id="relationGroupMap" type="cn.mw.monitor.model.dto.RelationGroupDTO">
+        <result column="id" jdbcType="VARCHAR" property="id"/>
+        <result column="label" jdbcType="VARCHAR" property="label"/>
+        <result column="realGroupId" jdbcType="INTEGER" property="realGroupId"/>
+        <result column="defautGroupFlag" jdbcType="BOOLEAN" property="defautGroupFlag"/>
+    </resultMap>
+
+    <sql id="relation_group_column">
+        ${alias}id
+        ,${alias}own_model_id
+        ,${alias}relation_group_name
+        ,${alias}relation_group_desc
+        ,${alias}creator
+        ,${alias}create_date
+        ,${alias}modifier
+        ,${alias}modification_date
+        ,${alias}delete_flag
+        ,${alias}defaut_group_flag
+    </sql>
+
+    <sql id="releation_group_table">
+        mw_cmdbmd_relations_group
+    </sql>
+
+    <select id="selectModelRelationGroup" resultMap="BaseResultMap" parameterType="cn.mw.monitor.model.param.ModelRelationGroupSelParam">
+        select <include refid="relation_group_column"><property name="alias" value=""/></include>
+          from <include refid="releation_group_table"></include>
+         where 1 = 1
+        <if test="null != id">
+            and id=#{id,jdbcType=INTEGER}
+        </if>
+        <if test="null != ownModelId">
+            and own_model_id=#{ownModelId,jdbcType=INTEGER}
+        </if>
+    </select>
+
+    <insert id="creatModelRelations" parameterType="cn.mw.monitor.model.param.AddAndUpdateModelRelationParam"
+            useGeneratedKeys="true" keyProperty="id" keyColumn="id">
+        insert into mw_cmdbmd_relations(
+           own_model_id,
+           opposite_model_id,
+           own_relation_name,
+           own_relation_id,
+           own_relation_num,
+           opposite_relation_name,
+           opposite_relation_id,
+           opposite_relation_num,
+           creator,
+           create_date,
+           modifier,
+           modification_date,
+           delete_flag
+        )
+        values(
+        #{ownModelId,jdbcType=INTEGER},
+        #{oppositeModelId,jdbcType=INTEGER},
+        #{ownRelationName,jdbcType=VARCHAR},
+        #{ownRelationId,jdbcType=VARCHAR},
+        #{ownRelationNum,jdbcType=INTEGER},
+        #{oppositeRelationName,jdbcType=VARCHAR},
+        #{oppositeRelationId,jdbcType=VARCHAR},
+        #{oppositeRelationNum,jdbcType=VARCHAR},
+        #{creator,jdbcType=VARCHAR},
+        now(),
+        #{modifier,jdbcType=VARCHAR},
+        now(),
+        false
+        )
+    </insert>
+
+    <insert id="creatModelRelationsMapper" parameterType="cn.mw.monitor.model.param.AddRelationGroupMapperParam"
+            useGeneratedKeys="true" keyProperty="id" keyColumn="id">
+      insert into mw_cmdbmd_relations_group_mapper(
+        own_model_id,
+        opposite_model_id,
+        relation_group_id,
+        delete_flag
+        )
+      values(
+        #{ownModelId,jdbcType=INTEGER},
+        #{oppositeModelId,jdbcType=INTEGER},
+        #{relationGroupId,jdbcType=INTEGER},
+        false
+        )
+    </insert>
+
+    <insert id="creatModelRelationsGroup" parameterType="cn.mw.monitor.model.param.AddAndUpdateModelRelationGroupParam"
+            useGeneratedKeys="true" keyProperty="id" keyColumn="id">
+        insert into mw_cmdbmd_relations_group
+        (
+        own_model_id,
+        relation_group_name,
+        relation_group_desc,
+        defaut_group_flag,
+        creator,create_date,modifier,modification_date)
+        values
+        (
+        #{ownModelId,jdbcType=INTEGER},
+        #{relationGroupName,jdbcType=VARCHAR},
+        #{relationGroupDesc,jdbcType=VARCHAR},
+        #{defautGroupFlag,jdbcType=BOOLEAN},
+        #{creator,jdbcType=VARCHAR},
+        now(),
+        #{modifier,jdbcType=VARCHAR},
+        now()
+        )
+    </insert>
+
+    <update id="editorModelRelationsByModelId" parameterType="cn.mw.monitor.model.param.AddAndUpdateModelRelationParam">
+        update mw_cmdbmd_relations set
+        <if test="null!=ownRelationName and ownRelationName!=''">
+            own_relation_name=#{ownRelationName,jdbcType=VARCHAR},
+        </if>
+        <if test="null!=oppositeRelationName and oppositeRelationName!=''">
+            opposite_relation_name=#{oppositeRelationName,jdbcType=VARCHAR},
+        </if>
+        modifier=#{modifier,jdbcType=VARCHAR},
+        modification_date=now()
+        where own_model_id = #{ownModelId,jdbcType=INTEGER}
+        and opposite_model_id = #{oppositeModelId,jdbcType=INTEGER}
+    </update>
+
+    <update id="deleteModelRelations" parameterType="cn.mw.monitor.model.param.AddAndUpdateModelRelationParam">
+        update mw_cmdbmd_relations set
+        delete_flag = true,
+        modifier=#{modifier,jdbcType=VARCHAR},
+        modification_date=now()
+        where own_model_id = #{ownModelId,jdbcType=INTEGER}
+        and opposite_model_id = #{oppositeModelId,jdbcType=INTEGER}
+    </update>
+
+    <select id="selectModelRelationsByModelId" resultType="cn.mw.monitor.model.param.AddAndUpdateModelRelationParam">
+        SELECT
+            b.model_name AS "ownModelName",
+            c.model_name AS "oppositeModelName",
+            c.model_id AS "oppositeModelId",
+            a.own_relation_name AS "ownRelationName",
+            a.own_relation_id AS "ownRelationId",
+            a.own_relation_num AS "ownRelationNum",
+            a.opposite_relation_name AS "oppositeRelationName",
+            a.opposite_relation_id AS "oppositeRelationId",
+            a.opposite_relation_num AS "oppositeRelationNum"
+        FROM
+            mw_cmdbmd_relations a
+            LEFT JOIN mw_cmdbmd_manage b ON a.own_model_id = b.model_id
+            LEFT JOIN mw_cmdbmd_manage c ON a.opposite_model_id = c.model_id
+        WHERE
+            a.own_model_id = #{ownModelId,jdbcType=INTEGER}
+            AND a.opposite_model_id = #{oppositeModelId,jdbcType=INTEGER}
+            and a.delete_flag = false
+            and b.delete_flag = false
+            and c.delete_flag = false
+    </select>
+
+    <select id="getRelationGroupListInfo" resultMap="relationGroupMap">
+        SELECT DISTINCT
+            b.relation_group_name AS "label",
+            CONCAT( "group_", b.id ) AS "id",
+            b.id AS "realGroupId",
+            b.defaut_group_flag AS defautGroupFlag
+        FROM
+            mw_cmdbmd_relations_group b
+        WHERE
+            b.own_model_id = #{ownModelId}
+            and b.delete_flag = false
+    </select>
+
+    <select id="findDefaulGroupId" resultType="java.lang.Integer">
+        SELECT DISTINCT id
+        FROM mw_cmdbmd_relations_group
+        WHERE own_model_id = #{ownModelId}
+          AND defaut_group_flag = true
+          AND delete_flag = false
+    </select>
+
+    <select id="getRelationByModelId" resultType="java.lang.Integer">
+        SELECT
+            opposite_model_id
+        FROM
+            mw_cmdbmd_relations
+        WHERE
+            own_model_id = #{ownModelId}
+            AND delete_flag = FALSE
+            AND opposite_model_id IS NOT NULL
+            AND opposite_model_id != ''
+    </select>
+
+    <select id="getOwnModelInfo" resultType="java.util.Map">
+        SELECT
+            CONCAT( "model", model_id ) AS "id",
+            model_name AS "label",
+            model_icon AS "img",
+            model_id AS "realModelId"
+        FROM
+            mw_cmdbmd_manage
+        WHERE
+            model_id = #{ownModelId}
+            AND delete_flag = 0
+    </select>
+
+    <select id="getRelationListInfoByGroup" resultType="java.util.Map">
+        SELECT
+            a.opposite_model_id AS "value",
+            c.own_relation_name AS "name",
+            c.own_relation_num AS "num"
+        FROM
+            mw_cmdbmd_relations_group_mapper a
+            LEFT JOIN mw_cmdbmd_manage b ON a.opposite_model_id = b.model_id
+            LEFT JOIN mw_cmdbmd_relations c ON c.own_model_id = a.own_model_id
+            AND a.opposite_model_id = c.opposite_model_id
+        WHERE
+            a.relation_group_id = #{relationGroupId}
+            AND a.own_model_id = #{owmModelId}
+            AND a.delete_flag = 0
+            AND b.delete_flag = 0
+            AND c.delete_flag = 0
+    </select>
+
+
+    <select id="selectCountByLeftAndRightModelId" resultType="java.lang.Integer"
+            parameterType="cn.mw.monitor.model.param.AddAndUpdateModelRelationParam">
+        select count(0) from mw_cmdbmd_relations where delete_flag=false and own_model_id=#{ownModelId,jdbcType=VARCHAR} and opposite_model_id=#{oppositeModelId,jdbcType=VARCHAR}
+    </select>
+
+    <select id="selectAllModelByRelationsExludeOwn" resultType="java.util.Map">
+        SELECT
+            model_id AS "modelId",
+            model_name AS "modelName"
+        FROM
+            mw_cmdbmd_manage
+        WHERE
+            delete_flag = FALSE
+        AND model_type_id = '1'
+        AND model_id != #{modelId,jdbcType=INTEGER}
+    </select>
+
+    <select id="selectGroupList" resultType="java.util.Map">
+        select relation_group_id relationGroupId,relation_group_name relationGroupName from mw_cmdbmd_relations_group where model_id=#{modelId,jdbcType=INTEGER} and delete_flag = FALSE
+    </select>
+
+    <select id="selectModelRelationsNum" resultType="java.lang.Integer">
+        SELECT
+            count( a.id )
+        FROM
+            mw_cmdbmd_relations_group_mapper a
+            LEFT JOIN mw_cmdbmd_relations b ON a.own_model_id = b.own_model_id
+            AND a.opposite_model_id = b.opposite_model_id
+            LEFT JOIN mw_cmdbmd_manage c ON a.opposite_model_id = c.model_id
+        WHERE
+            a.relation_group_id = #{relationGroupId}
+            AND a.delete_flag = '0'
+            AND b.delete_flag = '0'
+            AND c.delete_flag = '0'
+            AND c.model_id IS NOT NULL
+    </select>
+
+    <select id="modelRelationsGroupByUpdate" resultType="cn.mw.monitor.model.param.AddAndUpdateModelRelationGroupParam">
+        SELECT
+            relation_group_name AS "relationGroupName",
+            relation_group_desc AS "relationGroupDesc"
+        FROM
+            mw_cmdbmd_relations_group
+        WHERE
+            id = #{relationGroupId}
+            and delete_flag = false
+    </select>
+
+    <select id="queryModelRelationGroupBySelect" resultType="java.util.Map">
+        SELECT
+            id,
+            relation_group_name AS "groupName"
+        FROM
+            mw_cmdbmd_relations_group
+        WHERE
+            own_model_id = #{ownModelId}
+            and delete_flag = '0'
+    </select>
+
+    <update id="updateModelRelationByGroup" parameterType="cn.mw.monitor.model.param.AddAndUpdateModelRelationParam">
+        UPDATE mw_cmdbmd_relations_group_mapper
+        SET relation_group_id = #{relationGroupId}
+        WHERE
+            own_model_id = #{ownModelId}
+            AND opposite_model_id = #{oppositeModelId}
+    </update>
+
+    <update id="updateModelRelationsGroup"
+            parameterType="cn.mw.monitor.model.param.AddAndUpdateModelRelationGroupParam">
+        update mw_cmdbmd_relations_group set
+        <if test="null!=relationGroupName and relationGroupName!=''">
+            relation_group_name=#{relationGroupName,jdbcType=VARCHAR},
+        </if>
+        <if test="null!=relationGroupDesc">
+            relation_group_desc=#{relationGroupDesc,jdbcType=VARCHAR},
+        </if>
+        defaut_group_flag = false,
+        modifier=#{modifier,jdbcType=VARCHAR},
+        modification_date=now()
+        where id=#{relationGroupId,jdbcType=INTEGER}
+    </update>
+
+    <update id="deleteModelRelationsGroup" parameterType="cn.mw.monitor.model.param.DeleteModelRelationGroupParam">
+        update mw_cmdbmd_relations_group set delete_flag=true
+        where 1=1
+        <choose>
+            <when test="null!=relationGroupId and relationGroupId!=0">
+                and id=#{relationGroupId,jdbcType=INTEGER}
+            </when>
+            <when test="null!=ownModelId and ownModelId!=0">
+                and own_model_id=#{ownModelId,jdbcType=INTEGER}
+            </when>
+            <when test="null!=relationGroupIds and relationGroupIds.size>0">
+                and id in
+                <foreach collection="relationGroupIds" item="relationGroupId" separator="," close=")" open="(">
+                    #{relationGroupId,jdbcType=INTEGER}
+                </foreach>
+            </when>
+        </choose>
+    </update>
+
+
+    <select id="selectAllRelationsInstanceByToPo" resultMap="getAllRelationsModele">
+        SELECT
+            a.own_model_id,
+            b.model_name AS "ownModelName",
+            a.own_instance_id,
+            c.instance_name AS "ownInstanceName",
+            a.opposite_model_id,
+            d.model_name  AS "oppositeModelName",
+            a.opposite_instance_id,
+            e.instance_name AS "oppositeInstanceName"
+        FROM
+            mw_cmdbmd_instance_relation a
+            LEFT JOIN mw_cmdbmd_manage b ON a.own_model_id = b.model_id
+            LEFT JOIN mw_cmdbmd_instance c ON a.own_instance_id = c.instance_id
+            LEFT JOIN mw_cmdbmd_manage d ON a.opposite_model_id = d.model_id
+            LEFT JOIN mw_cmdbmd_instance e ON a.opposite_instance_id = e.instance_id
+        WHERE
+            own_model_id = #{ownModelId}
+            AND own_instance_id = #{ownInstanceId}
+            and a.delete_flag = false
+            and b.delete_flag = false
+            and d.delete_flag = false
+    </select>
+
+    <resultMap id="getAllRelationsModele" type="cn.mw.monitor.model.param.AddAndUpdateRelationToPoParam">
+        <result column="own_model_id" jdbcType="INTEGER" property="ownModelId"/>
+        <result column="ownModelName" jdbcType="VARCHAR" property="ownModelName"/>
+        <result column="own_instance_id" jdbcType="INTEGER" property="ownInstanceId"/>
+        <result column="ownInstanceName" jdbcType="VARCHAR" property="ownInstanceName"/>
+        <result column="opposite_model_id" jdbcType="INTEGER" property="oppositeModelId"/>
+        <result column="oppositeModelName" jdbcType="VARCHAR" property="oppositeModelName"/>
+        <result column="opposite_instance_id" jdbcType="INTEGER" property="oppositeInstanceId"/>
+        <result column="oppositeInstanceName" jdbcType="VARCHAR" property="oppositeInstanceName"/>
+        <collection property="getRelationModels" javaType="java.util.List"
+                    ofType="cn.mw.monitor.model.param.AddAndUpdateRelationToPoParam"
+                    select="findOtherRelationsModel"
+                    column="{ownModelId=opposite_model_id,ownInstanceId=opposite_instance_id,
+                    oppositeModelId=own_model_id,oppositeInstanceId=own_instance_id}"/>
+    </resultMap>
+
+
+    <select id="findOtherRelationsModel" resultMap="getAllRelationsModele">
+        SELECT
+            a.own_model_id,
+            b.model_name AS "ownModelName",
+            a.own_instance_id,
+            c.instance_name AS "ownInstanceName",
+            a.opposite_model_id,
+            d.model_name  AS "oppositeModelName",
+            a.opposite_instance_id,
+            e.instance_name AS "oppositeInstanceName"
+        FROM
+            mw_cmdbmd_instance_relation a
+            LEFT JOIN mw_cmdbmd_manage b ON a.own_model_id = b.model_id
+            LEFT JOIN mw_cmdbmd_instance c ON a.own_instance_id = c.instance_id
+            LEFT JOIN mw_cmdbmd_manage d ON a.opposite_model_id = d.model_id
+            LEFT JOIN mw_cmdbmd_instance e ON a.opposite_instance_id = e.instance_id
+        WHERE
+            a.own_model_id =  #{ownModelId}
+            AND a.own_instance_id = #{ownInstanceId}
+            and a.opposite_model_id !=  #{oppositeModelId}
+            and a.opposite_instance_id !=  #{oppositeInstanceId}
+            and a.delete_flag = false
+            and b.delete_flag = false
+            and d.delete_flag = false
+	</select>
+
+
+    <insert id="addInstanceToPo" parameterType="cn.mw.monitor.model.param.ModelRelationToPoParam"
+            useGeneratedKeys="true" keyProperty="id" keyColumn="id">
+        insert into mw_cmdbmd_instance_relation(
+        own_model_id,
+        own_instance_id,
+        opposite_model_id,
+        opposite_instance_id,
+        creator,
+        create_date,
+        modifier,
+        modification_date,
+        delete_flag
+        )values
+        <foreach collection="list" item="insertList" separator=",">
+            (#{insertList.ownModelId,jdbcType=INTEGER},#{insertList.ownInstanceId,jdbcType=INTEGER},#{insertList.oppositeModelId,jdbcType=INTEGER},#{insertList.oppositeInstanceId,jdbcType=INTEGER},
+            #{insertList.creator,jdbcType=VARCHAR},
+            now(),
+            #{insertList.modifier,jdbcType=VARCHAR},
+            now(),
+            false)
+        </foreach>
+    </insert>
+
+    <select id="getInstanceNameByIds" resultType="java.util.Map">
+        SELECT
+        instance_name AS "instanceName",
+        instance_id AS "instanceId",
+        model_id AS "modelId"
+        from mw_cmdbmd_instance
+        where instance_id IN
+        <foreach collection="list" item="item" index="index" open="(" separator="," close=")">
+            #{item.value,jdbcType=INTEGER}
+        </foreach>
+    </select>
+
+    <select id="getRelationNumByModel" resultType="java.util.Map">
+        select own_model_id,own_relation_num,opposite_model_id,opposite_relation_num
+        from mw_cmdbmd_relations
+        where own_model_id = #{ownModelId}
+        and opposite_model_id = #{oppositeModelId}
+    </select>
+
+    <select id="getRelationGroupName" resultType="java.util.Map">
+        SELECT
+            own_relation_name
+        FROM
+            mw_cmdbmd_relations
+        WHERE
+            own_model_id = #{ownModelId}
+            AND opposite_model_id = #{oppositeModelId}
+    </select>
+
+    <delete id="deleteTOPOByIds" parameterType="java.util.List">
+        delete from mw_cmdbmd_instance_relation
+        where id in
+        (
+        <foreach collection="list" item="id" separator=",">
+            #{id,jdbcType=VARCHAR}
+        </foreach>
+        )
+    </delete>
+
+    <select id="selectAllRelationsInfoIdByToPo" resultMap="getAllRelationsModelAll">
+        SELECT
+        a.id,
+        a.own_model_id,
+        b.model_name AS "ownModelName",
+        a.own_instance_id,
+        c.instance_name AS "ownInstanceName",
+        a.opposite_model_id,
+        d.model_name AS "oppositeModelName",
+        a.opposite_instance_id,
+        e.instance_name AS "oppositeInstanceName"
+        FROM
+        mw_cmdbmd_instance_relation a
+        LEFT JOIN mw_cmdbmd_manage b ON a.own_model_id = b.model_id
+        LEFT JOIN mw_cmdbmd_instance c ON a.own_instance_id = c.instance_id
+        LEFT JOIN mw_cmdbmd_manage d ON a.opposite_model_id = d.model_id
+        LEFT JOIN mw_cmdbmd_instance e ON a.opposite_instance_id = e.instance_id
+        <where>
+            a.delete_flag = false
+            and b.delete_flag = false
+            and d.delete_flag = false
+            <if test="ownModelId!=null">
+                AND a.own_model_id = #{ownModelId}
+            </if>
+            <if test="ownInstanceId!=null">
+                AND a.own_instance_id = #{ownInstanceId}
+            </if>
+        </where>
+
+
+    </select>
+
+    <resultMap id="getAllRelationsModelAll" type="cn.mw.monitor.model.param.AddAndUpdateRelationToPoParam">
+        <result column="id" jdbcType="INTEGER" property="id"/>
+        <result column="own_model_id" jdbcType="INTEGER" property="ownModelId"/>
+        <result column="ownModelName" jdbcType="VARCHAR" property="ownModelName"/>
+        <result column="own_instance_id" jdbcType="INTEGER" property="ownInstanceId"/>
+        <result column="ownInstanceName" jdbcType="VARCHAR" property="ownInstanceName"/>
+        <result column="opposite_model_id" jdbcType="INTEGER" property="oppositeModelId"/>
+        <result column="oppositeModelName" jdbcType="VARCHAR" property="oppositeModelName"/>
+        <result column="opposite_instance_id" jdbcType="INTEGER" property="oppositeInstanceId"/>
+        <result column="oppositeInstanceName" jdbcType="VARCHAR" property="oppositeInstanceName"/>
+        <!--        <collection property="getRelationModels" javaType="java.util.List"-->
+        <!--                    ofType="cn.mw.monitor.model.param.AddAndUpdateRelationToPoParam"-->
+        <!--                    select="findOtherRelationsModelAll"-->
+        <!--                    column="{ownModelId=opposite_model_id,ownInstanceId=opposite_instance_id}"/>-->
+    </resultMap>
+
+
+    <select id="findOtherRelationsModelAll" resultMap="getAllRelationsModelAll">
+        SELECT
+            a.id,
+            a.own_model_id,
+            b.model_name AS "ownModelName",
+            a.own_instance_id,
+            c.instance_name AS "ownInstanceName",
+            a.opposite_model_id,
+            d.model_name  AS "oppositeModelName",
+            a.opposite_instance_id,
+            e.instance_name AS "oppositeInstanceName"
+        FROM
+            mw_cmdbmd_instance_relation a
+            LEFT JOIN mw_cmdbmd_manage b ON a.own_model_id = b.model_id
+            LEFT JOIN mw_cmdbmd_instance c ON a.own_instance_id = c.instance_id
+            LEFT JOIN mw_cmdbmd_manage d ON a.opposite_model_id = d.model_id
+            LEFT JOIN mw_cmdbmd_instance e ON a.opposite_instance_id = e.instance_id
+        WHERE
+            a.own_model_id != #{ownModelId}
+            AND a.own_instance_id != #{ownInstanceId}
+            and a.delete_flag = false
+            and b.delete_flag = false
+            and d.delete_flag = false
+	</select>
+
+    <select id="findHideModelList" resultType="java.lang.Integer">
+        SELECT
+            hide_model_id AS "hideModelId"
+        FROM
+            mw_cmdbmd_instance_relation_setting
+        WHERE
+            own_model_id = #{ownModelId}
+            AND own_instance_id = #{ownInstanceId}
+    </select>
+
+    <select id="getRelationyModelByTOPO" resultType="java.util.Map">
+        SELECT DISTINCT
+            a.opposite_model_id AS "modelId",
+            b.own_relation_name AS "relationName"
+        FROM
+            mw_cmdbmd_instance_relation a
+            LEFT JOIN mw_cmdbmd_relations b ON a.own_model_id = b.own_model_id
+            AND a.opposite_model_id = b.opposite_model_id
+        WHERE
+            a.own_model_id = #{ownModelId}
+    </select>
+
+    <delete id="hideModelToPoDelete" parameterType="cn.mw.monitor.model.param.QueryHideModelToPo">
+        DELETE
+        FROM
+        mw_cmdbmd_instance_relation_setting
+        WHERE
+        own_model_id = #{ownModelId}
+        and own_instance_id = #{ownInstanceId}
+        and hide_model_id IN (
+        <foreach collection="modelIds" item="modelId" separator=",">
+            #{modelId,jdbcType=INTEGER}
+        </foreach>
+        )
+    </delete>
+
+    <delete id="hideModelToPoDeleteAll">
+        DELETE
+        FROM
+            mw_cmdbmd_instance_relation_setting
+        WHERE
+            own_model_id = #{ownModelId}
+        and own_instance_id = #{ownInstanceId}
+    </delete>
+
+    <delete id="setOwnModelInstance">
+        DELETE
+        FROM
+            mw_cmdbmd_instance_relation
+        WHERE
+            opposite_model_id = #{ownModelId}
+            AND opposite_instance_id = '0'
+    </delete>
+
+</mapper>

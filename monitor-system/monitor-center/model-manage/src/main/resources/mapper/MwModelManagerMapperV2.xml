@@ -1,0 +1,1802 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.mw.monitor.model.dao.MwModelManageDaoV2">
+
+
+    <resultMap id="modelListMap" type="cn.mw.monitor.model.dto.MwModelManageDtoV2">
+        <result column="model_id" property="modelId"></result>
+        <result column="model_name" property="modelName"></result>
+        <result column="model_desc" property="modelDesc"></result>
+        <result column="model_index" jdbcType="VARCHAR" property="modelIndex"></result>
+        <result column="model_type_id" property="modelTypeId"></result>
+        <result column="model_type_name" property="modelTypeName"></result>
+        <result column="model_group_id" property="modelGroupId"></result>
+        <result column="model_group_name" property="modelGroupName"></result>
+        <result column="model_group_sub_id" property="modelGroupSubId"></result>
+        <result column="modelGroupSubName" property="modelGroupSubName"></result>
+        <result column="model_icon" property="modelIcon"></result>
+        <result column="is_show" property="isShow"></result>
+        <result column="deep" property="deep"></result>
+        <result column="nodes" property="nodes"></result>
+        <result column="group_nodes" property="groupNodes"></result>
+        <result column="pid" property="pid"></result>
+        <result column="pids" property="pids"></result>
+        <result column="is_node" property="isNode"></result>
+        <result column="model_level" property="modelLevel"></result>
+        <result column="creator" property="creator"></result>
+        <result column="create_date" property="createDate"></result>
+        <result column="modifier" property="modifier"></result>
+        <result column="modification_date" property="modificationDate"></result>
+        <result column="model_view" property="modelView"></result>
+
+        <collection property="principal" ofType="cn.mw.monitor.service.assets.model.UserDTO" select="selectUser"
+                    column="{typeId=model_index}">
+            <result property="userId" jdbcType="INTEGER" column="userId"/>
+            <result property="userName" jdbcType="VARCHAR" column="userName"/>
+            <result property="loginName" jdbcType="VARCHAR" column="loginName"/>
+        </collection>
+        <collection property="department" ofType="cn.mw.monitor.service.assets.model.OrgDTO" select="selectOrg"
+                    column="{typeId=model_index}">
+            <result property="orgId" jdbcType="INTEGER" column="orgId"/>
+            <result property="orgName" jdbcType="VARCHAR" column="orgName"/>
+            <result property="nodes" jdbcType="VARCHAR" column="nodes"/>
+        </collection>
+        <collection property="groups" ofType="cn.mw.monitor.service.assets.model.GroupDTO" select="selectGroup"
+                    column="{typeId=model_index}">
+            <result property="groupId" jdbcType="INTEGER" column="groupId"/>
+            <result property="groupName" jdbcType="VARCHAR" column="groupName"/>
+        </collection>
+    </resultMap>
+
+    <resultMap id="modelGroupMap" type="cn.mw.monitor.model.param.AddAndUpdateModelGroupParamV2">
+        <result column="model_group_id" property="modelGroupId"></result>
+        <result column="model_group_name" property="modelGroupName"></result>
+        <result column="is_show" property="isShow"></result>
+        <result column="group_level" property="groupLevel"></result>
+        <result column="pid" property="pid"></result>
+        <result column="sync_zabbix" property="syncZabbix"></result>
+        <result column="network" property="network"></result>
+        <result column="url" property="url"></result>
+        <collection property="principal" ofType="cn.mw.monitor.service.assets.model.UserDTO" select="selectUser"
+                    column="{typeId=model_group_id}">
+            <result property="userId" jdbcType="INTEGER" column="userId"/>
+            <result property="userName" jdbcType="VARCHAR" column="userName"/>
+            <result property="loginName" jdbcType="VARCHAR" column="loginName"/>
+        </collection>
+        <collection property="department" ofType="cn.mw.monitor.service.assets.model.OrgDTO" select="selectOrg"
+                    column="{typeId=model_group_id}">
+            <result property="orgId" jdbcType="INTEGER" column="orgId"/>
+            <result property="orgName" jdbcType="VARCHAR" column="orgName"/>
+            <result property="nodes" jdbcType="VARCHAR" column="nodes"/>
+        </collection>
+        <collection property="groups" ofType="cn.mw.monitor.service.assets.model.GroupDTO" select="selectGroup"
+                    column="{typeId=model_group_id}">
+            <result property="groupId" jdbcType="INTEGER" column="groupId"/>
+            <result property="groupName" jdbcType="VARCHAR" column="groupName"/>
+        </collection>
+    </resultMap>
+
+    <!--新增 start-->
+    <resultMap id="instanceInfoMap" type="cn.mw.monitor.model.dto.ModelInstanceDtoV2">
+        <result column="instance_id" jdbcType="BIGINT" property="instanceId" ></result>
+        <result column="instance_name" jdbcType="VARCHAR" property="instanceName" ></result>
+        <result column="model_id" jdbcType="INTEGER" property="modelId" ></result>
+        <result column="topo_info" property="topoInfo" jdbcType="VARCHAR" typeHandler="cn.mw.monitor.model.dto.ModelInstanceTypeHandler"></result>
+    </resultMap>
+
+    <resultMap id="modelInfoMap" type="cn.mw.monitor.service.model.dto.ModelInfoV2">
+        <result column="model_id" property="modelId"></result>
+        <result column="model_name" property="modelName"></result>
+        <result column="model_desc" property="modelDesc"></result>
+        <result column="model_index" property="modelIndex"></result>
+        <result column="model_type_id" property="modelTypeId"></result>
+        <result column="model_group_id" property="modelGroupId"></result>
+        <result column="model_icon" property="modelIcon"></result>
+        <result column="is_show" property="isShow"></result>
+        <result column="deep" property="deep"></result>
+        <result column="nodes" property="nodes"></result>
+        <result column="group_nodes" property="groupNodes"></result>
+        <result column="pid" property="pid"></result>
+        <result column="pids" property="pids"></result>
+        <result column="is_node" property="isNode"></result>
+        <result column="model_level" property="modelLevel"></result>
+        <result column="creator" property="creator"></result>
+        <result column="create_date" property="createDate"></result>
+        <result column="modifier" property="modifier"></result>
+        <result column="modification_date" property="modificationDate"></result>
+        <result column="model_view" property="modelView"></result>
+        <result column="prop_info" property="propertyInfos" jdbcType="VARCHAR" typeHandler="cn.mw.monitor.service.model.dto.ProperInfoListHandler"></result>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        ${alias}model_id,
+        ${alias}model_name,
+        ${alias}model_desc,
+        ${alias}model_index,
+        ${alias}model_type_id,
+        ${alias}model_group_id,
+        ${alias}model_icon,
+        ${alias}is_show,
+        ${alias}deep,
+        ${alias}nodes,
+        ${alias}group_nodes,
+        ${alias}pid,
+        ${alias}pids,
+        ${alias}is_node,
+        ${alias}model_level,
+        ${alias}creator,
+        ${alias}create_date,
+        ${alias}model_view,
+        ${alias}modifier,
+        ${alias}modification_date,
+        ${alias}model_view
+    </sql>
+    <sql id="tb">
+        mw_cmdbmd_manage ${alias}
+    </sql>
+    <sql id="NormalNotDelete">
+        AND delete_flag = '0' AND model_type_id = '1'
+    </sql>
+    <!--新增 end-->
+
+    <insert id="creatModel" parameterType="cn.mw.monitor.model.param.AddAndUpdateModelParamV2">
+        insert into mw_cmdbmd_manageV1(
+        model_name ,
+        <if test="modelDesc!=null and modelDesc!=''">
+            model_desc,
+        </if>
+        model_index ,
+        model_type_id ,
+        model_group_id ,
+        model_icon ,
+        is_show ,
+        deep ,
+        nodes ,
+        group_nodes,
+        pid ,
+        pids ,
+        is_node ,
+        model_level,
+        model_view,
+        <if test="propertyInfoJsonStr!=null and propertyInfoJsonStr!=''">
+            prop_info,
+        </if>
+        creator ,
+        create_date ,
+        modifier ,
+        modification_date
+        )
+        values(
+        #{modelName,jdbcType=VARCHAR},
+        <if test="modelDesc!=null and modelDesc!=''">
+            #{modelDesc,jdbcType=VARCHAR},
+        </if>
+        #{modelIndex,jdbcType=VARCHAR},
+        #{modelTypeId,jdbcType=INTEGER},
+        #{modelGroupId,jdbcType=VARCHAR},
+        #{modelIcon,jdbcType=VARCHAR},
+        #{isShow,jdbcType=BIT},
+        #{deep,jdbcType=INTEGER},
+        #{nodes,jdbcType=VARCHAR},
+        #{groupNodes,jdbcType=VARCHAR},
+        #{pid,jdbcType=VARCHAR},
+        #{pids,jdbcType=VARCHAR},
+        #{isNode,jdbcType=BIT},
+        #{modelLevel,jdbcType=INTEGER},
+        #{modelView,jdbcType=INTEGER},
+        <if test="propertyInfoJsonStr!=null and propertyInfoJsonStr!=''">
+            #{propertyInfoJsonStr,jdbcType=VARCHAR},
+        </if>
+        #{creator,jdbcType=VARCHAR},now(),
+        #{modifier,jdbcType=VARCHAR},now()
+        )
+    </insert>
+
+    <!--新增 start-->
+    <select id="selectBaseModelInfoByIndex" resultType="cn.mw.monitor.service.model.dto.ModelInfoV2" resultMap="modelInfoMap">
+        select <include refid="Base_Column_List"><property name="alias" value=""/></include>
+                ,prop_info
+        from <include refid="tb"><property name="alias" value=""/></include>
+        where model_index=#{modelIndex,jdbcType=VARCHAR}
+    </select>
+    <select id="selectBaseModelInfoById" resultType="cn.mw.monitor.service.model.dto.ModelInfoV2" resultMap="modelInfoMap">
+        select <include refid="Base_Column_List"><property name="alias" value=""/></include>
+            ,prop_info
+        from <include refid="tb"><property name="alias" value=""/></include>
+        where model_id=#{modelId,jdbcType=BIGINT}
+    </select>
+    <select id="selectModelInfoWithPropertyById" resultType="cn.mw.monitor.service.model.dto.ModelInfoV2" resultMap="modelInfoMap">
+        select <include refid="Base_Column_List"><property name="alias" value=""/></include>
+              ,prop_info
+        from <include refid="tb"><property name="alias" value=""/></include>
+        where model_id=#{modelId,jdbcType=BIGINT}
+    </select>
+
+    <select id="selectModelInfoByGroupId" resultType="cn.mw.monitor.service.model.dto.ModelInfoV2" resultMap="modelInfoMap">
+        select <include refid="Base_Column_List"><property name="alias" value=""/></include>
+        from <include refid="tb"><property name="alias" value=""/></include>
+        where is_show = true and(model_id IN ( SELECT model_id
+                              FROM mw_cmdbmd_manage
+                             WHERE group_nodes LIKE CONCAT( '%,', #{modelId,jdbcType=BIGINT}, ',%' )
+                                <include refid="NormalNotDelete"/>)
+        OR FIND_IN_SET(model_id,(SELECT DISTINCT GROUP_CONCAT(pids)
+                                      FROM mw_cmdbmd_manage
+                                     WHERE model_id IN ( SELECT model_id
+                                                           FROM mw_cmdbmd_manage
+                                                          WHERE group_nodes LIKE CONCAT( '%,', #{modelId,jdbcType=BIGINT}, ',%' )
+                                    <include refid="NormalNotDelete"/>
+                                    ))) >0)
+    </select>
+
+    <select id="selectChildreModelInfoByGroupId" resultType="cn.mw.monitor.service.model.dto.ModelInfoV2" resultMap="modelInfoMap">
+        select <include refid="Base_Column_List"><property name="alias" value=""/></include>
+        ,prop_info
+        from <include refid="tb"><property name="alias" value=""/></include>
+        where is_show = true and(model_id IN ( SELECT model_id
+        FROM mw_cmdbmd_manage
+        WHERE group_nodes LIKE CONCAT( '%,', #{groupId,jdbcType=INTEGER}, ',%' )
+        <include refid="NormalNotDelete"/>))
+    </select>
+
+    <select id="selectModelPropertiesListWithParent" resultType="cn.mw.monitor.service.model.dto.ModelInfoV2" resultMap="modelInfoMap">
+        (select<include refid="Base_Column_List"><property name="alias" value=""/></include>
+                ,prop_info
+                ,"1" As "level"  <!-- 将普通模型的属性级别设为1，继承父模型的属性设为3，方便排序 -->
+        from <include refid="tb"><property name="alias" value=""/></include>
+        where model_id=#{modelId,jdbcType=BIGINT}
+        )
+        <choose>
+            <when test="null != pids and pids != ''">
+                union
+                (select <include refid="Base_Column_List"><property name="alias" value=""/></include>
+                        ,prop_info
+                        ,"3" As "level"
+                from <include refid="tb"><property name="alias" value=""/></include>
+                where FIND_IN_SET( model_id, #{pids,jdbcType=VARCHAR} )
+
+                )
+            </when>
+        </choose>
+        ORDER BY
+        level,model_name
+    </select>
+
+    <select id="selectModelListWithParent" resultType="cn.mw.monitor.service.model.dto.ModelInfoV2" resultMap="modelInfoMap">
+        select<include refid="Base_Column_List"><property name="alias" value=""/></include>
+        ,prop_info
+        from <include refid="tb"><property name="alias" value=""/></include>
+        where model_id=#{modelId,jdbcType=BIGINT}
+        OR FIND_IN_SET(model_id, ( SELECT pids FROM mw_cmdbmd_manage WHERE model_id = #{modelId,jdbcType=BIGINT} ))
+    </select>
+
+    <select id="selectAllModelListWithParent" resultType="cn.mw.monitor.service.model.dto.ModelInfoV2" resultMap="modelInfoMap">
+        select<include refid="Base_Column_List"><property name="alias" value=""/></include>
+        ,prop_info
+        from <include refid="tb"><property name="alias" value=""/></include>
+        where delete_flag = false
+    </select>
+
+    <select id="selectListWithParentAndGroup" resultType="cn.mw.monitor.service.model.dto.ModelInfoV2" resultMap="modelInfoMap">
+        select<include refid="Base_Column_List"><property name="alias" value=""/></include>
+        ,prop_info
+        from <include refid="tb"><property name="alias" value=""/></include>
+        where model_id IN ( SELECT model_id
+                            FROM mw_cmdbmd_manage
+                            WHERE group_nodes LIKE CONCAT( '%,',#{modelId,jdbcType=BIGINT}, ',%' )
+                            AND delete_flag = '0'
+                            and model_type_id = '1')
+        OR FIND_IN_SET(model_id,(SELECT DISTINCT GROUP_CONCAT(pids)
+                                    FROM mw_cmdbmd_manage
+                                    WHERE model_id IN ( SELECT model_id FROM mw_cmdbmd_manage
+                                                        WHERE group_nodes LIKE CONCAT( '%,',#{modelId,jdbcType=BIGINT}, ',%' )
+                                                        AND delete_flag = '0'
+                                                        and model_type_id = '1')
+                                    and pids is not null and pids !=''))
+        ORDER BY model_id
+    </select>
+
+    <select id="selectModelInfoByPids" resultType="cn.mw.monitor.service.model.dto.ModelInfoV2" resultMap="modelInfoMap">
+        select<include refid="Base_Column_List"><property name="alias" value=""/></include>
+        ,prop_info
+        from <include refid="tb"><property name="alias" value=""/></include>
+        where FIND_IN_SET( model_id, #{pids,jdbcType=VARCHAR} )
+    </select>
+
+    <select id="selectPropertiesByInstanceFuzzyQueryGroup" resultType="cn.mw.monitor.service.model.dto.ModelInfoV2" resultMap="modelInfoMap">
+        SELECT<include refid="Base_Column_List"><property name="alias" value=""/></include>
+        ,prop_info
+        FROM <include refid="tb"><property name="alias" value=""/></include>
+        WHERE model_id IN ( SELECT model_id FROM mw_cmdbmd_manage WHERE group_nodes LIKE CONCAT( '%,', #{modelId,jdbcType=BIGINT}, ',%' ) AND delete_flag = '0' and model_type_id = '1'  )
+							  OR FIND_IN_SET(model_id,(
+                              SELECT DISTINCT GROUP_CONCAT(pids) FROM mw_cmdbmd_manage WHERE
+                              model_id IN ( SELECT model_id FROM mw_cmdbmd_manage WHERE group_nodes LIKE CONCAT( '%,', #{modelId,jdbcType=BIGINT}, ',%' ) AND delete_flag = '0' and model_type_id = '1')
+                              and pids is not null and pids !='')))
+        ORDER BY model_id
+    </select>
+
+    <select id="selectPropertiesByInstanceFuzzyQuery" resultType="cn.mw.monitor.service.model.dto.ModelInfoV2" resultMap="modelInfoMap">
+        SELECT<include refid="Base_Column_List"><property name="alias" value=""/></include>
+        ,prop_info
+        FROM <include refid="tb"><property name="alias" value=""/></include>
+        WHERE model_id = #{modelId,jdbcType=BIGINT}
+            OR FIND_IN_SET( model_id, ( SELECT pids FROM mw_cmdbmd_manage WHERE model_id = #{modelId,jdbcType=BIGINT} ))
+        ORDER BY model_id
+    </select>
+    <select id="selectAllModelInfo" resultType="cn.mw.monitor.service.model.dto.ModelInfoV2" resultMap="modelInfoMap">
+        SELECT<include refid="Base_Column_List"><property name="alias" value=""/></include>
+        ,prop_info
+        FROM <include refid="tb"><property name="alias" value=""/></include>
+        ORDER BY model_id
+    </select>
+
+    <select id="selectModelListByIds" resultType="cn.mw.monitor.service.model.dto.ModelInfoV2" resultMap="modelInfoMap">
+        SELECT<include refid="Base_Column_List"><property name="alias" value=""/></include>
+        ,prop_info
+        FROM <include refid="tb"><property name="alias" value=""/></include>
+        WHERE model_id in
+            <foreach collection="modelIds" item="item" index="index" open="(" close=")" separator=",">
+                #{item}
+            </foreach>
+    </select>
+
+
+    <select id="getBaseModelInfos" resultType="cn.mw.monitor.service.model.dto.ModelInfoV2" resultMap="modelInfoMap">
+        SELECT<include refid="Base_Column_List"><property name="alias" value=""/></include>
+        ,prop_info
+        FROM <include refid="tb"><property name="alias" value=""/></include>
+        WHERE model_level = 0
+        AND is_show = TRUE
+        AND delete_flag = false
+    </select>
+
+    <select id="getBaseModelInfosDisParent" resultType="cn.mw.monitor.service.model.dto.ModelInfoV2" resultMap="modelInfoMap">
+        SELECT<include refid="Base_Column_List"><property name="alias" value=""/></include>
+        ,prop_info
+        FROM <include refid="tb"><property name="alias" value=""/></include>
+        WHERE
+        group_nodes LIKE '%,0,%'
+        AND model_level = 0
+        AND is_show = TRUE
+        And delete_flag = false
+    </select>
+
+    <select id="countInstanceIdsByModelId" resultType="java.lang.Integer">
+        select count(1) from mw_cmdbmd_instance where  model_id=#{modelId,jdbcType=BIGINT}
+    </select>
+    <!--新增 end-->
+
+    <insert id="creatModelProperties" parameterType="cn.mw.monitor.service.model.param.AddAndUpdateModelPropertiesParam"
+            useGeneratedKeys="true" keyColumn="properties_id" keyProperty="propertiesId">
+        insert into mw_cmdbmd_properties(
+        `index_id`,properties_name,default_value,is_struct_insert,properties_value_id,properties_type_id,properties_type,
+        properties_level,model_id,is_read,is_must,is_only,is_show,is_list_show,is_look_show,is_insert_show,is_editor_show,sort
+        )
+        values
+        (
+        #{indexId,jdbcType=VARCHAR},
+        #{propertiesName,jdbcType=VARCHAR},
+        #{defaultValue,jdbcType=VARCHAR},
+        #{isStructInsert,jdbcType=BIT},
+        #{propertiesValueId,jdbcType=INTEGER},
+        #{propertiesTypeId,jdbcType=INTEGER},
+        #{propertiesType,jdbcType=VARCHAR},
+        #{propertiesLevel,jdbcType=INTEGER},
+        #{modelId,jdbcType=BIGINT},
+        #{isRead,jdbcType=BIT},
+        #{isMust,jdbcType=BIT},
+        #{isOnly,jdbcType=BIT},
+        #{isShow,jdbcType=BIT},
+        #{isListShow,jdbcType=BIT},
+        #{isLookShow,jdbcType=BIT},
+        #{isInsertShow,jdbcType=BIT},
+        #{isEditorShow,jdbcType=BIT},
+        #{sort,jdbcType=INTEGER}
+        )
+    </insert>
+
+    <insert id="createModelPropertiesToPageField"
+            parameterType="cn.mw.monitor.model.param.AddAndUpdateModelPageFieldParam"
+            useGeneratedKeys="true" keyColumn="id" keyProperty="id">
+        insert into mw_cmdbmd_pagefield_table(
+        `model_id`,prop,label,visible,order_number,type,model_properties_id,is_tree
+        )
+        values
+        (
+        #{modelId,jdbcType=BIGINT},
+        #{prop,jdbcType=VARCHAR},
+        #{label,jdbcType=VARCHAR},
+        #{visible,jdbcType=BIT},
+        #{orderNumber,jdbcType=INTEGER},
+        #{type,jdbcType=INTEGER},
+        #{modelPropertiesId,jdbcType=INTEGER},
+        #{isTree,jdbcType=INTEGER}
+        )
+    </insert>
+
+    <insert id="insertPropertiesToCol" parameterType="java.util.List">
+        INSERT INTO mw_cmdbmd_customcol_table
+        (
+        col_id,
+        user_id,
+        sortable,
+        width,
+        visible,
+        model_properties_id,
+        order_number
+        ) VALUES
+        <foreach collection="list" item="colList" separator=",">
+            (
+            #{colList.colId,jdbcType=INTEGER},
+            #{colList.userId,jdbcType=INTEGER},
+            #{colList.sortable,jdbcType=BIT},
+            #{colList.width,jdbcType=INTEGER},
+            #{colList.visible,jdbcType=BIT},
+            #{colList.modelPropertiesId,jdbcType=INTEGER},
+            #{colList.orderNumber,jdbcType=INTEGER}
+            )
+        </foreach>
+    </insert>
+
+    <insert id="insertPropertiesValueInfo" parameterType="cn.mw.monitor.service.model.param.PropertiesValueParam"
+            useGeneratedKeys="true" keyProperty="id" keyColumn="id">
+        insert into mw_cmdbmd_properties_value(
+        `properties_value_type`,show_type,default_type,default_value,regex,drop_op,default_value_list,
+        expire_remind,before_expiretime,time_unit,relation_model_index,relation_properties_index,is_relation,
+        drop_arr_obj,is_ganged,ganged_field_val,ganged_field)
+        values
+        (
+        #{propertiesValueType,jdbcType=INTEGER},
+        #{showType,jdbcType=INTEGER},
+        #{defaultType,jdbcType=INTEGER},
+        #{defaultValue,jdbcType=VARCHAR},
+        #{regex,jdbcType=VARCHAR},
+        #{dropOpStr,jdbcType=VARCHAR},
+        #{defaultValueListStr,jdbcType=VARCHAR},
+        #{expireRemind,jdbcType=BIT},
+        #{beforeExpireTime,jdbcType=INTEGER},
+        #{timeUnit,jdbcType=VARCHAR},
+        #{relationModelIndex,jdbcType=VARCHAR},
+        #{relationPropertiesIndex,jdbcType=VARCHAR},
+        #{isRelation,jdbcType=BIT},
+         #{dropArrObjStr,jdbcType=VARCHAR},
+         #{isGanged,jdbcType=BIT},
+         #{gangedValueListStr,jdbcType=VARCHAR},
+         #{gangedField,jdbcType=VARCHAR}
+        )
+    </insert>
+
+    <insert id="creatModelGroup" parameterType="cn.mw.monitor.model.param.AddAndUpdateModelGroupParamV2"
+            useGeneratedKeys="true" keyColumn="model_group_id" keyProperty="modelGroupId">
+     insert into mw_cmdbmd_group(
+     model_group_id,model_group_name,is_show,deep,nodes,pid,is_node,group_level,sync_zabbix,network,url,creator,create_date,modifier,modification_date
+     )
+     values
+    (
+    #{modelGroupId,jdbcType=BIGINT},
+     #{modelGroupName,jdbcType=VARCHAR},
+     #{isShow,jdbcType=BIT},
+     #{deep,jdbcType=INTEGER},
+     #{nodes,jdbcType=VARCHAR},
+     #{pid,jdbcType=INTEGER},
+     #{isNode,jdbcType=BIT},
+     #{groupLevel,jdbcType=BIT},
+     #{syncZabbix,jdbcType=BIT},
+     #{network,jdbcType=VARCHAR},
+     #{url,jdbcType=VARCHAR},
+     #{creator,jdbcType=VARCHAR},
+     now(),
+     #{modifier,jdbcType=VARCHAR},
+     now()
+    )
+    </insert>
+
+    <insert id="creatModelInstance" parameterType="cn.mw.monitor.model.param.AddAndUpdateModelInstanceParam"
+            useGeneratedKeys="true" keyColumn="instance_id" keyProperty="instanceId">
+        insert into mw_cmdbmd_instance(instance_name,model_id )
+        values(#{instanceName,jdbcType=VARCHAR},#{modelId,jdbcType=BIGINT})
+    </insert>
+
+    <insert id="creatModelPropertiesStruct" keyColumn="id" keyProperty="id" useGeneratedKeys="true"
+            parameterType="cn.mw.monitor.service.model.dto.ModelPropertiesStructDto">
+        insert into
+        mw_cmdbmd_properties_struct (struct_name,struct_id,struct_type,enumerate_value,model_id,properties_index_id)
+        values
+        <foreach collection="list" item="item" index="index" separator=",">
+            (#{item.structName,jdbcType=VARCHAR},#{item.structId,jdbcType=VARCHAR},#{item.structType,jdbcType=INTEGER},#{item.structStrValue,jdbcType=VARCHAR},#{item.modelId,jdbcType=BIGINT},#{item.propertiesIndexId,jdbcType=VARCHAR})
+        </foreach>
+    </insert>
+
+
+    <update id="updateNodes">
+      update mw_cmdbmd_manage set
+      nodes=#{nodes,jdbcType=VARCHAR} where model_id=#{modelId,jdbcType=BIGINT}
+    </update>
+
+    <update id="updateModel" parameterType="cn.mw.monitor.model.param.AddAndUpdateModelParam">
+        update mw_cmdbmd_manage set
+        <if test="modelName!=null and modelName!=''">
+            model_name = #{modelName,jdbcType=VARCHAR},
+        </if>
+        <if test="modelDesc!=null and modelDesc!=''">
+            model_desc=#{modelDesc,jdbcType=VARCHAR},
+        </if>
+        <if test="modelGroupId!=null and modelGroupId!=''">
+            model_group_id=#{modelGroupId,jdbcType=INTEGER},
+        </if>
+        <if test="modelIcon!=null and modelIcon!=''">
+            model_icon = #{modelIcon,jdbcType=VARCHAR},
+        </if>
+        <if test="isShow!=null">
+            is_show=#{isShow,jdbcType=BIT},
+        </if>
+        <if test="pids!=null and pids!=''">
+            pids = #{pids,jdbcType=VARCHAR},
+        </if>
+        <if test="groupNodes!=null and groupNodes!=''">
+            group_nodes=#{groupNodes,jdbcType=VARCHAR},
+        </if>
+        <if test="propertyInfoJsonStr!=null and propertyInfoJsonStr!=''">
+            prop_info=#{propertyInfoJsonStr,jdbcType=VARCHAR},
+        </if>
+        modifier=#{modifier,jdbcType=VARCHAR},
+        modification_date=now()
+        where model_id=#{modelId,jdbcType=BIGINT}
+    </update>
+
+    <update id="deleteModel">
+        update mw_cmdbmd_manage set delete_flag=true where model_id=#{modelId,jdbcType=BIGINT}
+    </update>
+    <update id="bathDeleteModelRelations">
+        update mw_cmdbmd_relations set delete_flag=true where id
+        in
+        <foreach collection="ids" item="id" index="index" separator="," open="(" close=")">
+            #{id,jdbcType=INTEGER}
+        </foreach>
+    </update>
+
+
+    <update id="updateModelPropertiesShowStatus"
+            parameterType="cn.mw.monitor.service.model.param.AddAndUpdateModelPropertiesParam">
+        update mw_cmdbmd_properties a
+        left join mw_cmdbmd_pagefield_table b on a.properties_id = b.model_properties_id
+        left join mw_cmdbmd_customcol_table c on a.properties_id = c.model_properties_id
+        set a.is_show= #{isShow},
+        b.visible = #{isShow},
+        c.visible = #{isShow}
+        where a.properties_id in
+        <foreach collection="propertiesIdList" item="propertiesId" separator="," close=")" open="(">
+            #{propertiesId,jdbcType=INTEGER}
+        </foreach>
+    </update>
+
+    <update id="updateModelProperties"
+            parameterType="cn.mw.monitor.service.model.param.AddAndUpdateModelPropertiesParam">
+        update mw_cmdbmd_properties a
+        left join mw_cmdbmd_pagefield_table b on a.properties_id = b.model_properties_id
+        left join mw_cmdbmd_customcol_table c on a.properties_id = c.model_properties_id
+        left join mw_cmdbmd_properties_value d on a.properties_value_id = d.id
+        set
+        <if test="isShow!=null">
+            a.is_show=#{isShow,jdbcType=BIT}
+            ,b.visible = #{isShow,jdbcType=BIT}
+            ,c.visible = #{isShow,jdbcType=BIT}
+        </if>
+        <if test="propertiesValue!=null">
+            <if test="propertiesValue.dropOpStr!=null">
+                ,d.drop_op = #{propertiesValue.dropOpStr,jdbcType=VARCHAR}
+            </if>
+            <if test="propertiesValue.defaultValueListStr!= null">
+                ,d.default_value_list =#{propertiesValue.defaultValueListStr,jdbcType=VARCHAR}
+            </if>
+            <if test="propertiesValue.regex!=null">
+                ,d.regex = #{propertiesValue.regex,jdbcType=VARCHAR}
+            </if>
+            <if test="propertiesValue.defaultValue!=null">
+                ,d.default_value =#{propertiesValue.defaultValue,jdbcType=VARCHAR}
+            </if>
+            <if test="propertiesValue.expireRemind!=null">
+                ,d.expire_remind =#{propertiesValue.expireRemind,jdbcType=BIT}
+            </if>
+            <if test="propertiesValue.beforeExpireTime!=null">
+                ,d.before_expiretime =#{propertiesValue.beforeExpireTime,jdbcType=INTEGER}
+            </if>
+            <if test="propertiesValue.timeUnit!=null">
+                ,d.time_unit =#{propertiesValue.timeUnit,jdbcType=VARCHAR}
+            </if>
+            <if test="propertiesValue.relationModelIndex!=null">
+                ,d.relation_model_index =#{propertiesValue.relationModelIndex,jdbcType=INTEGER}
+            </if>
+            <if test="propertiesValue.relationPropertiesIndex!=null">
+                ,d.relation_properties_index =#{propertiesValue.relationPropertiesIndex,jdbcType=VARCHAR}
+            </if>
+            <if test="propertiesValue.isRelation!=null">
+                ,d.is_relation =#{propertiesValue.isRelation,jdbcType=BIT}
+            </if>
+            <if test="propertiesValue.dropArrObjStr!=null">
+                ,d.drop_arr_obj =#{propertiesValue.dropArrObjStr,jdbcType=VARCHAR}
+            </if>
+            <if test="propertiesValue.isGanged!=null">
+                ,d.is_ganged =#{propertiesValue.isGanged,jdbcType=BIT}
+            </if>
+            <if test="propertiesValue.gangedValueListStr!=null">
+                ,d.ganged_field_val =#{propertiesValue.gangedValueListStr,jdbcType=VARCHAR}
+            </if>
+            <if test="propertiesValue.gangedField!=null">
+                ,d.ganged_field =#{propertiesValue.gangedField,jdbcType=VARCHAR}
+            </if>
+        </if>
+        <if test="isStructInsert!=null">
+            ,a.is_struct_insert=#{isStructInsert,jdbcType=BIT}
+        </if>
+        <if test="defaultValue!=null">
+            ,a.default_value=#{defaultValue,jdbcType=VARCHAR}
+        </if>
+        <if test="propertiesName!=null">
+            ,a.properties_name=#{propertiesName,jdbcType=VARCHAR}
+        </if>
+        <if test="propertiesType!=null">
+            ,a.properties_type=#{propertiesType,jdbcType=VARCHAR}
+        </if>
+        <if test="isRead!=null">
+            ,a.is_read=#{isRead,jdbcType=BIT}
+        </if>
+        <if test="isMust!=null">
+            ,a.is_must=#{isMust,jdbcType=BIT}
+        </if>
+        <if test="isOnly!=null">
+            ,a.is_only=#{isOnly,jdbcType=BIT}
+        </if>
+        <if test="isInsertShow!=null">
+            ,a.is_insert_show=#{isInsertShow,jdbcType=BIT}
+        </if>
+        <if test="isEditorShow!=null">
+            ,a.is_editor_show=#{isEditorShow,jdbcType=BIT}
+        </if>
+        <if test="isLookShow!=null">
+            ,a.is_look_show=#{isLookShow,jdbcType=BIT}
+        </if>
+        <if test="isListShow!=null">
+            ,a.is_list_show=#{isListShow,jdbcType=BIT}
+        </if>
+        <if test="propertiesName!=null">
+            ,b.label = #{propertiesName,jdbcType=VARCHAR}
+        </if>
+        <if test="propertiesValueId!=null">
+            ,a.properties_value_id = #{propertiesValueId,jdbcType=INTEGER}
+        </if>
+        where a.properties_id=#{propertiesId,jdbcType=INTEGER}
+    </update>
+
+    <delete id="deletePropertiesStruct">
+        delete from mw_cmdbmd_properties_struct
+        where model_id = #{modelId,jdbcType=BIGINT}
+        AND properties_index_id = #{indexId,jdbcType=VARCHAR}
+    </delete>
+
+    <update id="updateModelPropertiesSort"
+            parameterType="cn.mw.monitor.model.param.ModelPropertiesSortParam">
+        update mw_cmdbmd_properties a
+        left join mw_cmdbmd_pagefield_table b on a.properties_id = b.model_properties_id
+        left join mw_cmdbmd_customcol_table c on a.properties_id = c.model_properties_id
+        set
+            a.sort=#{sort,jdbcType=INTEGER}
+            ,b.order_number = #{sort,jdbcType=INTEGER}
+            ,c.order_number = #{sort,jdbcType=INTEGER}
+        where a.properties_id=#{propertiesId,jdbcType=INTEGER}
+    </update>
+
+    <update id="updateModelGroupNodes">
+         update mw_cmdbmd_group set
+         nodes=#{nodes,jdbcType=VARCHAR} where model_group_id=#{groupId,jdbcType=INTEGER}
+    </update>
+    <update id="updateModelGroup" parameterType="cn.mw.monitor.model.param.AddAndUpdateModelGroupParam">
+        update mw_cmdbmd_group set
+        model_group_name = #{modelGroupName,jdbcType=VARCHAR},
+        is_show=#{isShow,jdbcType=BIT},
+        sync_zabbix=#{syncZabbix,jdbcType=BIT},
+        url=#{url,jdbcType=VARCHAR},
+        network=#{network,jdbcType=VARCHAR},
+        modifier=#{modifier,jdbcType=VARCHAR},
+        modification_date=now()
+        where model_group_id=#{modelGroupId,jdbcType=INTEGER}
+    </update>
+    <update id="updateModelInstance" parameterType="cn.mw.monitor.model.param.AddAndUpdateModelInstanceParam">
+        update mw_cmdbmd_instance
+        <set>
+            <if test="instanceName != null">instance_name=#{instanceName,jdbcType=VARCHAR},</if>
+            <if test="topoInfo != null">topo_info=#{topoInfo,jdbcType=VARCHAR},</if>
+        </set>
+        where instance_id=#{instanceId,jdbcType=INTEGER}
+    </update>
+    <update id="editorModelChart" parameterType="cn.mw.monitor.model.param.AddAndUpdateModelInstanceParam">
+        update mw_cmdbmd_instance set chart_name=#{chartName,jdbcType=VARCHAR} where chart_id=#{chartId,jdbcType=INTEGER}
+    </update>
+
+    <update id="editorModelPropertiesType">
+        update mw_cmdbmd_properties set properties_type=#{propertiesType,jdbcType=VARCHAR} where properties_id=#{propertiesId,jdbcType=INTEGER}
+    </update>
+
+    <delete id="deleteModelPropertiesByPropertiesId">
+        DELETE mw_cmdbmd_properties,
+            mw_cmdbmd_pagefield_table,
+            mw_cmdbmd_properties_value,
+            mw_cmdbmd_customcol_table
+        FROM
+	        mw_cmdbmd_properties
+        LEFT JOIN mw_cmdbmd_pagefield_table ON mw_cmdbmd_properties.properties_id = mw_cmdbmd_pagefield_table.model_properties_id
+        LEFT JOIN mw_cmdbmd_properties_value ON mw_cmdbmd_properties.properties_value_id = mw_cmdbmd_properties_value.id
+        LEFT JOIN mw_cmdbmd_customcol_table ON mw_cmdbmd_properties.properties_id = mw_cmdbmd_customcol_table.model_properties_id
+        WHERE mw_cmdbmd_properties.properties_id = #{propertiesId,jdbcType=INTEGER}
+    </delete>
+    <delete id="deleteModelPropertiesByModelId">
+        DELETE mw_cmdbmd_properties,
+        mw_cmdbmd_pagefield_table,
+        mw_cmdbmd_customcol_table
+        FROM
+            mw_cmdbmd_properties
+            LEFT JOIN mw_cmdbmd_pagefield_table ON mw_cmdbmd_properties.model_id = mw_cmdbmd_pagefield_table.model_id
+            LEFT JOIN mw_cmdbmd_customcol_table ON mw_cmdbmd_pagefield_table.id = mw_cmdbmd_customcol_table.col_id
+        WHERE
+            mw_cmdbmd_properties.model_id = #{modelId,jdbcType=BIGINT}
+    </delete>
+    <delete id="deleteModelGroup">
+        delete from mw_cmdbmd_group where model_group_id=#{modelGroupId,jdbcType=INTEGER} or pid = #{modelGroupId,jdbcType=INTEGER}
+    </delete>
+
+    <delete id="deleteModelInstances" parameterType="java.util.List">
+        delete from mw_cmdbmd_instance where instance_id in
+        <foreach collection="list" item="item" index="index" open="(" close=")" separator=",">
+            #{item}
+        </foreach>
+    </delete>
+
+    <delete id="deleteModelInstanceByModelId">
+        delete from mw_cmdbmd_instance where model_id=#{modelId,jdbcType=BIGINT}
+    </delete>
+
+    <select id="checkBaseDevice" resultType="java.lang.Integer">
+        select IF(LOCATE(",0,",group_nodes)!=0,1,0) as "isflag"
+        from mw_cmdbmd_manage
+        where model_id = #{modelId}
+    </select>
+
+    <select id="queryModelGroupById" resultMap="modelGroupMap">
+        select model_group_id,model_group_name,is_show,sync_zabbix,url,network,group_level,pid
+        from mw_cmdbmd_group
+        where model_group_id = #{modelGroupId}
+    </select>
+
+    <select id="queryPropertiesTypeList" resultType="java.lang.String">
+        SELECT
+            properties_type AS "propertiesType"
+        FROM
+            `mw_cmdbmd_properties`
+        WHERE
+            model_id = #{modelId,jdbcType=BIGINT}
+        GROUP BY
+            properties_type
+    </select>
+
+    <select id="queryModelIndexList" resultType="cn.mw.monitor.model.param.AddAndUpdateModelParam">
+        SELECT
+            t.model_id,
+            t.model_name,
+            t.model_desc,
+            t.model_index,
+            t.model_type_id,
+            t.model_group_id,
+            t.model_group_sub_id,
+            t.model_icon,
+            t.is_show,
+            t.deep,
+            t.nodes,
+            t.group_nodes,
+            t.pid,
+            t.pids,
+            t.is_node,
+            t.model_level,
+            t.creator,
+            t.create_date,
+            t.model_view,
+            t.modifier,
+            t.modification_date
+        FROM
+            mw_cmdbmd_manage t
+        WHERE
+            t.delete_flag = FALSE
+    </select>
+
+
+    <select id="selectModelList" resultType="cn.mw.monitor.model.dto.MwModelManageDtoV2" resultMap="modelListMap">
+        select
+        t.model_id,
+        t.model_name ,
+        t.model_desc ,
+        t.model_index ,
+        t.model_type_id ,
+        t3.model_type_name ,
+        t.model_group_id ,
+        t1.model_group_name,
+        t.model_group_sub_id ,
+        t4.model_group_name as modelGroupSubName ,
+        t.model_icon ,
+        t.is_show ,
+        t.deep ,
+        t.nodes ,
+        t.group_nodes ,
+        t.pid ,
+        t.pids,
+        t.is_node ,
+        t.model_level,
+        t.creator ,
+        t.create_date ,
+        t.modifier ,
+        t.model_view,
+        t.modification_date
+        from mw_cmdbmd_manage t
+        left join mw_cmdbmd_group t1 on t.model_group_id=t1.model_group_id
+        left join mw_cmdbmd_type_base t3 on t.model_type_id=t3.model_type_id
+        left join mw_cmdbmd_group t4 on t.model_group_sub_id=t4.model_group_id
+        where t.delete_flag=false
+        <if test="modelGroupId!=null and modelGroupId!=-1">
+            and t.group_nodes like CONCAT('%,',#{modelGroupId,jdbcType=VARCHAR},',%')
+        </if>
+        <if test="null!=relationQueryNode and relationQueryNode!=''">
+            and t.nodes != #{relationQueryNode,jdbcType=VARCHAR}
+        </if>
+        <if test="modelIndexs != null and modelIndexs.size > 0">
+            and (t.model_index in
+            <foreach collection="modelIndexs" item="item" index="index" open="(" close=")" separator=",">
+                #{item}
+            </foreach>
+            or t.model_level = '0')
+        </if>
+        <if test="modelGroupIds != null and modelGroupIds.size > 0">
+            and t.model_group_id in
+            <foreach collection="modelGroupIds" item="item" index="index" open="(" close=")" separator=",">
+                #{item}
+            </foreach>
+        </if>
+        <include refid="criteria"></include>
+    </select>
+    <select id="selectModelRelationsByModelId" resultType="cn.mw.monitor.model.dto.ModelRelationsDto">
+       select distinct
+       relation_id,
+       relation_name,
+       a.model_name as leftModelName,
+       c.model_name as rightModelName,
+       a.model_index as leftModelIndex,
+       c.model_index as rightModelIndex,
+       a.model_icon as leftModelIcon,
+       c.model_icon as rightModelIcon,
+       b.left_model_id ,
+       b.right_model_id,
+       b.left_relation_group_id,
+       b.right_relation_group_id,
+       b.left_relation,
+       b.right_relation,
+       d.relation_group_name as leftRelationGroupName,
+       e.relation_group_name as rightRelationGroupName,
+       a.creator ,
+       a.create_date ,
+       a.modifier ,
+       a.modification_date
+       from mw_cmdbmd_manage a
+       left join mw_cmdbmd_relations b on a.model_id=b.left_model_id
+       left join mw_cmdbmd_manage c on c.model_id=b.right_model_id
+       left join
+       (select relation_group_id,relation_group_name from mw_cmdbmd_relations_group where delete_flag=false )  d on b.left_relation_group_id=d.relation_group_id
+      left join
+       (select relation_group_id,relation_group_name from mw_cmdbmd_relations_group where delete_flag=false )  e on b.right_relation_group_id=e.relation_group_id
+
+       where
+       a.delete_flag=false and b.delete_flag=false and c.delete_flag=false
+       and
+       (b.left_model_id= #{modelId,jdbcType=BIGINT}
+       or b.right_model_id=#{modelId,jdbcType=BIGINT})
+    </select>
+    <select id="selectModelRelationsGroup" resultType="cn.mw.monitor.model.dto.ModelRelationsGroupDto">
+        select relation_group_id,relation_group_name,relation_group_desc,creator,create_date,modifier,modification_date
+        from mw_cmdbmd_relations_group where delete_flag=false and  model_id=#{modelId,jdbcType=BIGINT}
+    </select>
+
+    <select id="selectModelNameById" resultType="java.lang.String">
+    SELECT
+        model_name AS "modelName"
+    FROM
+        mw_cmdbmd_manage
+    WHERE
+        model_id = #{modelId}
+	AND delete_flag = FALSE
+    </select>
+
+    <select id="queryParentModelInfo" resultType="cn.mw.monitor.model.dto.MwModelInfoDTOV2">
+        SELECT
+            model_id AS "modelId",
+	        CONCAT(model_name,'(',model_index,')') AS 'modelName'
+        FROM
+            mw_cmdbmd_manage
+        WHERE
+            model_type_id = '2'
+            and delete_flag=false
+    </select>
+
+    <select id="queryOrdinaryModelInfo" resultType="cn.mw.monitor.model.dto.MwModelInfoDTOV2"
+            parameterType="cn.mw.monitor.model.param.AddAndUpdateModelGroupParam">
+        SELECT
+        DISTINCT
+        a.model_id AS "modelId",
+        a.model_index AS "modelIndex",
+        a.model_name AS "modelName"
+        FROM
+        mw_cmdbmd_manage a
+        <if test="modelGroupName!=null and modelGroupName != ''">
+            left join mw_cmdbmd_group b on a.group_nodes LIKE CONCAT( '%,', b.model_group_id, ',%' )
+        </if>
+        <where>
+            a.model_type_id = '1'
+            and a.delete_flag=false
+            <if test="modelGroupId!=null">
+                and a.group_nodes LIKE CONCAT( '%,', #{modelGroupId,jdbcType=INTEGER}, ',%' )
+            </if>
+            <if test="modelName!=null and modelName != ''">
+                and a.model_name = #{modelName,jdbcType=VARCHAR}
+            </if>
+            <if test="modelGroupName!=null and modelGroupName != ''">
+                and b.model_group_name = #{modelGroupName,jdbcType=VARCHAR}
+            </if>
+        </where>
+    </select>
+
+    <select id="selectOrdinaryModel" resultType="cn.mw.monitor.model.dto.MwModelInfoDTOV2">
+        SELECT
+            model_id AS "modelId",
+            model_index AS "modelIndex",
+	        model_name AS "modelName"
+        FROM
+            mw_cmdbmd_manage
+        WHERE
+            model_type_id = '1'
+            and delete_flag=false
+    </select>
+
+    <select id="selectOrdinaryModelByOwnModelId" resultType="cn.mw.monitor.model.dto.MwModelInfoDTOV2">
+        SELECT
+            a.model_id AS "modelId",
+            a.model_index AS "modelIndex",
+            a.model_name AS "modelName"
+        FROM
+            mw_cmdbmd_relations b
+            LEFT JOIN mw_cmdbmd_manage a ON a.model_id = b.opposite_model_id
+        WHERE
+            a.model_type_id = '1'
+            AND a.delete_flag = FALSE
+            AND b.delete_flag = FALSE
+            and b.own_model_id = #{modelId}
+            ORDER BY a.model_id
+    </select>
+
+    <select id="selectModelPropertiesList" resultType="cn.mw.monitor.model.dto.ModelPropertiesDto">
+        (SELECT
+        a.properties_id,
+        a.`index_id`,
+        a.properties_name,
+        b.properties_type_name,
+        a.properties_type,
+        a.properties_type_id,
+        a.properties_level,
+        "1" As "level",  <!-- 将普通模型的属性级别设为1，继承父模型的属性设为3，方便排序 -->
+        (CASE WHEN a.properties_level = 1 THEN '自定义'
+        WHEN a.properties_level = 0 THEN '内置'
+        END ) AS "propertiesLevelName",
+        d.id AS "propertiesValue.id",
+        d.show_type AS "propertiesValue.showType",
+        d.properties_value_type AS "propertiesValue.propertiesValueType",
+        d.default_type AS "propertiesValue.defaultType",
+        d.default_value AS "propertiesValue.defaultValue",
+        d.regex AS "propertiesValue.regex",
+        d.drop_op AS "propertiesValue.dropOpStr",
+        d.default_value_list AS "propertiesValue.defaultValueListStr",
+        d.expire_remind AS "propertiesValue.expireRemind",
+        d.before_expiretime AS "propertiesValue.beforeExpireTime",
+        d.time_unit AS "propertiesValue.timeUnit",
+        d.relation_model_index AS "propertiesValue.relationModelIndex",
+        d.relation_properties_index AS "propertiesValue.relationPropertiesIndex",
+        d.drop_arr_obj AS "propertiesValue.dropArrObjStr",
+        d.is_relation AS "propertiesValue.isRelation",
+        d.is_ganged AS "propertiesValue.isGanged",
+        d.ganged_field_val AS "propertiesValue.gangedValueListStr",
+        d.ganged_field AS "propertiesValue.gangedField",
+        c.model_name,
+        c.model_id,
+        a.is_struct_insert,
+        a.sort,
+        a.is_read,
+        a.is_must,
+        a.is_only,
+        a.is_insert_show,
+        a.is_editor_show,
+        a.is_look_show,
+        a.is_list_show,
+        a.is_show
+        FROM
+        mw_cmdbmd_properties a
+        LEFT JOIN mw_cmdbmd_properties_type b ON a.properties_type_id = b.properties_type_id
+        LEFT JOIN mw_cmdbmd_manage c ON a.model_id = c.model_id
+        left join mw_cmdbmd_properties_value d on a.properties_value_id = d.id
+        WHERE
+        a.model_id = #{modelId,jdbcType=BIGINT}
+        order by a.sort)
+        <choose>
+            <when test="null != pids and pids != ''">
+                UNION
+                (SELECT
+                a.properties_id,
+                a.`index_id`,
+                a.properties_name,
+                b.properties_type_name,
+                a.properties_type,
+                a.properties_type_id,
+                a.properties_level,
+                "3" AS "level",
+                (c.model_name) AS "propertiesLevelName",
+                d.id AS "propertiesValue.id",
+                d.show_type AS "propertiesValue.showType",
+                d.properties_value_type AS "propertiesValue.propertiesValueType",
+                d.default_type AS "propertiesValue.defaultType",
+                d.default_value AS "propertiesValue.defaultValue",
+                d.regex AS "propertiesValue.regex",
+                d.drop_op AS "propertiesValue.dropOpStr",
+                d.default_value_list AS "propertiesValue.defaultValueListStr",
+                d.expire_remind AS "propertiesValue.expireRemind",
+                d.before_expiretime AS "propertiesValue.beforeExpireTime",
+                d.time_unit AS "propertiesValue.timeUnit",
+                d.relation_model_index AS "propertiesValue.relationModelIndex",
+                d.relation_properties_index AS "propertiesValue.relationPropertiesIndex",
+                d.drop_arr_obj AS "propertiesValue.dropArrObjStr",
+                d.is_relation AS "propertiesValue.isRelation",
+                d.is_ganged AS "propertiesValue.isGanged",
+                d.ganged_field_val AS "propertiesValue.gangedValueListStr",
+                d.ganged_field AS "propertiesValue.gangedField",
+                c.model_name,
+                c.model_id,
+                a.is_struct_insert,
+                a.sort,
+                a.is_read,
+                a.is_must,
+                a.is_only,
+                a.is_insert_show,
+                a.is_editor_show,
+                a.is_look_show,
+                a.is_list_show,
+                a.is_show
+                FROM
+                mw_cmdbmd_properties a
+                LEFT JOIN mw_cmdbmd_properties_type b ON a.properties_type_id = b.properties_type_id
+                LEFT JOIN mw_cmdbmd_manage c ON a.model_id = c.model_id
+                left join mw_cmdbmd_properties_value d on a.properties_value_id = d.id
+                WHERE
+                FIND_IN_SET( a.model_id, #{pids,jdbcType=VARCHAR} )
+                order by a.sort)
+            </when>
+        </choose>
+        ORDER BY
+        LEVEL,model_name,sort
+    </select>
+
+    <select id="getProperticesStructInfo" resultType="cn.mw.monitor.service.model.dto.ModelPropertiesStructDto">
+        SELECT
+        e.struct_type AS "structType",
+        e.struct_id AS "structId",
+        e.struct_name AS "structName",
+        e.properties_index_id AS "propertiesIndexId",
+        e.model_id AS "modelId",
+        e.enumerate_value AS "structStrValue"
+        FROM
+        mw_cmdbmd_properties_struct e
+        <where>
+            1 = 1
+            <if test="modelId!=null">
+                and e.model_id = #{modelId,jdbcType=BIGINT}
+            </if>
+            <if test="indexId!=null and indexId!= ''">
+                AND e.properties_index_id = #{indexId,jdbcType=VARCHAR}
+            </if>
+        </where>
+    </select>
+
+    <select id="queryModelListInfo" resultType="cn.mw.monitor.model.dto.ModelManageStructDto">
+        SELECT
+            model_id,
+            model_name,
+            model_index
+        FROM
+            mw_cmdbmd_manage
+        WHERE
+            delete_flag = FALSE
+    </select>
+
+    <select id="queryProperticesInfoByModelId" resultType="cn.mw.monitor.service.model.dto.ModelPropertiesStructDto">
+        SELECT
+            a.index_id AS "structId",
+            a.properties_name AS "structName",
+            a.properties_type_id AS "structType",
+            a.model_id AS "modelId",
+            CASE WHEN a.properties_type_id = 1 THEN b.regex
+            WHEN (a.properties_type_id = 9 || a.properties_type_id = 10) THEN b.drop_op ELSE '' END AS "structStrValue"
+        FROM
+            mw_cmdbmd_properties a
+            left join mw_cmdbmd_properties_value b on a.properties_value_id = b.id
+        WHERE
+         (a.model_id = #{modelId,jdbcType=BIGINT}
+            OR FIND_IN_SET( a.model_id, ( SELECT pids FROM mw_cmdbmd_manage WHERE model_id = #{modelId,jdbcType=BIGINT} ) ))
+         and a.properties_type_id not in(6,11,12,13)
+    </select>
+
+    <select id="getPropertiesInfoByModelId" resultType="cn.mw.monitor.model.dto.MWModelPropertiesInfoDto">
+        SELECT
+            a.index_id AS "indexId",
+            a.properties_name AS "propertiesName",
+            a.properties_type_id AS "propertiesTypeId",
+            a.model_id AS "modelId"
+        FROM
+            mw_cmdbmd_properties a
+        WHERE
+            (a.model_id = #{modelId,jdbcType=BIGINT}
+            OR FIND_IN_SET( a.model_id, ( SELECT pids FROM mw_cmdbmd_manage WHERE model_id = #{modelId,jdbcType=BIGINT} ) ))
+            AND a.properties_type_id NOT IN ( 6, 11, 12, 13 )
+        ORDER BY
+            a.model_id,
+            a.properties_name
+    </select>
+
+    <select id="queryProperticesInfoByExport" resultType="cn.mw.monitor.model.dto.ModelPropertiesExportDto">
+        SELECT
+            a.index_id AS "propertiesIndexId",
+            a.properties_name AS "propertiesName",
+            a.properties_type_id AS "propertiesType",
+            (select c.model_index from mw_cmdbmd_manage c where  c.model_id = #{modelId,jdbcType=BIGINT}) AS "modelIndexId",
+            (select c.model_id from mw_cmdbmd_manage c where  c.model_id = #{modelId,jdbcType=BIGINT}) AS "modelId",
+            a.is_read AS "isRead",
+            a.is_must AS "isMust",
+            a.is_only AS "isOnly",
+            a.is_show AS "isShow",
+            CASE WHEN (a.properties_type_id = 1|| a.properties_type_id = 7) THEN b.regex
+            WHEN (a.properties_type_id = 9 || a.properties_type_id = 10) THEN b.drop_op ELSE '' END AS "dropOpValue"
+        FROM
+            mw_cmdbmd_properties a
+            left join mw_cmdbmd_properties_value b on a.properties_value_id = b.id
+        WHERE
+         (a.model_id = #{modelId,jdbcType=BIGINT}
+            OR FIND_IN_SET( a.model_id, ( SELECT pids FROM mw_cmdbmd_manage WHERE model_id = #{modelId,jdbcType=BIGINT} ) ))
+         and a.properties_type_id not in(5,6,14,15,16)
+         order by a.sort
+    </select>
+
+    <select id="queryProperticesInfoByGroupExport" resultType="cn.mw.monitor.model.dto.ModelPropertiesExportDto">
+        SELECT
+        DISTINCT
+            a.index_id AS "propertiesIndexId",
+            a.properties_name AS "propertiesName",
+            a.properties_type_id AS "propertiesType",
+            a.is_read AS "isRead",
+            a.is_must AS "isMust",
+            a.is_only AS "isOnly",
+            a.is_show AS "isShow",
+            CASE WHEN (a.properties_type_id = 1|| a.properties_type_id = 7) THEN IFNULL(b.regex,'')
+            WHEN (a.properties_type_id = 9 || a.properties_type_id = 10) then IFNULL(b.drop_op,'') ELSE '' END AS "dropOpValue"
+        FROM
+            mw_cmdbmd_properties a
+            left join mw_cmdbmd_properties_value b on a.properties_value_id = b.id
+        WHERE (a.model_id IN ( SELECT model_id FROM mw_cmdbmd_manage WHERE group_nodes LIKE CONCAT( '%,', #{modelId,jdbcType=BIGINT}, ',%' ) AND delete_flag = '0' and model_type_id = '1'  )
+							  OR FIND_IN_SET(a.model_id,(
+                              SELECT DISTINCT GROUP_CONCAT(pids) FROM mw_cmdbmd_manage WHERE
+                              model_id IN ( SELECT model_id FROM mw_cmdbmd_manage WHERE group_nodes LIKE CONCAT( '%,', #{modelId,jdbcType=BIGINT}, ',%' ) AND delete_flag = '0' and model_type_id = '1')
+                              and pids is not null and pids !='')))
+         and a.properties_type_id not in(5,6,14,15,16)
+         order by a.sort
+    </select>
+
+    <select id="queryPropertiesByInstanceFuzzyQuery" resultType="cn.mw.monitor.model.dto.MWModelPropertiesInfoDto">
+        SELECT
+            a.index_id,
+            a.properties_name
+        FROM
+            mw_cmdbmd_properties a
+            LEFT JOIN mw_cmdbmd_manage c ON a.model_id = c.model_id
+        WHERE
+           (a.model_id = #{modelId,jdbcType=BIGINT}
+            OR FIND_IN_SET( a.model_id, ( SELECT pids FROM mw_cmdbmd_manage WHERE model_id = #{modelId,jdbcType=BIGINT} ) ))
+            AND a.is_show = '1'
+            and a.properties_type_id = '1'
+        ORDER BY
+            a.model_id
+    </select>
+
+
+    <select id="queryPropertiesByInstanceFuzzyQueryGroup" resultType="cn.mw.monitor.model.dto.MWModelPropertiesInfoDto">
+        SELECT
+        DISTINCT
+            a.`index_id`,
+            a.properties_name
+        FROM
+            mw_cmdbmd_properties a
+            LEFT JOIN mw_cmdbmd_manage c ON a.model_id = c.model_id
+        WHERE
+           (a.model_id IN ( SELECT model_id FROM mw_cmdbmd_manage WHERE group_nodes LIKE CONCAT( '%,', #{modelId,jdbcType=BIGINT}, ',%' ) AND delete_flag = '0' and model_type_id = '1'  )
+							  OR FIND_IN_SET(a.model_id,(
+                              SELECT DISTINCT GROUP_CONCAT(pids) FROM mw_cmdbmd_manage WHERE
+                              model_id IN ( SELECT model_id FROM mw_cmdbmd_manage WHERE group_nodes LIKE CONCAT( '%,', #{modelId,jdbcType=BIGINT}, ',%' ) AND delete_flag = '0' and model_type_id = '1')
+                              and pids is not null and pids !='')))
+            AND a.is_show = '1'
+            and a.properties_type_id = '1'
+        ORDER BY
+            a.model_id
+    </select>
+
+    <select id="queryPropertiesByInstance" resultType="cn.mw.monitor.model.dto.MWModelPropertiesInfoDto">
+        SELECT
+            a.`index_id`,
+            a.properties_type_id,
+            a.properties_name
+        FROM
+            mw_cmdbmd_properties a
+            LEFT JOIN mw_cmdbmd_manage c ON a.model_id = c.model_id
+        WHERE
+           (a.model_id = #{modelId,jdbcType=BIGINT}
+            OR FIND_IN_SET( a.model_id, ( SELECT pids FROM mw_cmdbmd_manage WHERE model_id = #{modelId,jdbcType=BIGINT} ) ))
+--             AND a.is_show = '1'
+        ORDER BY
+            a.model_id
+    </select>
+
+    <select id="selectModelInstanceTree" resultType="cn.mw.monitor.model.dto.MwModelManageTypeDto">
+        SELECT
+        t.model_group_id,
+        CONCAT( "group_", t.model_group_id ) AS "modelGroupIdStr",
+        t.model_group_name,
+        "" AS "modelIndex",
+        t.is_show,
+        "" as "icon",
+        (select count( a.instance_id ) FROM mw_cmdbmd_instance a left join mw_cmdbmd_manage b on a.model_id = b.model_id
+        where b.group_nodes like CONCAT('%,',t.model_group_id,',%') and b.delete_flag = false AND b.model_type_id = '1'
+        and b.is_show = true
+        <if test="instanceIds != null and instanceIds.size > 0">
+            and (a.instance_id in
+            <foreach collection="instanceIds" item="item" index="index" open="(" close=")" separator=",">
+                #{item}
+            </foreach>)
+        </if>
+        ) As"instanceNum",
+        t.deep,
+        "group" AS "type",
+        ( CASE WHEN (LOCATE(',5,',t.nodes) >0)THEN 1 ELSE 0 END ) AS "isVim",
+        CONCAT( "group_", t.pid ) AS "pidStr",
+        ( CASE WHEN (LOCATE(',0,',t.nodes) >0)THEN 1 ELSE 0 END ) AS "isBase",
+        t.pid,
+        "" AS pids
+        FROM
+        mw_cmdbmd_group t
+        WHERE
+        1 = 1
+        and t.is_show = true
+        <if test="modelIds != null and modelIds.size > 0">
+            and (t.model_group_id in
+            <foreach collection="modelIds" item="item" index="index" open="(" close=")" separator=",">
+                #{item}
+            </foreach>
+            or t.group_level = '0')
+        </if>
+        UNION
+        SELECT
+        a.model_id AS "model_group_id",
+        CONCAT( "model_", a.model_id ) AS "modelGroupIdStr",
+        a.model_name AS "model_group_name",
+        a.model_index AS "modelIndex",
+        1 AS "is_show",
+        a.model_icon AS "icon",
+        ( SELECT count( instance_id ) FROM mw_cmdbmd_instance WHERE model_id = a.model_id
+        <if test="instanceIds != null and instanceIds.size > 0">
+            and (instance_id in
+            <foreach collection="instanceIds" item="item" index="index" open="(" close=")" separator=",">
+                #{item}
+            </foreach>)
+        </if>
+        ) AS "instanceNum",
+        "10" AS deep,
+        "model" AS "type",
+        ( CASE WHEN (LOCATE(',5,',a.group_nodes) >0)THEN 1 ELSE 0 END ) AS "isVim",
+        CONCAT( "group_", a.model_group_id ) AS "pidStr",
+        ( CASE WHEN (LOCATE(',0,',a.group_nodes) >0)THEN 1 ELSE 0 END ) AS "isBase",
+        a.model_group_id AS "pid",
+        a.pids
+        FROM
+        mw_cmdbmd_manage a
+        WHERE
+        1 = 1
+        and a.delete_flag = false
+        and a.is_show = true
+        and a.model_type_id = '1'
+        <if test="modelIds != null and modelIds.size > 0">
+            and (a.model_index in
+            <foreach collection="modelIds" item="item" index="index" open="(" close=")" separator=",">
+                #{item}
+            </foreach>
+            or a.model_level = '0')
+        </if>
+    </select>
+
+    <select id="selectModelTypeList" resultType="cn.mw.monitor.model.dto.MwModelManageTypeDto"
+            parameterType="cn.mw.monitor.model.param.QueryModelTypeParam">
+        select
+        model_group_id,model_group_name,is_show,deep,nodes,pid,is_node,group_level,url,creator,create_date,modifier,modification_date
+        from mw_cmdbmd_group
+        where 1=1
+        <if test="null!=modelGroupName and modelGroupName!=''">
+            and `model_group_name` like CONCAT('%',#{modelGroupName,jdbcType=VARCHAR},'%')
+        </if>
+        <if test="modelGroupIds != null and modelGroupIds.size > 0">
+            and (model_group_id in
+            <foreach collection="modelGroupIds" item="item" index="index" open="(" close=")" separator=",">
+                #{item}
+            </foreach>
+            or group_level = '0')
+        </if>
+    </select>
+    <select id="getModelGroupByPid" resultType="cn.mw.monitor.model.dto.ModelManageTypeDtoV2">
+        select model_group_id,model_group_name,is_show,deep,nodes,pid,is_node,url,creator,create_date,modifier,modification_date from mw_cmdbmd_group
+        where model_group_id=#{pid,jdbcType=BIGINT}
+    </select>
+    <select id="selectModelCount" resultType="java.lang.Integer">
+        SELECT
+            count( 0 )
+        FROM
+            mw_cmdbmd_manage
+        WHERE
+            delete_flag = FALSE
+            AND group_nodes LIKE CONCAT( '%,', #{modelGroupId}, ',%' )
+    </select>
+    <select id="selectSonAndFatherModelList" resultType="java.util.Map">
+        select model_id modelId,model_Index modelIndex from mw_cmdbmd_manage where
+        nodes like  CONCAT('%',#{nodes,jdbcType=VARCHAR},'%')
+    </select>
+    <select id="selectModelIndexIdCount" resultType="java.lang.Integer">
+        select count(0) from mw_cmdbmd_properties where index_id=#{indexId,jdbcType=VARCHAR} and model_id=#{modelId,jdbcType=VARCHAR}
+    </select>
+
+    <select id="selectModelPropertiesSort" resultType="java.lang.Integer">
+        select IFNULL(max(sort),0) AS sort from mw_cmdbmd_properties where model_id=#{modelId,jdbcType=VARCHAR}
+    </select>
+
+    <select id="selectModelPropertiesNameCount" resultType="java.lang.Integer">
+        select count(0) AS sort from mw_cmdbmd_properties where model_id=#{modelId,jdbcType=VARCHAR} and properties_name = #{propertiesName,jdbcType=VARCHAR}
+    </select>
+
+    <select id="selectModelInstance" resultMap="instanceInfoMap">
+        select instance_id,model_id,instance_name,topo_info from mw_cmdbmd_instance where 1=1
+        <if test="null!=modelId and modelId!=0 ">
+            and model_id=#{modelId,jdbcType=BIGINT}
+        </if>
+        <if test="null!=modelInstanceId and modelInstanceId!=0 ">
+            and instance_id=#{modelInstanceId,jdbcType=INTEGER}
+        </if>
+        <if test="null!=modelInstanceName and modelInstanceName!='' ">
+            and instance_name=#{modelInstanceName,jdbcType=VARCHAR}
+        </if>
+        <if test="modelInstanceIds != null and modelInstanceIds.size > 0">
+            and (instance_id in
+            <foreach collection="modelInstanceIds" item="item" index="index" open="(" close=")" separator=",">
+                #{item}
+            </foreach>
+            )
+        </if>
+        <if test="relationInstanceId!=null">
+            and relation_instance_id = #{relationInstanceId}
+        </if>
+    </select>
+
+    <select id="selectModelInstanceByTimeOut" resultType="cn.mw.monitor.model.dto.ModelInstanceDtoV2">
+        SELECT
+        a.instance_id,
+        a.model_id,
+        a.instance_name
+        FROM
+        mw_cmdbmd_instance a
+        left join mw_cmdbmd_manage b on a.model_id = b.model_id
+        where a.model_id
+        IN (
+        <foreach collection="modelIndexs" item="modelIndex" separator=",">
+            #{modelIndex,jdbcType=VARCHAR}
+        </foreach>
+        )
+        <if test="allTypeIdList != null and allTypeIdList.size > 0">
+            and (a.instance_id in
+            <foreach collection="allTypeIdList" item="item" index="index" open="(" close=")" separator=",">
+                #{item}
+            </foreach>
+            )
+        </if>
+        and b.delete_flag = false
+        order by a.model_id
+    </select>
+
+    <select id="selectModelInstanceBySystemIsFlag" resultType="cn.mw.monitor.model.dto.ModelInstanceDtoV2">
+        SELECT
+        a.instance_id,
+        a.model_id,
+        a.instance_name
+        FROM
+        mw_cmdbmd_instance a
+        LEFT JOIN mw_cmdbmd_manage b ON a.model_id = b.model_id
+        <where>
+            b.delete_flag = FALSE
+            AND b.is_show = TRUE
+            <if test="null!=modelId and modelId!=0 ">
+                and a.model_id=#{modelId,jdbcType=BIGINT}
+            </if>
+            <if test="null!=modelInstanceId and modelInstanceId!=0 ">
+                and a.instance_id=#{modelInstanceId,jdbcType=INTEGER}
+            </if>
+            <if test="null!=modelInstanceName and modelInstanceName!='' ">
+                and a.instance_name=#{modelInstanceName,jdbcType=VARCHAR}
+            </if>
+            <if test="null!=modelGroupId and modelGroupId!=-1 ">
+                and b.group_nodes LIKE CONCAT( '%,',#{modelGroupId}, ',%' )
+            </if>
+            <if test="modelInstanceIds != null and modelInstanceIds.size > 0">
+                and (a.instance_id in
+                <foreach collection="modelInstanceIds" item="item" index="index" open="(" close=")" separator=",">
+                    #{item}
+                </foreach>
+                )
+            </if>
+        </where>
+    </select>
+
+    <select id="getAllModelIndexByGroup" resultType="java.lang.String">
+        SELECT
+            model_index
+        FROM
+         mw_cmdbmd_manage
+        WHERE
+            group_nodes LIKE CONCAT( '%,',#{modelGroupId}, ',%' )
+            AND delete_flag = FALSE
+            AND is_show = TRUE
+            and model_type_id = '1'
+    </select>
+
+
+    <!-- 修改验证时，排除自身的instanceId  -->
+    <select id="selectModelInstanceByUniqueCheck" resultType="cn.mw.monitor.model.dto.ModelInstanceDtoV2">
+        select instance_id,model_id,instance_name from mw_cmdbmd_instance where 1=1
+        <if test="null!=modelInstanceId and modelInstanceId!=0 ">
+            and instance_id != #{modelInstanceId,jdbcType=INTEGER}
+        </if>
+        <if test="null!=modelId and modelId!=0 ">
+            and model_id=#{modelId,jdbcType=BIGINT}
+        </if>
+        <if test="modelInstanceIds != null and modelInstanceIds.size > 0">
+            and (a.instance_id in
+            <foreach collection="modelInstanceIds" item="item" index="index" open="(" close=")" separator=",">
+                #{item}
+            </foreach>
+            )
+        </if>
+    </select>
+
+    <select id="selectInstanceIdsByModelId" resultType="java.lang.Long">
+        select instance_id from mw_cmdbmd_instance where  model_id=#{modelId,jdbcType=BIGINT}
+    </select>
+
+    <select id="selectModelIndexById" resultType="java.lang.String">
+        select model_index from mw_cmdbmd_manage where model_id = #{modelId,jdbcType=BIGINT}
+    </select>
+
+    <select id="selectModelInstanceByModelId" resultType="cn.mw.monitor.model.dto.ModelInstanceDtoV2">
+        SELECT
+        a.instance_id,
+        a.model_id,
+        a.instance_name,
+        c.left_relation
+        FROM
+        mw_cmdbmd_instance a
+        LEFT JOIN mw_cmdbmd_manage b ON a.model_id = b.model_id
+        left join mw_cmdbmd_relations c on a.model_id=c.left_model_id
+        WHERE
+        b.delete_flag = FALSE
+        and ${nodes}
+    </select>
+    <select id="selectModelNodes" resultType="java.lang.String">
+       select nodes from mw_cmdbmd_manage where model_id in (
+       select distinct right_model_id as model_id FROM mw_cmdbmd_relations  where left_model_id=#{leftModelId,jdbcType=INTEGER}
+       )
+    </select>
+    <select id="getCountRelationsByModelId" resultType="java.lang.String">
+        select left_relation from mw_cmdbmd_relations where delete_flag=false and left_model_id=#{leftModelId,jdbcType=INTEGER} and right_model_id=#{rightModelId,jdbcType=INTEGER}
+    </select>
+
+    <select id="getFatherModelIdBySonModelId" resultType="java.lang.Integer">
+      select model_id from mw_cmdbmd_manage where delete_flag = false and  pids like CONCAT('%,',#{modelId,jdbcType=BIGINT},',%')
+    </select>
+
+    <select id="selectModelPropertiesByModelId" resultType="cn.mw.monitor.customPage.dto.MwCustomColDTO">
+        SELECT
+        a.properties_id as id,a.properties_name as label,a.index_id as prop
+        FROM
+        mw_cmdbmd_properties a
+        LEFT JOIN mw_cmdbmd_properties_type b ON a.properties_type_id = b.properties_type_id
+        left join mw_cmdbmd_manage c on a.model_id = c.model_id
+        WHERE
+        a.model_id = #{modelId,jdbcType=BIGINT}
+        <choose>
+            <when test="null != pidList">
+                UNION
+                SELECT
+                a.properties_id as id,a.properties_name as label,a.index_id
+                FROM
+                mw_cmdbmd_properties a
+                LEFT JOIN mw_cmdbmd_properties_type b ON a.properties_type_id = b.properties_type_id
+                left join mw_cmdbmd_manage c on a.model_id = c.model_id
+                WHERE
+                a.model_id in
+                <foreach collection="pidList" item="item" index="index" separator="," open="(" close=")">
+                    #{item}
+                </foreach>
+            </when>
+        </choose>
+    </select>
+    <select id="selectModelGroupList" resultType="java.util.Map"
+            parameterType="cn.mw.monitor.service.model.param.QueryModelGroupParam">
+        select model_group_id as modelGroupId,model_group_name as modelGroupName from mw_cmdbmd_group
+        where is_show=true
+        <choose>
+            <when test="isChild != null and isChild == false ">
+                and pid = '0'
+            </when>
+            <otherwise>
+                <if test="null!=modelGroupId and modelGroupId!=-1">
+                    and pid=#{modelGroupId,jdbcType=INTEGER}
+                </if>
+            </otherwise>
+        </choose>
+    </select>
+
+    <select id="selectPropertiesList" resultType="java.util.Map">
+        select properties_type_id as propertiesTypeId ,properties_type_name as propertiesTypeName  from  mw_cmdbmd_properties_type
+    </select>
+    <select id="selectCountInstanceBymodelId" resultType="java.lang.Integer">
+        select count(0) from mw_cmdbmd_instance where model_id=#{modelId,jdbcType=BIGINT}
+    </select>
+    <select id="selectFatherModelList" resultType="cn.mw.monitor.model.dto.MwModelInfoDTOV2">
+        select model_id AS "modelId",model_name AS "modelName" from mw_cmdbmd_manage where model_type_id=2
+    </select>
+
+
+    <select id="selectGroupNodes" parameterType="java.lang.Integer" resultType="java.lang.String">
+        SELECT
+            nodes
+        FROM
+            mw_cmdbmd_group
+        WHERE
+            model_group_id = #{groupId}
+    </select>
+
+    <select id="selectModelIdByIndexs" resultType="java.lang.Integer">
+        SELECT
+            model_id
+        FROM
+            mw_cmdbmd_manage
+        WHERE
+            model_index = #{modelIndex}
+    </select>
+
+    <select id="getAllModelList" resultType="cn.mw.monitor.model.dto.MwModelManageTypeDto">
+		(SELECT
+		    DISTINCT
+            t.model_group_id,
+            CONCAT( "group_", t.model_group_id ) AS "modelGroupIdStr",
+            t.model_group_name,
+            "" AS "modelIndex",
+            t.is_show,
+            "" as "icon",
+            (select count( a.instance_id ) FROM mw_cmdbmd_instance a left join mw_cmdbmd_manage b on a.model_id = b.model_id
+            where b.group_nodes like CONCAT('%,',t.model_group_id,',%') and b.delete_flag = false and b.is_show = true) As"instanceNum",
+            t.deep,
+            "group" AS "type",
+            CONCAT( "group_", t.pid ) AS "pidStr",
+            t.pid,
+			true AS "disabled",
+            "" AS pids
+        FROM
+            mw_cmdbmd_group t
+		left join mw_cmdbmd_manage a on t.model_group_id = a.model_group_id
+        WHERE
+            1 = 1
+            and t.is_show = true)
+   UNION
+       ( SELECT
+            a.model_id AS "model_group_id",
+            CONCAT( "model_", a.model_id ) AS "modelGroupIdStr",
+            a.model_name AS "model_group_name",
+            a.model_index AS "modelIndex",
+            1 AS "is_show",
+            a.model_icon AS "icon",
+            ( SELECT count( instance_id ) FROM mw_cmdbmd_instance WHERE model_id = a.model_id ) AS "instanceNum",
+            "10" AS deep,
+            "model" AS "type",
+            CONCAT( "group_", a.model_group_id ) AS "pidStr",
+            a.model_group_id AS "pid",
+            false AS "disabled",
+            a.pids
+        FROM
+            mw_cmdbmd_manage a
+        WHERE
+            1 = 1
+            and a.delete_flag = false
+            and a.is_show = true
+			and a.model_type_id != '2')
+    </select>
+
+    <select id="selectGroupServerMap" parameterType="java.lang.Integer"
+            resultType="cn.mw.monitor.service.model.dto.MwModelAssetsGroupTable">
+        select
+        id id,
+        group_id groupId,
+        monitor_server_id monitorServerId,
+        model_group_id assetsSubtypeId
+        from
+        mw_cmdbmd_modelgroup_server_mapper
+        where group_id is not null and monitor_server_id is not null and group_id != ''
+        <if test="assetsSubTypeId !=null">
+            and model_group_id = #{assetsSubTypeId,jdbcType=INTEGER}
+        </if>
+    </select>
+
+    <sql id="instancecriteria">
+        <if test="null!=modelId and modelId!=0 ">
+            and model_id=#{modelId,jdbcType=BIGINT}
+        </if>
+        <if test="null!=modelInstanceId and modelInstanceId!=0 ">
+            and instance_id=#{modelInstanceId,jdbcType=INTEGER}
+        </if>
+        <if test="null!=modelInstanceName and modelInstanceName!='' ">
+            and instance_name=#{modelInstanceName,jdbcType=VARCHAR}
+        </if>
+    </sql>
+
+    <sql id="criteria">
+        <if test="null!=modelId and modelId!=0 and null==relationQueryNode ">
+            and t.model_id=#{modelId,jdbcType=BIGINT}
+        </if>
+        <if test="null!=modelName and ''!=modelName ">
+            and t.model_name like concat('%',#{modelName,jdbcType=INTEGER},'%')
+        </if>
+    </sql>
+
+    <select id="selectUser" resultType="cn.mw.monitor.service.assets.model.UserDTO">
+    select
+    t2.user_id userId,
+    t2.login_name loginName,
+    t2.user_name userName
+    from
+    mw_user_mapper t1
+    left join mw_sys_user t2 on t1.user_id = t2.user_id
+    where t1.type='MODEL_MANAGE' and t1.type_id = #{typeId}
+  </select>
+
+    <select id="selectOrg" resultType="cn.mw.monitor.service.assets.model.OrgDTO">
+    select
+    t2.org_id orgId,
+    t2.org_name orgName,
+    t2.nodes
+    from mw_org_mapper t1
+    left join mw_sys_org t2 on t1.org_id = t2.org_id
+    where t1.type='MODEL_MANAGE' and t1.type_id = #{typeId}
+  </select>
+
+    <select id="selectGroup" resultType="cn.mw.monitor.service.assets.model.GroupDTO">
+    select
+    t1.group_id  groupId,
+    t2.group_name groupName
+    from mw_group_mapper t1
+    left join mw_group_table t2 on t1.group_id = t2.group_id
+    where t1.type='MODEL_MANAGE' and t1.type_id = #{typeId}
+  </select>
+
+    <select id="selectPropertiesFieldByGanged" resultType="cn.mw.monitor.model.dto.MWModelPropertiesInfoDto">
+        SELECT
+            a.properties_name AS "propertiesName",
+            a.index_id AS "indexId",
+            a.properties_type_id AS "propertiesTypeId",
+            ( CASE WHEN (b.drop_op is NULL  or b.drop_op = '')THEN b.drop_arr_obj ELSE b.drop_op END ) AS "dropOP"
+        FROM
+            mw_cmdbmd_properties a
+            LEFT JOIN mw_cmdbmd_properties_value b ON a.properties_value_id = b.id
+        WHERE
+            (a.model_id = #{modelId} OR FIND_IN_SET(a.model_id,( SELECT pids FROM mw_cmdbmd_manage WHERE model_id = #{modelId} )))
+            AND a.properties_type_id IN (18,20)
+            and (b.drop_op is not null or  b.drop_arr_obj is not null)
+
+    </select>
+    <select id="queryPropertiesGanged" resultType="java.lang.String"
+            parameterType="cn.mw.monitor.model.param.QueryModelGangedFieldParam">
+        SELECT
+        a.index_id
+        FROM
+        mw_cmdbmd_properties a
+        LEFT JOIN mw_cmdbmd_properties_value b ON a.properties_value_id = b.id
+        WHERE
+        (a.model_id = #{modelId} OR FIND_IN_SET(a.model_id,( SELECT pids FROM mw_cmdbmd_manage WHERE model_id =
+        #{modelId} )))
+        <if test="fieldVal!=null and fieldVal.length() gt 11">
+            AND b.ganged_field_val LIKE CONCAT( '%', #{fieldVal}, '%' )
+        </if>
+        <if test="fieldVal!=null and fieldVal.length() lt 11">
+            AND b.ganged_field_val LIKE CONCAT( '%', #{fieldVal}, ',%' )
+        </if>
+        AND b.ganged_field = #{fieldIndexId}
+    </select>
+    <select id="getProperticesArrObj" resultType="java.lang.String">
+        SELECT
+            b.drop_arr_obj
+        FROM
+            mw_cmdbmd_properties a
+            LEFT JOIN mw_cmdbmd_properties_value b ON a.properties_value_id = b.id
+        WHERE
+            (a.model_id = #{modelId,jdbcType=BIGINT}
+            OR FIND_IN_SET( a.model_id, ( SELECT pids FROM mw_cmdbmd_manage WHERE model_id = #{modelId,jdbcType=BIGINT} ) ))
+            AND a.index_id = #{indexId}
+    </select>
+
+    <select id="getPropertiesByManage" resultType="java.lang.String">
+        select index_id
+        from mw_cmdbmd_properties
+        where is_manage = 1
+        and  (model_id = #{modelId} OR FIND_IN_SET(model_id,( SELECT pids FROM mw_cmdbmd_manage WHERE model_id = #{modelId})))
+     </select>
+
+    <select id="getPropertiesByBaseShow" resultType="java.lang.String">
+    select index_id
+    from mw_cmdbmd_properties
+    <where>
+        1 = 1
+        <if test="showType!=null and showType == 1">
+            and look_show = '1'
+        </if>
+        and (model_id = #{modelId} OR FIND_IN_SET(model_id,( SELECT pids FROM mw_cmdbmd_manage WHERE model_id =
+        #{modelId})))
+    </where>
+
+</select>
+
+    <select id="selectModelInstanceFiledBySecond" resultType="java.lang.String">
+        select index_id
+        from mw_cmdbmd_properties
+        where is_manage = 0
+        and  (model_id = #{modelId} OR FIND_IN_SET(model_id,( SELECT pids FROM mw_cmdbmd_manage WHERE model_id = #{modelId})))
+    </select>
+
+    <select id="getZabbixGroupIdByMdoelGroupId" resultType="java.util.Map">
+        select group_id AS "groupId",monitor_server_id AS "monitorServerId" from mw_cmdbmd_modelgroup_server_mapper
+        where model_group_id =#{modelGroupId}
+    </select>
+
+    <select id="getAllModelGroupInfo" resultType="cn.mw.monitor.model.param.MwModelGroupDTO">
+        select model_group_id AS "groupId",model_group_name AS "groupName" from mw_cmdbmd_group
+    </select>
+
+    <select id="getModelGroupNodesAll" resultType="java.util.Map">
+        select model_index AS "modelIndex",group_nodes AS "groupNodes" from mw_cmdbmd_manage
+        where delete_flag = false
+    </select>
+
+    <select id="getModelGroupNodes" resultType="cn.mw.monitor.model.param.MwModelManageDTO">
+        SELECT
+            group_nodes AS "groupNodes",
+            model_index AS "modelIndex"
+        FROM
+            mw_cmdbmd_manage
+        WHERE
+            delete_flag = FALSE
+    </select>
+</mapper>

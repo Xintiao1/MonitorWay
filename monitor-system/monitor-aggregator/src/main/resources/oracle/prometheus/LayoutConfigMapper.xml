@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.mw.monitor.prometheus.dao.LayoutConfigDao">
+    <sql id="columns">
+        ID
+        , LAYOUT_NAME, IS_DEFAULT, CREATOR, CREATED_DATE, DELETE_FLAG, SORT_NO
+    </sql>
+
+    <select id="getAllLayoutConfigsByUserId" resultType="cn.mw.monitor.prometheus.dto.LayoutConfigDto">
+        select
+        <include refid="columns"></include>
+        from MW_PROMETHEUS_LAYOUT_CONFIG
+        where DELETE_FLAG=0 AND ( CREATOR = #{creator,jdbcType=INTEGER} or IS_DEFAULT =1 ) ORDER BY SORT_NO ASC
+    </select>
+
+    <select id="getLayoutConfigById" resultType="cn.mw.monitor.prometheus.dto.LayoutConfigDto">
+        select
+        <include refid="columns"></include>
+        from MW_PROMETHEUS_LAYOUT_CONFIG
+        where DELETE_FLAG=0 AND ID =  #{layoutId,jdbcType=INTEGER}
+    </select>
+
+    <insert id="insertLayoutConfig" parameterType="cn.mw.monitor.prometheus.dto.LayoutConfigDto" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO MW_PROMETHEUS_LAYOUT_CONFIG (LAYOUT_NAME, IS_DEFAULT, CREATOR, SORT_NO)
+        VALUES (#{layoutName,jdbcType=VARCHAR},
+                #{isDefault,jdbcType=BOOLEAN},
+                #{creator,jdbcType=VARCHAR},
+                #{sortNo,jdbcType=INTEGER})
+    </insert>
+
+    <delete id="deleteLayoutConfig">
+        delete
+        from MW_PROMETHEUS_LAYOUT_CONFIG
+        WHERE ID = #{layoutId,jdbcType=INTEGER}
+    </delete>
+</mapper>

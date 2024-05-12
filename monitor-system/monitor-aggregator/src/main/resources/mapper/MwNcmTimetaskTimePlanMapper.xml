@@ -1,0 +1,263 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.mw.monitor.timetask.dao.MwNcmTimetaskTimePlanMapper">
+
+  <!-- 通用查询映射结果 -->
+  <resultMap id="BaseResultMap" type="cn.mw.monitor.timetask.entity.MwNcmTimetaskTimePlan">
+    <id column="id" property="id" />
+    <result column="time_name" property="timeName" />
+    <result column="time_cron" property="timeCron" />
+    <result column="time_type" property="timeType" />
+    <result column="time_choice" property="timeChoice" />
+    <result column="time_hms" property="timeHms" />
+    <result column="time_cron_chinese" property="timeCronChinese" />
+  </resultMap>
+
+
+
+  <select id="llls" resultType="java.lang.String">
+    select time_cron  from  mw_ncm_timetask_time_plan
+  </select>
+
+
+  <select id="getReportParent" resultType="cn.mw.monitor.timetask.entity.Tree">
+    SELECT FALSE as tree_choice, 1 as tree_model_id,type_name as tree_name,0 as tree_type,id as tree_id FROM `mw_report_type_table` a
+ </select>
+
+  <select id="getReportChild" resultType="cn.mw.monitor.timetask.entity.Tree">
+ SELECT FALSE as tree_choice, 1 as tree_model_id,report_name as tree_name  ,1 as tree_type,id as tree_id,#{modelName} as model_name  FROM `mw_report_table` a
+  WHERE delete_flag =0
+  <if test="strings!=null and strings.size()!=0">
+        AND  id in
+      (
+      <foreach collection="strings" item="strings" separator=",">
+          #{strings}
+  </foreach>
+      )
+  </if>
+      <if test="search!=null and search!=''">
+          AND  report_name  like concat('%',#{search,jdbcType=VARCHAR},'%')
+      </if>
+ </select>
+
+
+    <select id="getIPListChild" resultType="cn.mw.monitor.timetask.entity.Tree">
+    SELECT id as tree_id ,FALSE as tree_choice,5 as tree_model_id,label as tree_name,2 as tree_type,#{modelName} as model_name
+    FROM `mw_ipaddressmanage_table` WHERE type = "iPaddresses"
+        <if test="strings!=null and strings.size()!=0">
+            AND  id in
+            (
+            <foreach collection="strings" item="strings" separator=",">
+                #{strings}
+            </foreach>
+            )
+        </if>
+        <if test="search!=null and search!=''">
+            AND  label  like concat('%',#{search,jdbcType=VARCHAR},'%')
+        </if>
+     </select>
+
+
+    <insert id="insertTimeTask">
+    INSERT INTO `monitor`.`mw_ncm_newtimetask`(`id`, `model_id`, `action_id`, `time_name`, `time_description`, `time_button`,`time_object`)
+     VALUES
+      (#{newTimeTask.id},#{newTimeTask.modelId},#{newTimeTask.actionId},#{newTimeTask.timeName},#{newTimeTask.timeDescription},#{newTimeTask.timeButton},#{newTimeTask.timeObject})
+    </insert>
+
+    <insert id="insertTimeTaskMapperObject">
+    INSERT INTO `monitor`.`mw_ncm_newtimetask_mapper_object`( `object_id`,`newtimetask_id` )
+    VALUES
+    <foreach collection="newtimetaskMapperObject" item="newtimetaskMapperObject" separator=",">
+        ( #{newtimetaskMapperObject.treeId}, #{newTimeTaskId} )
+    </foreach>
+    </insert>
+
+    <insert id="insertTimeTaskMapperTime">
+        INSERT INTO `monitor`.`mw_ncm_newtimetask_mapper_time`(`time_id`, `newtimetask_id`)
+         VALUES
+        <foreach collection="newtimetaskMapperTimes" item="newtimetaskMapperTimes" separator=",">
+            ( #{newtimetaskMapperTimes.id},#{newTimeTaskId})
+        </foreach>
+    </insert>
+    <select id="getModelNamebyActionId" resultType="java.lang.String">
+    SELECT model_name FROM `mw_ncm_timetask_model` WHERE id = ( SELECT model_id FROM `mw_ncm_timetask_action`  WHERE
+    id = #{actionId}
+    )
+  </select>
+
+
+    <select id="getModelName" resultType="java.lang.String">
+    SELECT model_name FROM `mw_ncm_timetask_model` WHERE id = #{modelId}
+  </select>
+
+    <select id="selectTimeAllTask" resultType="cn.mw.monitor.timetask.entity.NewTimeTask">
+        SELECT a.*,b.model_name AS time_model ,c.action_name AS time_action FROM `mw_ncm_newtimetask` a LEFT JOIN mw_ncm_timetask_model b on a.model_id = b.id
+        LEFT JOIN mw_ncm_timetask_action c on a.action_id = c.id WHERE 1=1
+        <if test="null!=newTimeTask.timeName and ''!=newTimeTask.timeName">
+           AND a.time_name  like concat('%',#{newTimeTask.timeName,jdbcType=VARCHAR},'%')
+        </if>
+        <if test="null!=newTimeTask.timeDescription and ''!=newTimeTask.timeDescription">
+            AND a.time_description  like concat('%',#{newTimeTask.timeDescription,jdbcType=VARCHAR},'%')
+        </if>
+        <if test="null!=newTimeTask.modelId and ''!=newTimeTask.modelId">
+            AND a.model_id = #{newTimeTask.modelId}
+        </if>
+        <if test="null!=newTimeTask.actionId and ''!=newTimeTask.actionId">
+            AND a.action_id = #{newTimeTask.actionId}
+        </if>
+        <if test="null!=newTimeTask.id and ''!=newTimeTask.id">
+            AND a.id = #{newTimeTask.id}
+        </if>
+        <if test="newTimeTask.timeStartTimeStart != null">
+            AND  <![CDATA[#{newTimeTask.timeStartTimeStart,jdbcType=TIMESTAMP} <= a.time_start_time ]]>
+        </if>
+        <if test="newTimeTask.timeStartTimeEnd != null">
+            AND <![CDATA[#{newTimeTask.timeStartTimeEnd,jdbcType=TIMESTAMP} >= a.time_start_time  ]]>
+        </if>
+        <if test="newTimeTask.timeEndTimeStart != null">
+            AND  <![CDATA[#{newTimeTask.timeEndTimeStart,jdbcType=TIMESTAMP} <= a.time_end_time ]]>
+        </if>
+        <if test="newTimeTask.timeEndTimeEnd != null">
+            AND <![CDATA[#{newTimeTask.timeEndTimeEnd,jdbcType=TIMESTAMP} >= a.time_end_time  ]]>
+        </if>
+     </select>
+
+    <select id="getObjectId" resultType="java.lang.String">
+       SELECT object_id
+    FROM `mw_ncm_newtimetask_mapper_object` WHERE newtimetask_id = #{id}
+</select>
+    <select id="getTimePanId" resultType="java.lang.String">
+     SELECT time_id FROM `mw_ncm_newtimetask_mapper_time` WHERE newtimetask_id = #{id}
+</select>
+    <select id="getTimePlan" resultType="cn.mw.monitor.timetask.entity.MwNcmTimetaskTimePlan">
+     SELECT * FROM `mw_ncm_timetask_time_plan` WHERE id in ( SELECT time_id FROM `mw_ncm_newtimetask_mapper_time` WHERE newtimetask_id = #{id})
+    </select>
+    <delete id="deleteMapperObjectId">
+        DELETE FROM `monitor`.`mw_ncm_newtimetask_mapper_object` WHERE `newtimetask_id` = #{id}
+    </delete>
+    <delete id="deleteMapperTimeId">
+        DELETE FROM `monitor`.`mw_ncm_newtimetask_mapper_time` WHERE `newtimetask_id` = #{id}
+    </delete>
+
+    <update id="updateNewTimeTask">
+        UPDATE `monitor`.`mw_ncm_newtimetask` SET `model_id` = #{newTimeTask.modelId}, `action_id` = #{newTimeTask.actionId}, `time_name` = #{newTimeTask.timeName},
+      `time_button` = #{newTimeTask.timeButton}
+        <if test="null!=newTimeTask.timeObject and ''!=newTimeTask.timeObject">
+            , `time_object` = #{newTimeTask.timeObject}
+        </if>
+        <if test="null!=newTimeTask.timeDescription and ''!=newTimeTask.timeDescription">
+            ,`time_description` = #{newTimeTask.timeDescription}
+        </if>
+        <if test="null!=newTimeTask.timeStartTime ">
+            ,`time_start_time` = #{newTimeTask.timeStartTime,jdbcType=TIMESTAMP}
+        </if>
+        <if test="null!=newTimeTask.timeEndTime ">
+            ,`time_end_time` = #{newTimeTask.timeEndTime,jdbcType=TIMESTAMP}
+        </if>
+        <if test="null!=newTimeTask.timeCount and ''!=newTimeTask.timeCount">
+            ,`time_count` = #{newTimeTask.timeCount}
+        </if>
+        WHERE `id` = #{newTimeTask.id}
+    </update>
+
+    <select id="selectTimePlan" resultType="cn.mw.monitor.timetask.entity.MwNcmTimetaskTimePlanRun">
+      SELECT c.*,d.time_button as is_button from (SELECT a.*,b.id as task_id,b.newtimetask_id FROM  mw_ncm_newtimetask_mapper_time b  LEFT JOIN `mw_ncm_timetask_time_plan` a on a.id = b.time_id) c
+        LEFT JOIN mw_ncm_newtimetask d on c.newtimetask_id = d.id
+        where 1=1
+        <if test="null==id or ''==id">
+            and d.time_button = 1
+        </if>
+        <if test="null!=id and ''!=id">
+            and newtimetask_id = #{id}
+        </if>
+    </select>
+
+    <select id="getAction" resultType="cn.mw.monitor.timetask.entity.TimetaskActrion">
+      SELECT * FROM `mw_ncm_newtimetask` a LEFT JOIN mw_ncm_timetask_action b on a.action_id = b.id WHERE a.id =#{newtimetaskId}
+    </select>
+
+    <insert id="insertTimeTakHis">
+        INSERT INTO `monitor`.`mw_ncm_newtimetask_history`(`result_type`, `result_context`, `new_timetask_id`, `object_id`, `run_time`, `start_time`,
+        `end_time`, `is_success`, `fail_reason`)
+        VALUE
+        <foreach collection="objects" item="objects" separator=",">
+            (
+            #{objects.resultType},
+            #{objects.resultContext},
+            #{objects.newTimetaskId},
+            #{objects.objectId},
+            #{objects.runTime},
+            #{objects.startTime},
+            #{objects.endTime},
+            #{objects.isSuccess},
+            #{objects.failReason}
+            )
+        </foreach>
+    </insert>
+
+
+    <select id="selectTimePlanbyTimeid" resultType="cn.mw.monitor.timetask.entity.MwNcmTimetaskTimePlanRun">
+        SELECT c.*,d.time_button as is_button from (SELECT a.*,b.id as task_id,b.newtimetask_id FROM  mw_ncm_newtimetask_mapper_time b  LEFT JOIN `mw_ncm_timetask_time_plan` a on a.id = b.time_id) c
+        LEFT JOIN mw_ncm_newtimetask d on c.newtimetask_id = d.id
+        where 1=1
+        <if test="null!=id and ''!=id">
+            AND c.id = #{id}
+        </if>
+    </select>
+
+
+        <delete id="deleteNewTimeTask">
+        DELETE FROM `monitor`.`mw_ncm_newtimetask` WHERE `id` = #{id}
+    </delete>
+
+    <select id="getHistory" resultType="cn.mw.monitor.bean.TimeTaskRresult">
+        SELECT * FROM `mw_ncm_newtimetask_history` where  new_timetask_id = #{newtimetaskId}
+    </select>
+
+    <delete id="timeAllTaskHisDelete">
+        DELETE FROM `monitor`.`mw_ncm_newtimetask_history` WHERE `id` in
+        (
+        <foreach collection="newTimeTask.id" item="item" separator=",">
+         #{item}
+        </foreach>
+        )
+    </delete>
+
+    <select id="getTangibleassets" resultType="cn.mw.monitor.timetask.entity.Tree">
+        SELECT FALSE as tree_choice, 4 as tree_model_id,assets_name as tree_name  ,1 as tree_type,id as tree_id,#{modelName} as model_name  FROM `mw_tangibleassets_table` a
+        WHERE delete_flag =0 and setting_flag = 1
+        <if test="strings!=null and strings.size()!=0">
+            AND  id in
+            (
+            <foreach collection="strings" item="strings" separator=",">
+                #{strings}
+            </foreach>
+            )
+        </if>
+        <if test="search!=null and search!=''">
+            AND  assets_name  like concat('%',#{search,jdbcType=VARCHAR},'%')
+        </if>
+    </select>
+
+    <select id="getActionById" resultType="cn.mw.monitor.timetask.entity.TimetaskActrion">
+      SELECT * FROM  mw_ncm_timetask_action WHERE id =#{actionId}
+    </select>
+
+
+
+    <select id="getAutoProgram" resultType="cn.mw.monitor.timetask.entity.Tree">
+        SELECT FALSE as tree_choice, 15 as tree_model_id,homework_name as tree_name  ,1 as tree_type,id as tree_id,#{modelName} as model_name  FROM `mw_homework_manage_table` a
+        WHERE delete_flag =0
+        <if test="strings!=null and strings.size()!=0">
+            AND  id in
+            (
+            <foreach collection="strings" item="strings" separator=",">
+                #{strings}
+            </foreach>
+            )
+        </if>
+        <if test="search!=null and search!=''">
+            AND  homework_name  like concat('%',#{search,jdbcType=VARCHAR},'%')
+        </if>
+    </select>
+</mapper>

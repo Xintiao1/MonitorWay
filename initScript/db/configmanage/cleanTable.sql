@@ -1,0 +1,7 @@
+truncate table mw_assets_account_mapper;
+truncate table mw_ncm_configperfrom_table;
+truncate table mw_ncm_downloadconfig_table;
+truncate table mw_script_out_asssets;
+truncate table mw_homework_alert_mapper;
+
+truncate table mw_script_account_manage_table;

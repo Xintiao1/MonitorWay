@@ -1,0 +1,618 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.mw.monitor.user.dao.MWOrgDao">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="cn.mw.monitor.service.user.dto.MWOrgDTO">
+        <id column="org_id" property="orgId"/>
+        <id column="pid" property="pid"/>
+        <result column="org_name" property="orgName"/>
+        <result column="address" property="address"/>
+        <result column="post_code" property="postCode"/>
+        <result column="contact_person" property="contactPerson"/>
+        <result column="contact_phone" property="contactPhone"/>
+        <result column="org_desc" property="orgDesc"/>
+        <result column="deep" property="deep"/>
+        <result column="is_node" property="isNode"/>
+        <result column="nodes" property="nodes"/>
+        <result column="org_type" property="orgType"/>
+        <result column="enable" property="enable"/>
+        <result column="coordinate" property="coordinate"/>
+    </resultMap>
+
+    <resultMap id="userMap" type="cn.mw.monitor.service.user.dto.MwSubUserDTO">
+        <id column="user_id" jdbcType="INTEGER" property="userId"/>
+        <result column="login_name" jdbcType="VARCHAR" property="loginName"/>
+        <result column="user_name" jdbcType="VARCHAR" property="userName"/>
+        <result column="user_state" jdbcType="VARCHAR" property="userState"/>
+    </resultMap>
+
+
+    <!-- 更新机构子节点 -->
+    <update id="updateIsNoteById">
+        UPDATE ${TBSNAME}."mw_sys_org"
+        SET "is_node" = #{isNote},
+            "modifier" = #{modifier},
+            "modification_date" = sysdate
+        WHERE "org_id" = #{pid}
+    </update>
+
+    <!-- 根据机构id查询机构深度和节点id -->
+    <select id="selectDeepNodesById" resultType="java.util.Map">
+        SELECT
+            "deep",
+            "nodes"
+        FROM ${TBSNAME}."mw_sys_org"
+        WHERE "org_id" = #{pid}
+    </select>
+
+    <!--新增机构-->
+    <insert id="insert" parameterType="cn.mw.monitor.service.user.model.MWOrg">
+        <selectKey keyProperty="orgId" order="BEFORE" resultType="java.lang.Integer">
+            select ${TBSNAME}.SEQ_SYS_ORG.NEXTVAL from dual
+        </selectKey>
+        INSERT INTO ${TBSNAME}."mw_sys_org" (
+        "org_id",
+        <if test="orgName != null and orgName != ''">
+            "org_name",
+        </if>
+        <if test="address != null">
+            "address",
+        </if>
+        <if test="postCode != null">
+            "post_code",
+        </if>
+        <if test="contactPerson != null">
+            "contact_person",
+        </if>
+        <if test="contactPhone != null">
+            "contact_phone",
+        </if>
+        <if test="orgDesc != null">
+            "org_desc",
+        </if>
+        <if test="orgType != null and orgType != ''">
+            "org_type",
+        </if>
+        <if test="pid != null">
+            "pid",
+        </if>
+        <if test="coordinate!=null and coordinate!='' ">
+            "coordinate",
+        </if>
+        "deep",
+        "nodes",
+        "is_node",
+        "enable",
+        "creator",
+        "modifier",
+        "create_date",
+        "modification_date",
+        "delete_flag"
+        ) VALUES (
+            #{orgId},
+        <if test="orgName != null and orgName != ''">
+            #{orgName},
+        </if>
+        <if test="address != null">
+            #{address},
+        </if>
+        <if test="postCode != null">
+            #{postCode},
+        </if>
+        <if test="contactPerson != null">
+            #{contactPerson},
+        </if>
+        <if test="contactPhone != null">
+            #{contactPhone},
+        </if>
+        <if test="orgDesc != null">
+            #{orgDesc},
+        </if>
+        <if test="orgType != null and orgType != ''">
+            #{orgType},
+        </if>
+        <if test="pid != null">
+            #{pid},
+        </if>
+        <if test="coordinate!=null and coordinate!='' ">
+            #{coordinate},
+        </if>
+        #{deep},
+        ' ',
+        #{isNode},
+        'ACTIVE',
+        #{creator},
+        #{modifier},
+        sysdate,
+        sysdate,
+        0
+        )
+    </insert>
+
+    <!--  -->
+    <update id="updateNoteByOrgId">
+        UPDATE ${TBSNAME}."mw_sys_org"
+        SET "nodes" = #{nodes}
+        WHERE "org_id" = #{orgId}
+    </update>
+
+    <!-- 根据机构id查询机构名称 -->
+    <select id="selectOrgNameById" resultType="java.lang.String">
+        SELECT
+            "org_name"
+        FROM ${TBSNAME}."mw_sys_org"
+        WHERE "delete_flag" = 0
+        AND "org_id" = #{orgId}
+    </select>
+
+    <!-- 根据pid查询机构数量 -->
+    <select id="countOrgByPid" resultType="java.lang.Integer">
+        SELECT
+            COUNT(1)
+        FROM ${TBSNAME}."mw_sys_org"
+        WHERE "delete_flag" = 0
+        AND "pid" = #{orgId}
+    </select>
+
+    <!--删除机构-->
+    <update id="delete">
+        UPDATE ${TBSNAME}."mw_sys_org"
+        SET "delete_flag" = 1,
+        "modifier" = #{modifier},
+        "modification_date" = sysdate
+        WHERE "delete_flag" = 0
+        AND "org_id" IN (
+        <foreach collection="orgIds" item="list" separator=",">
+            #{list}
+        </foreach>
+        )
+    </update>
+
+    <!-- 更新下级机构状态信息 -->
+    <update id="updateChildOrgState" parameterType="cn.mw.monitor.service.user.model.MWOrg">
+        UPDATE ${TBSNAME}."mw_sys_org"
+        SET "enable" = #{enable},
+            "modifier" = #{modifier},
+            "modification_date" = sysdate
+        WHERE "delete_flag" = 0
+        AND "nodes" LIKE ('%,'||#{orgId}||',%')
+    </update>
+
+    <!-- 查询当前机构及下级机构的所有用户id -->
+    <select id="selectUserIdByOrgId" resultType="java.lang.Integer">
+        SELECT
+            "user_id"
+        FROM ${TBSNAME}."mw_sys_org" a
+        LEFT JOIN ${TBSNAME}."mw_user_org_mapper" b ON a."org_id" = b."org_id"
+        WHERE a."delete_flag" = 0
+        AND b."delete_flag" = 0
+        AND a."nodes" LIKE ('%,'||#{orgId}||',%')
+    </select>
+
+    <!-- 查询当前机构子机构所有用户id -->
+    <select id="selectChildUserIdByOrgId" resultType="java.lang.Integer">
+        SELECT
+            "user_id"
+        FROM ${TBSNAME}."mw_sys_org" a
+        LEFT JOIN ${TBSNAME}."mw_user_org_mapper" b ON a."org_id" = b."org_id"
+        WHERE a."delete_flag" = 0
+        AND b."delete_flag" = 0
+        AND a."pid" = #{orgId}
+    </select>
+    <!-- 更新用户状态信息 -->
+    <update id="updateUserState">
+        UPDATE ${TBSNAME}."mw_sys_user"
+        SET "user_state" = #{enable},
+        "modifier" = #{modifier},
+        "update_time" = sysdate
+        WHERE "delete_flag" = 0
+        AND "user_id" IN (
+        <foreach collection="userIds" item="list" separator=",">
+            #{list}
+        </foreach>
+        )
+        and "login_name" != 'admin'
+    </update>
+
+    <!-- 根据子机构的id查询上级机构的状态 -->
+    <select id="selectOrgEnableByChildOrgId" resultType="java.lang.String">
+        SELECT
+            a."enable"
+        FROM ${TBSNAME}."mw_sys_org" a
+        LEFT JOIN ${TBSNAME}."mw_sys_org" b ON a."org_id" = b."pid"
+        WHERE a."delete_flag" = 0
+        AND b."delete_flag" = 0
+        AND b."org_id" = #{orgId}
+    </select>
+
+    <!-- 更新机构状态信息 -->
+    <update id="updateOrgState" parameterType="cn.mw.monitor.service.user.model.MWOrg">
+        UPDATE ${TBSNAME}."mw_sys_org"
+        SET "enable" = #{enable},
+            "modifier" = #{modifier},
+            "modification_date" = sysdate
+        WHERE "org_id" = #{orgId}
+    </update>
+
+    <!--更新机构信息 -->
+    <update id="update" parameterType="cn.mw.monitor.service.user.model.MWOrg">
+        UPDATE ${TBSNAME}."mw_sys_org"
+        SET "modifier" = #{modifier},
+        <if test="orgName != null and orgName != ''">
+            "org_name" = #{orgName},
+        </if>
+        <if test="address != null">
+            "address" = #{address},
+        </if>
+        <if test="postCode != null">
+            "post_code" = #{postCode},
+        </if>
+        <if test="contactPerson != null">
+            "contact_person" = #{contactPerson},
+        </if>
+        <if test="contactPhone != null">
+            "contact_phone" = #{contactPhone},
+        </if>
+        <if test="orgDesc != null">
+            "org_desc" = #{orgDesc},
+        </if>
+        <if test="coordinate!=null">
+            "coordinate" = #{coordinate},
+        </if>
+        "modification_date" = sysdate
+        WHERE "org_id" = #{orgId}
+    </update>
+
+    <!-- 机构列表分页查询 -->
+    <select id="selectList" parameterType="java.util.Map" resultMap="BaseResultMap">
+        SELECT
+            "org_id" ,
+            "org_name" ,
+            "address",
+            "post_code" ,
+            "contact_person" ,
+            "contact_phone" ,
+            "org_desc" ,
+            "org_type" ,
+            "deep",
+            "pid",
+            "is_node" ,
+            "nodes",
+            "enable",
+            "coordinate"
+        FROM ${TBSNAME}."mw_sys_org"
+        WHERE "delete_flag" = 0
+        <if test="pid != null ">
+            AND "pid" = #{pid}
+        </if>
+        <if test="nodeList != null ">
+            AND (
+            <foreach collection="nodeList" index="index" item="item" separator="OR">
+                "nodes" LIKE ('%'||#{item}||'%')
+            </foreach>
+            )
+        </if>
+        ORDER BY "org_id"
+    </select>
+
+    <!-- 机构列表分页查询  西藏邮储环境用户部门-->
+    <select id="selectListByXZYCSys" parameterType="java.util.Map" resultMap="BaseResultMap">
+        SELECT
+            "org_id" ,
+            "org_name" ,
+            "address",
+            "post_code" ,
+            "contact_person" ,
+            "contact_phone" ,
+            "org_desc" ,
+            "org_type" ,
+            "deep",
+            "pid",
+            "is_node" ,
+            "nodes",
+            "enable"
+        FROM ${TBSNAME}."mw_sys_org"
+        WHERE "delete_flag" = 0
+        <if test="pid != null ">
+            AND "pid" = #{pid}
+        </if>
+        <if test="nodeList != null ">
+            AND (
+            <foreach collection="nodeList" index="index" item="item" separator="OR">
+                #{item} LIKE ('%,'||"org_id"||',%')
+            </foreach>
+            )
+        </if>
+        ORDER BY "org_id"
+    </select>
+
+
+    <!-- 根据ID查找机构 -->
+    <select id="selectByOrgId" resultType="cn.mw.monitor.service.user.model.MWOrg">
+        SELECT
+            "org_id" "orgId",
+            "org_name" "orgName",
+            "address",
+            "post_code" "postCode",
+            "contact_person" "contactPerson",
+            "contact_phone" "contactPhone",
+            "org_desc" "orgDesc",
+            "org_type" "orgType",
+            "deep",
+            "pid",
+            "is_node" "isNode",
+            "nodes",
+            "enable"
+        FROM ${TBSNAME}."mw_sys_org"
+        WHERE "org_id" = #{orgId}
+    </select>
+
+    <select id="selectUser" resultMap="userMap">
+        SELECT
+            t2."user_id",
+            t2."user_name",
+            t2."login_name",
+            t2."user_state"
+        FROM ${TBSNAME}."mw_sys_user" t2
+        LEFT JOIN ${TBSNAME}."mw_user_org_mapper" t1 ON t1."user_id" = t2."user_id"
+        WHERE t1."delete_flag" = 0
+        AND t2."delete_flag" = 0
+        AND t1."org_id" = #{orgId}
+    </select>
+
+    <sql id="dropdown_tb">
+        ${TBSNAME}."mw_sys_org"
+    </sql>
+
+    <sql id="select_tb_columns">
+        ${alias}org_id as orgId,
+        ${alias}pid as pid,
+        ${alias}org_name as orgName,
+        ${alias}address as address,
+        ${alias}post_code as postCode,
+        ${alias}contact_person as contactPerson,
+        ${alias}contact_phone as contactPhone,
+        ${alias}org_desc as orgDesc,
+        ${alias}deep as deep,
+        ${alias}is_node as isNode,
+        ${alias}nodes as nodes,
+        ${alias}enable as enable,
+        ${alias}create_date as createDate,
+        ${alias}modification_date as modificationDate
+    </sql>
+
+    <select id="selectDropdownList" resultType="cn.mw.monitor.service.user.dto.MWOrgDTO"
+            parameterType="cn.mw.monitor.api.param.org.QueryOrgForDropDown">
+        SELECT
+        <include refid="select_tb_columns">
+            <property name="alias" value=""/>
+        </include>
+        FROM
+        <include refid="dropdown_tb"></include>
+        WHERE 1=1
+        and enable = 'ACTIVE'
+        and delete_flag = 0
+        <choose>
+            <when test="pid != null">
+                and pid =#{pid}
+            </when>
+            <when test="orgId != null">
+                and orgId = #{orgId}
+            </when>
+            <otherwise>
+                and deep = 1
+            </otherwise>
+        </choose>
+        <if test="type != null">
+            and org_type = #{type},
+        </if>
+        ORDER BY org_id
+    </select>
+
+
+    <!-- 查询用户对应机构 -->
+    <select id="selectByUserId" resultType="cn.mw.monitor.service.user.model.MWOrg" parameterType="java.util.HashMap">
+        SELECT
+            a."org_id" as "orgId",
+            a."pid" as "pid",
+            a."org_name" as "orgName",
+            a."address" as "address",
+            a."post_code" as "postCode",
+            a."contact_person" as "contactPerson",
+            a."contact_phone" as "contactPhone",
+            a."org_desc" as "orgDesc",
+            a."deep" as "deep",
+            a."is_node" as "isNode",
+            a."nodes" as "nodes",
+            a."enable" as "enable",
+            a."create_date" as "createDate",
+            a."modification_date" as "modificationDate"
+        FROM ${TBSNAME}."mw_sys_org" a, ${TBSNAME}."view_user_org" b
+        WHERE b."user_id" = #{userId}
+        AND a."org_id" = b."org_id"
+        ORDER BY a."deep"
+    </select>
+
+    <!-- 查询用户对应机构 -->
+    <select id="selectListByLoginName" resultType="cn.mw.monitor.service.user.model.MWOrg"
+            parameterType="java.util.HashMap">
+        SELECT
+            tb1."org_id" as "orgId",
+            tb1."pid" as "pid",
+            tb1."org_name" as "orgName",
+            tb1."address" as "address",
+            tb1."post_code" as "postCode",
+            tb1."contact_person" as "contactPerson",
+            tb1."contact_phone" as "contactPhone",
+            tb1."org_desc" as "orgDesc",
+            tb1."deep" as "deep",
+            tb1."is_node" as "isNode",
+            tb1."nodes" as "nodes",
+            tb1."enable" as "enable",
+            tb1."create_date" as "createDate",
+            tb1."modification_date" as "modificationDate"
+        FROM ${TBSNAME}."mw_sys_org" tb1
+        WHERE  regexp_like ( tb1."nodes",
+            '('||(
+            SELECT
+                LISTAGG ( "nodes", '|' ) within GROUP ( ORDER BY "user_id" )
+            FROM
+                ${TBSNAME}."view_user_org"
+            WHERE
+                "login_name" = #{loginName}
+            GROUP BY
+                "login_name")
+                ||')'
+        )
+        ORDER BY tb1."deep"
+    </select>
+    <select id="selectPubUserIdByOrgId" resultType="java.lang.Integer">
+        SELECT DISTINCT
+        t1."user_id"
+        FROM
+        ${TBSNAME}."mw_user_org_mapper" t1
+        LEFT JOIN ${TBSNAME}."mw_user_role_mapper" t2 ON t1."user_id" = t2."user_id"
+        LEFT JOIN ${TBSNAME}."mw_role" t3 ON t2."role_id" = t3."id"
+        WHERE
+        t1."delete_flag" = 0
+        AND t2."delete_flag" = 0
+        AND t3."delete_flag" = 0
+        AND t3."data_perm" = 'PUBLIC'
+        AND t1."org_id" IN (
+        <foreach collection="orgIds" item="list" separator=",">
+            #{list}
+        </foreach>
+        )
+    </select>
+    <select id="selectOrgByOrgName" resultType="java.lang.Integer">
+        select
+            count(org_id)
+        from
+            mw_sys_org
+        where
+            org_name = #{orgName}
+            and
+            delete_flag = 0
+    </select>
+    
+    <select id="selectOrgById" resultType="cn.mw.monitor.service.user.model.MWOrg">
+        SELECT
+            "org_name"
+        FROM
+            ${TBSNAME}."mw_sys_org"
+        WHERE
+            "org_id" = #{orgId}
+        OR "pid" = #{orgId}
+        AND "delete_flag" = 0
+    </select>
+
+    <select id="selectOrgByOrgId" resultType="cn.mw.monitor.service.user.model.MWOrg">
+        SELECT
+        "org_name" as "orgName",
+        "address"
+        FROM
+        ${TBSNAME}."mw_sys_org"
+        WHERE
+        "delete_flag" = 0
+        and "org_id" IN (
+        <foreach collection="orgIds" item="list" separator=",">
+            #{list}
+        </foreach>
+        )
+    </select>
+    
+    <select id="selectOneOrgByName" resultType="java.lang.Integer">
+        select
+            count("org_id") as "sumCount"
+        from
+            ${TBSNAME}."mw_sys_org"
+        where
+            "org_name" = #{orgName}
+        and
+            "delete_flag" = 0
+        and
+            "pid" = 0
+    </select>
+    
+    <select id="selectPidCount" resultType="java.lang.Integer">
+        SELECT
+	        count( "org_id" ) as "orgCount"
+        FROM
+	        ${TBSNAME}."mw_sys_org"
+        WHERE
+	        "org_name" = #{orgName}
+	    AND "delete_flag" = 0
+	    AND "pid" = #{pid}
+    </select>
+
+    <select id="selectOrgByParams" parameterType="java.util.Map" resultType="cn.mw.monitor.service.assets.model.OrgDTO">
+        select
+        t2."org_id" "orgId",t2."org_name" "orgName",t2."nodes"
+        from ${TBSNAME}."mw_org_mapper" t1
+        left join ${TBSNAME}."mw_sys_org" t2 on t1."org_id" = t2."org_id"
+        where t1."type_id" = #{assetsId} and t1."type"=#{moduleType}
+    </select>
+
+    <select id="getAllOrgList" resultType="cn.mw.monitor.service.assets.model.OrgDTO">
+        select
+        t2."org_id" "orgId",t2."org_name" "orgName",t2."nodes"
+        from ${TBSNAME}."mw_org_mapper" t1
+        left join ${TBSNAME}."mw_sys_org" t2 on t1."org_id" = t2."org_id"
+        where t1."type_id" = #{typeId} and t1."type"=#{dataType}
+    </select>
+
+    <select id="selectOrgByName" resultType="cn.mw.monitor.service.user.dto.OrgDTO">
+        SELECT
+            "org_id" as "orgId",
+            "org_name" as "orgName",
+            "nodes"
+        FROM ${TBSNAME}."mw_sys_org"
+        WHERE "delete_flag" = 0
+        and "org_name" = #{orgName}
+        and "pid" = #{pid}
+    </select>
+
+
+    <select id="getOrgnamesByids" resultType="java.lang.String">
+        SELECT
+            "org_name"
+        FROM ${TBSNAME}."mw_sys_org"
+        where "org_id" in
+        <foreach collection="organizes" item="item" index="index" open="(" separator="," close=")">
+            #{item}
+        </foreach>
+    </select>
+
+    <select id="selectOrgLongitudeDropDown" resultType="cn.mw.monitor.user.dto.MwOrgLongitudeDto">
+        SELECT
+            "id",
+            "parent_id" "parentId",
+            "level",
+            "name",
+            "whole_name" "wholeName",
+            "lon",
+            "lat",
+            "city_code" "cityCode",
+            "zip_code",
+            "area_code" "areaCode"
+        FROM
+        ${TBSNAME}."mw_area"
+         where "level" = #{level}
+        <if test="orgName != null and orgName != ''">
+            and "whole_name" like ('%'||#{orgName}||'%')
+        </if>
+    </select>
+
+    <select id="selectOrgByParamsAndIds" parameterType="java.util.Map" resultType="cn.mw.monitor.service.assets.model.OrgMapperDTO">
+        select
+        t1."type_id" "typeId" ,t2."org_id" "orgId" ,t2."org_name" "orgName" ,t2."nodes" ,t2."coordinate"
+        from ${TBSNAME}."mw_org_mapper" t1
+        left join ${TBSNAME}."mw_sys_org" t2 on t1."org_id" = t2."org_id"
+        where t1."type"=#{moduleType}
+          and t1."type_id" in
+            <foreach collection="ids" item="id" separator="," open="(" close=")">
+                #{id}
+            </foreach>
+    </select>
+</mapper>

@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.mw.monitor.fingerprint.dao.MwFingerprintManageDao">
+
+    <select id="getFingerPrintVersion" resultType="java.lang.String">
+        SELECT
+            fingerprint_version
+        FROM
+            `mw_fingerprint_version_table` limit 1
+    </select>
+
+
+    <select id="getFingerprintFilePath" resultType="java.lang.String">
+        SELECT
+            fingerprint_file_path
+        FROM
+            `mw_fingerprint_version_table` limit 1
+    </select>
+
+
+    <select id="getFingerprintFileName" resultType="java.lang.String">
+        SELECT
+            finger_file_name
+        FROM
+            `mw_fingerprint_version_table` limit 1
+    </select>
+</mapper>

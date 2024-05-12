@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.mw.monitor.prometheus.dao.PanelConfigDao">
+    <resultMap id="baseResultMap" type="cn.mw.monitor.prometheus.dto.PanelConfigDto">
+        <result column="ID" jdbcType="VARCHAR" property="id"/>
+        <result column="QUERY_ID" jdbcType="VARCHAR" property="queryId"/>
+        <result column="PANEL_NAME" jdbcType="VARCHAR" property="panelName"/>
+        <result column="PANEL_TYPE" jdbcType="VARCHAR" property="panelType"/>
+        <result column="CREATOR" jdbcType="INTEGER" property="creator"/>
+        <result column="SORT_NO" jdbcType="INTEGER" property="sortNo"/>
+        <result column="LAYOUT_ID" jdbcType="INTEGER" property="layoutId"/>
+        <result column="X" jdbcType="INTEGER" property="x"/>
+        <result column="Y" jdbcType="INTEGER" property="y"/>
+        <result column="Z" jdbcType="INTEGER" property="z"/>
+        <result column="W" jdbcType="INTEGER" property="w"/>
+        <result column="H" jdbcType="INTEGER" property="h"/>
+    </resultMap>
+
+    <sql id="columns">
+        ID
+        ,PANEL_NAME,QUERY_ID,PANEL_TYPE,CREATOR,SORT_NO,LAYOUT_ID,X,Y,Z,W,H
+    </sql>
+
+    <select id="getAllPanelConfigsByLayoutIds" resultMap="baseResultMap">
+        select
+        <include refid="columns"></include>
+        from MW_PROMETHEUS_PANEL_CONFIG
+        where
+        LAYOUT_ID in
+        <foreach collection="layoutIds" item="item" index="index" open="(" separator="," close=")">
+            #{item,jdbcType=INTEGER}
+        </foreach>
+        ORDER BY SORT_NO ASC
+    </select>
+
+    <select id="getPanelConfigById" resultMap="baseResultMap">
+        select
+        <include refid="columns"></include>
+        from MW_PROMETHEUS_PANEL_CONFIG
+        where DELETE_FLAG=0 AND ID = #{panelId,jdbcType=INTEGER}
+    </select>
+
+    <insert id="insertPanelConfig" parameterType="cn.mw.monitor.prometheus.dto.PanelConfigDto" useGeneratedKeys="true"
+            keyProperty="id">
+        INSERT INTO MW_PROMETHEUS_PANEL_CONFIG (PANEL_NAME, PANEL_TYPE, QUERY_ID, CREATOR, SORT_NO, LAYOUT_ID, X, Y, Z,
+                                                W, H)
+        VALUES (#{panelName,jdbcType=VARCHAR},
+                #{panelType,jdbcType=VARCHAR},
+                #{queryId,jdbcType=INTEGER},
+                #{creator,jdbcType=VARCHAR},
+                #{sortNo,jdbcType=INTEGER},
+                #{layoutId,jdbcType=INTEGER},
+                #{x,jdbcType=INTEGER},
+                #{y,jdbcType=INTEGER},
+                #{z,jdbcType=INTEGER},
+                #{w,jdbcType=INTEGER},
+                #{h,jdbcType=INTEGER})
+    </insert>
+
+    <update id="updatePanelConfig" parameterType="cn.mw.monitor.prometheus.dto.PanelConfigDto">
+        update MW_PROMETHEUS_PANEL_CONFIG
+        <set>
+            <if test="panelName!=null and panelName!=''">
+                PANEL_NAME=#{panelName,jdbcType=VARCHAR}
+            </if>
+            <if test="panelType!=null and panelType!=''">
+                PANEL_TYPE=#{panelType,jdbcType=VARCHAR}
+            </if>
+            <if test="queryId!=null and queryId!=''">
+                QUERY_ID=#{queryId,jdbcType=INTEGER}
+            </if>
+            <if test="sortNo!=null and sortNo!=''">
+                SORT_NO=#{sortNo,jdbcType=VARCHAR}
+            </if>
+        </set>
+        WHERE ID = #{id,jdbcType=INTEGER}
+    </update>
+
+    <delete id="deletePanelConfig">
+        delete
+        from MW_PROMETHEUS_PANEL_CONFIG
+        WHERE ID = #{panelId,jdbcType=INTEGER}
+    </delete>
+
+    <delete id="deletePanelConfigByLayoutId">
+        delete
+        from MW_PROMETHEUS_PANEL_CONFIG
+        WHERE LAYOUT_ID = #{layoutId,jdbcType=INTEGER}
+    </delete>
+</mapper>

@@ -1,0 +1,327 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.mw.monitor.solarwind.dao.MwMonitorSolarReportDao">
+    <sql id="date_time">
+        <if test="startTime!=null and startTime !=''and endTime != null and endTime !=''">
+            and date_time between #{startTime,jdbcType=VARCHAR} and
+            #{endTime,jdbcType=VARCHAR}
+        </if>
+    </sql>
+    <sql id="carrierName">
+        <if test="carrierName!=null and carrierName !=''">
+            and carrierName =#{carrierName,jdbcType=VARCHAR}
+        </if>
+    </sql>
+    <select id="selectSolarDayCount" resultType="java.lang.Integer">
+        select count(0)  from mw_solar_day where date=#{date,jdbcType=VARCHAR}
+    </select>
+    <resultMap id="solarMap" type="cn.mw.module.solarwind.dto.SolarDetailDto">
+        <id column="interfaceID" jdbcType="INTEGER" property="interfaceID"/>
+        <result column="inBandwidth" jdbcType="FLOAT" property="inBandwidth"/>
+        <result column="caption" jdbcType="VARCHAR" property="caption"/>
+        <result column="inMaxbps" jdbcType="FLOAT" property="inMaxbps"/>
+        <result column="inMinbps" jdbcType="FLOAT" property="inMinbps"/>
+        <result column="inAveragebps" jdbcType="FLOAT" property="inAveragebps"/>
+        <result column="outMaxbps" jdbcType="FLOAT" property="outMaxbps"/>
+        <result column="outMinbps" jdbcType="FLOAT" property="outMinbps"/>
+        <result column="outAveragebps" jdbcType="FLOAT" property="outAveragebps"/>
+
+        <result column="inAvgUse" jdbcType="FLOAT" property="inAvgUse"/>
+        <result column="outAvgUse" jdbcType="FLOAT" property="outAvgUse"/>
+        <result column="inMaxUse" jdbcType="FLOAT" property="inMaxUse"/>
+        <result column="outMAxUse" jdbcType="FLOAT" property="outMaxUse"/>
+
+        <association property="proportionDto" javaType="cn.mw.module.solarwind.dto.ProportionDto">
+            <result column="inProportionTen" jdbcType="FLOAT" property="inProportionTen"/>
+            <result column="inProportionFifty" jdbcType="FLOAT" property="inProportionFifty"/>
+            <result column="inProportionEighty" jdbcType="FLOAT" property="inProportionEighty"/>
+            <result column="inProportionHundred" jdbcType="FLOAT" property="inProportionHundred"/>
+            <result column="outProportionTen" jdbcType="FLOAT" property="outProportionTen"/>
+            <result column="outProportionFifty" jdbcType="FLOAT" property="outProportionFifty"/>
+            <result column="outProportionEighty" jdbcType="FLOAT" property="outProportionEighty"/>
+            <result column="outProportionHundred" jdbcType="FLOAT" property="outProportionHundred"/>
+        </association>
+    </resultMap>
+    <select id="selectList" parameterType="java.util.HashMap"
+            resultType="cn.mw.module.solarwind.dto.InterfaceReportDto">
+        select
+        a.interfaceID interfaceID,
+        caption ,
+        carrierName ,
+        inBandwidth ,
+        inAveragebps ,
+        inMinbps ,
+        inMaxbps ,
+        outMinbps ,
+        outAveragebps ,
+        outMaxbps ,
+        inAvgUse,
+        outAvgUse,
+        inMaxUse,
+        outMaxUse,
+        inProportionTen ,
+        inProportionFifty,
+        inProportionEighty,
+        inProportionHundred,
+        outProportionTen,
+        outProportionFifty,
+        outProportionEighty,
+        outProportionHundred from (
+        select
+        interfaceID ,
+        caption ,
+        carrierName ,
+        inBandwidth ,
+        round(AVG(inAveragebps),2) inAveragebps ,
+        MIN( inMinbps ) inMinbps ,
+        MAX( inMaxbps ) inMaxbps ,
+        MIN( outMinbps ) outMinbps ,
+        round(AVG(outAveragebps),2) outAveragebps ,
+        MAX( outMaxbps ) outMaxbps ,
+        round(AVG(inProportionTen),2) inProportionTen ,
+        round(AVG(inProportionFifty),2) inProportionFifty,
+        round(AVG(inProportionEighty ),2) inProportionEighty,
+        round(AVG(inProportionHundred),2) inProportionHundred,
+        round(AVG(outProportionTen),2) outProportionTen,
+        round(AVG(outProportionFifty),2) outProportionFifty,
+        round(AVG(outProportionEighty),2) outProportionEighty,
+        round(AVG(outProportionHundred),2) outProportionHundred
+        from ${tableName} where 1=1
+        <include refid="interfaceIDs"></include>
+        <include refid="date_time"></include>
+        <include refid="carrierName"></include>
+        group by interfaceID,caption,carrierName,inBandwidth
+        ) a left join(
+        select
+        interfaceID,
+        round(inAveragebps/inBandwidth*100,2 ) AS inAvgUse,
+        round(outAveragebps/InBandwidth*100,2) AS outAvgUse,
+        round(inMaxbps/InBandwidth*100,2 ) AS inMaxUse,
+        round(outMaxbps/InBandwidth*100,2 ) AS outMaxUse from(
+        select
+        interfaceID ,
+        caption ,
+        carrierName ,
+        inBandwidth ,
+        round(AVG(inAveragebps),2) inAveragebps ,
+        MIN( inMinbps ) inMinbps ,
+        MAX( inMaxbps ) inMaxbps ,
+        MIN( outMinbps ) outMinbps ,
+        round(AVG(outAveragebps),2) outAveragebps ,
+        MAX( outMaxbps ) outMaxbps ,
+        round(AVG(inProportionTen),2) inProportionTen ,
+        round(AVG(inProportionFifty),2) inProportionFifty,
+        round(AVG(inProportionEighty ),2) inProportionEighty,
+        round(AVG(inProportionHundred),2) inProportionHundred,
+        round(AVG(outProportionTen),2) outProportionTen,
+        round(AVG(outProportionFifty),2) outProportionFifty,
+        round(AVG(outProportionEighty),2) outProportionEighty,
+        round(AVG(outProportionHundred),2) outProportionHundred
+        from ${tableName} where 1=1
+        <include refid="interfaceIDs"></include>
+        <include refid="date_time"></include>
+        <include refid="carrierName"></include>
+        group by interfaceID,caption,carrierName,inBandwidth
+        ) c ) b on  a.interfaceID=b.interfaceID
+    </select>
+    <sql id="interfaceIDs">
+        <if test="interfaceIDs!=null and interfaceIDs.size()!=0">
+            and interfaceID in
+            <foreach collection="interfaceIDs" index="index" item="item" separator="," open="(" close=")">
+                #{item}
+            </foreach>
+        </if>
+    </sql>
+    <select id="selectInHistoryList" resultType="cn.mw.module.solarwind.dto.MwHistoryDTO"
+            parameterType="cn.mw.module.solarwind.dto.SolarReportDto">
+        select date_time as date,${inColumn} as value from ${tableName} where interfaceID=#{interfaceID,jdbcType=INTEGER} and date_time between #{startTime,jdbcType=VARCHAR} and
+        #{endTime,jdbcType=VARCHAR} order by date asc
+    </select>
+    <select id="selectOutHistoryList" resultType="cn.mw.module.solarwind.dto.MwHistoryDTO"
+            parameterType="cn.mw.module.solarwind.dto.SolarReportDto">
+        select date_time as date,${outColumn} as value from ${tableName} where interfaceID=#{interfaceID,jdbcType=INTEGER} and date_time between #{startTime,jdbcType=VARCHAR} and
+        #{endTime,jdbcType=VARCHAR} order by date asc
+    </select>
+
+    <resultMap id="solarReportMap" type="cn.mw.module.solarwind.dto.SolarDetailDto">
+        <id column="interfaceID" jdbcType="INTEGER" property="interfaceID"/>
+        <result column="inBandwidth" jdbcType="FLOAT" property="inBandwidth"/>
+        <result column="caption" jdbcType="VARCHAR" property="caption"/>
+        <result column="inMinbps" jdbcType="FLOAT" property="inMinbps"/>
+        <result column="inMaxbps" jdbcType="FLOAT" property="inMaxbps"/>
+        <result column="inAveragebps" jdbcType="FLOAT" property="inAveragebps"/>
+        <result column="outMaxbps" jdbcType="FLOAT" property="outMaxbps"/>
+        <result column="outMinbps" jdbcType="FLOAT" property="outMinbps"/>
+        <result column="outAveragebps" jdbcType="FLOAT" property="outAveragebps"/>
+
+        <result column="inAvgUse" jdbcType="FLOAT" property="inAvgUse"/>
+        <result column="outAvgUse" jdbcType="FLOAT" property="outAvgUse"/>
+        <result column="inMaxUse" jdbcType="FLOAT" property="inMaxUse"/>
+        <result column="outMaxUse" jdbcType="FLOAT" property="outMaxUse"/>
+
+        <association property="proportionDto" javaType="cn.mw.module.solarwind.dto.ProportionDto">
+            <result column="inProportionTen" jdbcType="FLOAT" property="inProportionTen"/>
+            <result column="inProportionFifty" jdbcType="FLOAT" property="inProportionFifty"/>
+            <result column="inProportionEighty" jdbcType="FLOAT" property="inProportionEighty"/>
+            <result column="inProportionHundred" jdbcType="FLOAT" property="inProportionHundred"/>
+            <result column="outProportionTen" jdbcType="FLOAT" property="outProportionTen"/>
+            <result column="outProportionFifty" jdbcType="FLOAT" property="outProportionFifty"/>
+            <result column="outProportionEighty" jdbcType="FLOAT" property="outProportionEighty"/>
+            <result column="outProportionHundred" jdbcType="FLOAT" property="outProportionHundred"/>
+        </association>
+    </resultMap>
+
+    <select id="groupSelectList" resultMap="solarReportMap">
+        select
+        interfaceID ,
+        caption ,
+        inBandwidth ,
+        round(AVG(inAveragebps),2) inAveragebps ,
+        MIN( inMinbps ) inMinbps ,
+        MAX( inMaxbps ) inMaxbps ,
+        MIN( outMinbps ) outMinbps ,
+        round(AVG(outAveragebps),2) outAveragebps ,
+        MAX( outMaxbps ) outMaxbps ,
+
+        round(inAveragebps/inBandwidth*100,2 ) AS inAvgUse,
+        round(outAveragebps/InBandwidth*100,2) AS outAvgUse,
+        round(inMaxbps/InBandwidth*100,2 ) AS inMaxUse,
+        round(outMaxbps/InBandwidth*100,2 ) AS outMaxUse,
+
+        round(AVG(inProportionTen),2) inProportionTen ,
+        round(AVG(inProportionFifty),2) inProportionFifty,
+        round(AVG(inProportionEighty ),2) inProportionEighty,
+        round(AVG(inProportionHundred),2) inProportionHundred,
+        round(AVG(outProportionTen),2) outProportionTen,
+        round(AVG(outProportionFifty),2) outProportionFifty,
+        round(AVG(outProportionEighty),2) outProportionEighty,
+        round(AVG(outProportionHundred),2) outProportionHundred
+        from ${tableName} where 1=1
+        <include refid="interfaceIDs"></include>
+        and
+        (
+        <choose>
+            <when test='percentFront==0f'>
+                (
+                ${inColumn}>=inBandwidth*#{percentFront,jdbcType=FLOAT}
+                or
+                ${outColumn}>=inBandwidth*#{percentFront,jdbcType=FLOAT}
+                )
+                and
+                (
+                ${inColumn} &lt;inBandwidth*#{percentBack,jdbcType=FLOAT}
+                and
+                ${outColumn} &lt;inBandwidth*#{percentBack,jdbcType=FLOAT}
+                )
+            </when>
+            <when test='percentFront==0.1f'>
+                (
+                ${inColumn}>=inBandwidth*#{percentFront,jdbcType=FLOAT}
+                or
+                ${outColumn}>=inBandwidth*#{percentFront,jdbcType=FLOAT}
+                )
+                and
+                (
+                ${inColumn} &lt;inBandwidth*#{percentBack,jdbcType=FLOAT}
+                and
+                ${outColumn} &lt;inBandwidth*#{percentBack,jdbcType=FLOAT}
+                )
+            </when>
+            <otherwise>
+                (
+                ${inColumn}>=inBandwidth*#{percentFront,jdbcType=FLOAT}
+                or
+                ${outColumn}>=inBandwidth*#{percentFront,jdbcType=FLOAT}
+                )
+                and
+                (
+                ${inColumn} &lt;inBandwidth*#{percentBack,jdbcType=FLOAT}
+                and
+                ${outColumn} &lt;inBandwidth*#{percentBack,jdbcType=FLOAT}
+                )
+            </otherwise>
+        </choose>
+        )
+        <include refid="date_time"></include>
+        <include refid="carrierName"></include>
+        group by interfaceID
+    </select>
+
+    <sql id="Base_Column_List">
+        interfaceID          ,
+        date_time            ,
+        caption              ,
+        carrierName          ,
+        inBandwidth          ,
+        inAveragebps         ,
+        inMinbps             ,
+        inMaxbps             ,
+        outMinbps            ,
+        outAveragebps        ,
+        outMaxbps            ,
+        inProportionTen      ,
+        inProportionFifty    ,
+        inProportionEighty   ,
+        inProportionHundred  ,
+        outProportionTen     ,
+        outProportionFifty   ,
+        outProportionEighty  ,
+        outProportionHundred
+    </sql>
+    <sql id="Insert_Values">
+         (#{insertList.interfaceID,jdbcType=INTEGER},
+            #{insertList.dateTime,jdbcType=DATE},
+            #{insertList.caption,jdbcType=VARCHAR},
+            #{insertList.carrierName,jdbcType=VARCHAR},
+            #{insertList.inBandwidth,jdbcType=FLOAT},
+            #{insertList.inAveragebps,jdbcType=FLOAT},
+            #{insertList.inMinbps,jdbcType=FLOAT},
+            #{insertList.inMaxbps,jdbcType=FLOAT},
+            #{insertList.outMinbps,jdbcType=FLOAT},
+            #{insertList.outAveragebps,jdbcType=FLOAT},
+            #{insertList.outMaxbps,jdbcType=FLOAT},
+            #{insertList.proportionDto.inProportionTen,jdbcType=FLOAT},
+            #{insertList.proportionDto.inProportionFifty,jdbcType=FLOAT},
+            #{insertList.proportionDto.inProportionEighty,jdbcType=FLOAT},
+            #{insertList.proportionDto.inProportionHundred,jdbcType=FLOAT},
+            #{insertList.proportionDto.outProportionTen,jdbcType=FLOAT},
+            #{insertList.proportionDto.outProportionFifty,jdbcType=FLOAT},
+            #{insertList.proportionDto.outProportionEighty,jdbcType=FLOAT},
+            #{insertList.proportionDto.outProportionHundred,jdbcType=FLOAT}
+            )
+    </sql>
+    <insert id="insertAllday" parameterType="java.util.List">
+        insert into mw_solar_day_detail_allday
+        (<include refid="Base_Column_List"></include>)
+        values
+        <foreach collection="list" item="insertList" separator=",">
+            <include refid="Insert_Values"></include>
+        </foreach>
+    </insert>
+    <insert id="insertAlldayWorkTime">
+        insert into mw_solar_day_detail_allday_worktime
+        (<include refid="Base_Column_List"></include>)
+        values
+        <foreach collection="list" item="insertList" separator=",">
+            <include refid="Insert_Values"></include>
+        </foreach>
+    </insert>
+    <insert id="insertWorkDay">
+        insert into mw_solar_day_detail_workday
+        (<include refid="Base_Column_List"></include>)
+        values
+        <foreach collection="list" item="insertList" separator=",">
+            <include refid="Insert_Values"></include>
+        </foreach>
+    </insert>
+    <insert id="insertWorkDayWorkTIme">
+        insert into mw_solar_day_detail_workday_worktime
+        (<include refid="Base_Column_List"></include>)
+        values
+        <foreach collection="list" item="insertList" separator=",">
+            <include refid="Insert_Values"></include>
+        </foreach>
+    </insert>
+
+
+</mapper>

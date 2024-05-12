@@ -1,0 +1,242 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.mw.monitor.assets.dao.MwAssetsInterfaceDao">
+
+    <resultMap id="resultMap" type="cn.mw.monitor.service.assets.param.QueryAssetsInterfaceParam">
+        <id column="id" jdbcType="INTEGER" property="id"/>
+        <result column="ifIndex" jdbcType="INTEGER" property="ifIndex"/>
+        <result column="name" jdbcType="VARCHAR" property="name"/>
+        <result column="type" jdbcType="VARCHAR" property="type"/>
+        <result column="state" jdbcType="VARCHAR" property="state"/>
+        <result column="description" jdbcType="VARCHAR" property="description"/>
+        <result column="mac" jdbcType="VARCHAR" property="mac"/>
+        <result column="mtu" jdbcType="INTEGER" property="mtu"/>
+        <result column="ip" jdbcType="VARCHAR" property="ip"/>
+        <result column="subnet_mask" jdbcType="VARCHAR" property="subnetMask"/>
+        <result column="if_mode" jdbcType="VARCHAR" property="ifMode"/>
+        <result column="vlan" jdbcType="VARCHAR" property="vlan"/>
+        <result column="vlan_flag" jdbcType="BOOLEAN" property="vlanFlag"/>
+        <result column="vrf" jdbcType="VARCHAR" property="vrf"/>
+        <result column="port_type" jdbcType="VARCHAR" property="portType"/>
+        <result column="assets_id" jdbcType="VARCHAR" property="assetsId"/>
+        <result column="is_show" jdbcType="BOOLEAN" property="showFlag"/>
+        <result column="alert_tag" jdbcType="BOOLEAN" property="alertTag"/>
+        <result column="host_ip" jdbcType="VARCHAR" property="hostIp"/>
+        <result column="host_id" jdbcType="VARCHAR" property="hostId"/>
+        <result column="creator" jdbcType="VARCHAR" property="creator"/>
+        <result column="create_date" jdbcType="TIMESTAMP" property="createDate"/>
+        <result column="manage_state" jdbcType="BOOLEAN" property="interfaceSetState"/>
+        <result column="editor_desc" jdbcType="BOOLEAN" property="editorDesc"/>
+        <result column="modifier" jdbcType="VARCHAR" property="modifier"/>
+        <result column="modification_date" jdbcType="TIMESTAMP" property="modificationDate"/>
+    </resultMap>
+
+    <resultMap id="resultDTOMap" type="cn.mw.monitor.service.assets.model.AssetsInterfaceDTO" extends="resultMap"/>
+
+    <sql id="without_id_columns">
+        ifIndex,
+        name,
+        type,
+        state,
+        description,
+        mac,
+        mtu,
+        ip,
+        subnet_mask,
+        if_mode,
+        vlan,
+        vlan_flag,
+        port_type,
+        vrf,
+        assets_id,
+        is_show,
+        alert_tag,
+        host_ip,
+        host_id,
+        creator,
+        create_date,
+        modifier,
+        modification_Date
+    </sql>
+
+    <sql id="queryInterfaceField">
+        id ,
+        editor_desc,
+        <include refid="without_id_columns"/>
+    </sql>
+
+    <sql id="tb">
+        mw_cmdbmd_assets_interface
+    </sql>
+
+    <insert id="batchInsert" parameterType="java.util.List">
+        insert into
+        <include refid="tb"/>
+        (<include refid="without_id_columns"/>)
+        values
+        <foreach collection="list" item="item" separator=",">
+            (#{item.ifIndex,jdbcType=INTEGER}
+            ,#{item.name,jdbcType=VARCHAR}
+            ,#{item.type,jdbcType=VARCHAR}
+            ,#{item.state,jdbcType=VARCHAR}
+            ,#{item.description,jdbcType=VARCHAR}
+            ,#{item.mac,jdbcType=VARCHAR}
+            ,#{item.mtu,jdbcType=INTEGER}
+            ,#{item.ip,jdbcType=VARCHAR}
+            ,#{item.subnetMask,jdbcType=VARCHAR}
+            ,#{item.ifMode,jdbcType=VARCHAR}
+            ,#{item.vlan,jdbcType=VARCHAR}
+            ,#{item.vlanFlag,jdbcType=BOOLEAN}
+            ,#{item.portType,jdbcType=VARCHAR}
+            ,#{item.vrf,jdbcType=VARCHAR}
+            ,#{item.assetsId,jdbcType=VARCHAR}
+            ,#{item.showFlag,jdbcType=BOOLEAN}
+            ,#{item.alertTag,jdbcType=BOOLEAN}
+            ,#{item.hostIp,jdbcType=VARCHAR}
+            ,#{item.hostId,jdbcType=VARCHAR}
+            ,#{item.creator,jdbcType=VARCHAR}
+            ,#{item.createDate,jdbcType=DATE}
+            ,#{item.modifier,jdbcType=VARCHAR}
+            ,#{item.modificationDate,jdbcType=DATE}
+            )
+        </foreach>
+    </insert>
+
+    <insert id="insertInterface" parameterType="java.util.List">
+        insert into
+        <include refid="tb"/>
+        (<include refid="without_id_columns"/>)
+        values (#{ifIndex,jdbcType=INTEGER}
+        ,#{name,jdbcType=VARCHAR}
+        ,#{type,jdbcType=VARCHAR}
+        ,#{state,jdbcType=VARCHAR}
+        ,#{description,jdbcType=VARCHAR}
+        ,#{mac,jdbcType=VARCHAR}
+        ,#{mtu,jdbcType=INTEGER}
+        ,#{ip,jdbcType=VARCHAR}
+        ,#{subnetMask,jdbcType=VARCHAR}
+        ,#{ifMode,jdbcType=VARCHAR}
+        ,#{vlan,jdbcType=VARCHAR}
+        ,#{vlanFlag,jdbcType=INTEGER}
+        ,#{portType,jdbcType=VARCHAR}
+        ,#{vrf,jdbcType=VARCHAR}
+        ,#{assetsId,jdbcType=VARCHAR}
+        ,#{showFlag,jdbcType=BOOLEAN}
+        ,#{alertTag,jdbcType=BOOLEAN}
+        ,#{hostIp,jdbcType=VARCHAR}
+        ,#{hostId,jdbcType=VARCHAR}
+        ,#{creator,jdbcType=VARCHAR}
+        ,#{createDate,jdbcType=TIMESTAMP}
+        ,#{modifier,jdbcType=VARCHAR}
+        ,#{modificationDate,jdbcType=TIMESTAMP}
+        )
+    </insert>
+
+    <delete id="deleteIntefaces" parameterType="java.util.List">
+        delete from
+        <include refid="tb"/>
+        where assets_id in (
+        <foreach collection="list" item="data" separator=",">
+            #{data.id,jdbcType=VARCHAR}
+        </foreach>
+        )
+    </delete>
+
+    <delete id="deleteIntefacesById" parameterType="java.util.List">
+        delete from
+        <include refid="tb"/>
+        where id in (
+        <foreach collection="list" item="data" separator=",">
+            #{data,jdbcType=INTEGER}
+        </foreach>
+        )
+    </delete>
+
+    <select id="getUUIDByAssetsId" resultType="java.lang.String">
+        select id
+        from mw_tangibleassets_table
+        where delete_flag = false
+        and assets_id = #{assetsId}
+        LIMIT 1
+    </select>
+
+    <select id="getAllInterface" resultMap="resultMap">
+        select id,
+        ifIndex,
+        IFNULL(name,IFNULL(description,"null")) name,
+        type,
+        state,
+        description,
+        mac,
+        mtu,
+        ip,
+        subnet_mask,
+        if_mode,
+        vlan,
+        vlan_flag,
+        port_type,
+        vrf,
+        assets_id,
+        is_show,
+        creator,
+        create_date,
+        manage_state,
+        editor_desc,
+        modifier,
+        modification_Date
+        from
+        <include refid="tb"/>
+        <where>
+            1 = 1
+            <if test="vlanFlag!=null">
+                and vlan_flag = false
+            </if>
+            <if test="assetsId!=null">
+                and assets_id = #{assetsId}
+            </if>
+            <if test="interfaceName!=null and interfaceName!=''">
+                and (name = #{interfaceName} or description = #{interfaceName})
+            </if>
+        </where>
+        order by ifIndex
+    </select>
+
+    <select id="getAllInterfaceDTO" resultMap="resultDTOMap">
+        select
+        <include refid="queryInterfaceField"></include>
+        from
+        <include refid="tb"/>
+    </select>
+
+    <select id="getAllInterfaceDTOByCriteria" resultMap="resultDTOMap">
+        select
+        <include refid="queryInterfaceField"></include>
+        from
+        <include refid="tb"/>
+        where 1 = 1
+        <if test="assetIds !=null and assetIds.size() > 0">
+            and assets_id in
+            <foreach collection="assetIds" item="item" index="index" open="(" separator="," close=")">
+                #{item}
+            </foreach>
+        </if>
+    </select>
+
+    <select id="getSettingByAssets" resultType="java.lang.Integer">
+        select setting_flag AS settingFlag
+        from mw_tangibleassets_table
+        where delete_flag = false
+        and id = #{assetsId}
+    </select>
+
+    <select id="getFilterInfo" resultType="cn.mw.monitor.service.model.param.MwModelFilterInterfaceParam">
+        select filter_field AS "filterField",no_start_with AS "noStartWith",cable_start_with AS "cableStartWith"
+        from mw_cmdbmd_assers_filter
+    </select>
+
+    <update id="updataInterfaceStatus">
+        update mw_cmdbmd_assets_interface set
+        manage_state=#{interfaceSetState}
+        where id = #{id}
+    </update>
+</mapper>

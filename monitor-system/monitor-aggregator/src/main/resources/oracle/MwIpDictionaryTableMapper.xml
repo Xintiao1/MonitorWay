@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.mw.monitor.ipaddressmanage.dao.MwIpDictionaryTableDao">
+
+  <resultMap id="BaseResultMap" type="cn.mw.monitor.ipaddressmanage.param.IpDictionaryTableParam">
+    <id column="id" jdbcType="INTEGER" property="id" />
+    <result column="key" jdbcType="INTEGER" property="key" />
+    <result column="value" jdbcType="VARCHAR" property="value" />
+    <result column="typeof" jdbcType="INTEGER" property="typeof" />
+    <result column="descri" jdbcType="VARCHAR" property="descri" />
+
+    <result column="creator" jdbcType="VARCHAR" property="creator" />
+    <result column="create_date" jdbcType="TIMESTAMP" property="createDate" />
+    <result column="modifier" jdbcType="VARCHAR" property="modifier" />
+    <result column="modification_date" jdbcType="TIMESTAMP" property="modificationDate" />
+  </resultMap>
+
+  <resultMap id="BaseResultMap1" type="cn.mw.monitor.ipaddressmanage.dto.LabelDTO">
+    <id column="label_id" jdbcType="INTEGER" property="labelId" />
+    <result column="label_name" jdbcType="VARCHAR" property="labelName" />
+  </resultMap>
+
+  <resultMap id="BaseResultMapTwo" type="cn.mw.monitor.ipaddressmanage.dto.labelOb">
+    <id column="drop_key" jdbcType="INTEGER" property="dropKey" />
+    <result column="drop_value" jdbcType="VARCHAR" property="dropValue" />
+  </resultMap>
+
+  <sql id="Base_Column_List">
+    id,`key`,`value`,typeof,descri
+  </sql>
+
+  <select id="selectListByType" resultMap="BaseResultMap" parameterType="cn.mw.monitor.ipaddressmanage.param.IpDictionaryTableParam">
+    select * from
+        mw_dictionary_table
+    where
+    <if test="typeof !=null">
+       `typeof` = #{typeof,jdbcType=INTEGER}
+    </if>
+  </select>
+
+  <select id="selectLabelList" resultMap="BaseResultMap1">
+    select * from
+    mw_labelmanage_table
+    where
+    delete_flag = 0
+  </select>
+
+  <select id="selectLabeipState" resultMap="BaseResultMapTwo">
+    select 1 as drop_key,"已使用" as drop_value from dual
+    union all
+     select 0 as drop_key,"未使用" as drop_value from dual
+     union all
+     select 2 as drop_key,"预留" as drop_value from dual
+  </select>
+
+
+
+</mapper>

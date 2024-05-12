@@ -1,0 +1,256 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.mw.monitor.model.dao.MWModelZabbixMonitorDao">
+
+    <sql id="without_id_columns">
+        ifIndex,
+        name,
+        type,
+        state,
+        description,
+        mac,
+        mtu,
+        ip,
+        subnet_mask,
+        if_mode,
+        vlan,
+        vlan_flag,
+        port_type,
+        vrf,
+        assets_id,
+        is_show,
+        alert_tag,
+        host_ip,
+        host_id,
+        creator,
+        create_date,
+        modifier,
+        modification_Date
+    </sql>
+
+    <sql id="queryInterfaceField">
+        id ,
+        <include refid="without_id_columns"/>
+    </sql>
+
+    <sql id="tb">
+        mw_cmdbmd_assets_interface
+    </sql>
+
+    <resultMap id="resultMap" type="cn.mw.monitor.service.assets.param.QueryAssetsInterfaceParam">
+        <id column="id" jdbcType="INTEGER" property="id"/>
+        <result column="ifIndex" jdbcType="INTEGER" property="ifIndex"/>
+        <result column="name" jdbcType="VARCHAR" property="name"/>
+        <result column="type" jdbcType="VARCHAR" property="type"/>
+        <result column="state" jdbcType="VARCHAR" property="state"/>
+        <result column="description" jdbcType="VARCHAR" property="description"/>
+        <result column="mac" jdbcType="VARCHAR" property="mac"/>
+        <result column="mtu" jdbcType="INTEGER" property="mtu"/>
+        <result column="ip" jdbcType="VARCHAR" property="ip"/>
+        <result column="subnet_mask" jdbcType="VARCHAR" property="subnetMask"/>
+        <result column="if_mode" jdbcType="VARCHAR" property="ifMode"/>
+        <result column="vlan" jdbcType="VARCHAR" property="vlan"/>
+        <result column="vlan_flag" jdbcType="BOOLEAN" property="vlanFlag"/>
+        <result column="vrf" jdbcType="VARCHAR" property="vrf"/>
+        <result column="port_type" jdbcType="VARCHAR" property="portType"/>
+        <result column="assets_id" jdbcType="VARCHAR" property="assetsId"/>
+        <result column="is_show" jdbcType="BOOLEAN" property="showFlag"/>
+        <result column="alert_tag" jdbcType="BOOLEAN" property="alertTag"/>
+        <result column="host_ip" jdbcType="VARCHAR" property="hostIp"/>
+        <result column="host_id" jdbcType="VARCHAR" property="hostId"/>
+        <result column="creator" jdbcType="VARCHAR" property="creator"/>
+        <result column="create_date" jdbcType="TIMESTAMP" property="createDate"/>
+        <result column="manage_state" jdbcType="BOOLEAN" property="interfaceSetState"/>
+        <result column="modifier" jdbcType="VARCHAR" property="modifier"/>
+        <result column="modification_date" jdbcType="TIMESTAMP" property="modificationDate"/>
+    </resultMap>
+
+    <resultMap id="resultDTOMap" type="cn.mw.monitor.service.assets.model.AssetsInterfaceDTO" extends="resultMap"/>
+
+    <select id="getAllInterfaceByCriteria" resultMap="resultDTOMap">
+        select
+        <include refid="queryInterfaceField"></include>
+        from
+        <include refid="tb"/>
+        where name is not null
+        <if test="assetIds !=null and assetIds.size() > 0">
+            and assets_id in
+            <foreach collection="assetIds" item="item" index="index" open="(" separator="," close=")">
+                #{item}
+            </foreach>
+        </if>
+        <if test="interfaceName!=null and interfaceName!=''">
+            and name like CONCAT ('%',#{interfaceName,jdbcType=VARCHAR},'%')
+        </if>
+        <if test="interfaceDescr!=null and interfaceDescr!=''">
+            and description like CONCAT ('%',#{interfaceDescr,jdbcType=VARCHAR},'%')
+        </if>
+        <if test="state!=null and state!=''">
+            and state = #{state}
+        </if>
+        <if test="alertTag!=null and alertTag==true">
+            and alert_tag = '1'
+        </if>
+        <if test="alertTag!=null and alertTag==false">
+            and (alert_tag = '0' or alert_tag is null)
+        </if>
+        order by state desc,name
+    </select>
+
+    <select id="getAllInterfaceNameAndHostId" resultType="cn.mw.monitor.service.assets.model.ModelInterfaceDTO">
+        select
+            name AS "name",
+            host_id AS "hostId"
+        from
+        <include refid="tb"/>
+        where name is not null
+        <if test="hostIds !=null and hostIds.size > 0">
+            and host_id in
+            <foreach collection="hostIds" item="item" index="index" open="(" separator="," close=")">
+                #{item}
+            </foreach>
+        </if>
+    </select>
+
+    <select id="getInterfaceInfoByAssetsId" resultType="cn.mw.monitor.service.assets.model.ModelInterfaceDTO">
+        select
+        name AS "name",
+        state AS "state",
+        assets_id AS "assetsId",
+        host_ip AS "hostIp",
+        host_id AS "hostId"
+        from
+        <include refid="tb"/>
+        where  name is not null
+        and assets_id = #{assetsId}
+    </select>
+
+    <select id="queryInterfaceInfoAlertTag" parameterType="cn.mw.monitor.service.model.param.MwModelInterfaceCommonParam"
+            resultType="cn.mw.monitor.service.model.param.MwModelInterfaceCommonParam">
+        select
+            name AS "interfaceName",
+            description AS "interfaceDesc",
+            alert_tag AS "alertTag",
+            host_ip AS "hostIp",
+            host_id AS "hostId"
+        from
+        <include refid="tb"/>
+        where name is not null
+        <if test="hostId !=null and hostId!=''">
+            and host_id = #{hostId}
+        </if>
+        <if test="hostIp !=null and hostIp!=''">
+            and host_ip = #{hostIp}
+        </if>
+        <if test="interfaceDescs !=null and interfaceDescs.size > 0">
+            and description in
+            <foreach collection="interfaceDescs" item="item" index="index" open="(" separator="," close=")">
+                #{item}
+            </foreach>
+        </if>
+    </select>
+
+    <update id="updateInterfaceStatus">
+        update mw_cmdbmd_assets_interface
+        set is_show = '1'
+        where state = 'up'
+    </update>
+
+
+    <insert id="batchInsert" parameterType="java.util.List">
+        insert into
+        <include refid="tb"/>
+        (<include refid="without_id_columns"/>)
+        values
+        <foreach collection="list" item="item" separator=",">
+            (#{item.ifIndex,jdbcType=INTEGER}
+            ,#{item.name,jdbcType=VARCHAR}
+            ,#{item.type,jdbcType=VARCHAR}
+            ,#{item.state,jdbcType=VARCHAR}
+            ,#{item.description,jdbcType=VARCHAR}
+            ,#{item.mac,jdbcType=VARCHAR}
+            ,#{item.mtu,jdbcType=INTEGER}
+            ,#{item.ip,jdbcType=VARCHAR}
+            ,#{item.subnetMask,jdbcType=VARCHAR}
+            ,#{item.ifMode,jdbcType=VARCHAR}
+            ,#{item.vlan,jdbcType=VARCHAR}
+            ,#{item.vlanFlag,jdbcType=BOOLEAN}
+            ,#{item.portType,jdbcType=VARCHAR}
+            ,#{item.vrf,jdbcType=VARCHAR}
+            ,#{item.assetsId,jdbcType=VARCHAR}
+            ,#{item.showFlag,jdbcType=BOOLEAN}
+            ,#{item.alertTag,jdbcType=BOOLEAN}
+            ,#{item.hostIp,jdbcType=VARCHAR}
+            ,#{item.hostId,jdbcType=VARCHAR}
+            ,#{item.creator,jdbcType=VARCHAR}
+            ,#{item.createDate,jdbcType=DATE}
+            ,#{item.modifier,jdbcType=VARCHAR}
+            ,#{item.modificationDate,jdbcType=DATE}
+            )
+        </foreach>
+    </insert>
+
+    <update id="updateInterfaceDescById" parameterType="cn.mw.monitor.service.model.param.MwModelAssetsInterfaceParam">
+        update mw_cmdbmd_assets_interface
+        <set>
+            <if test="interfaceDescr != null and interfaceDescr != ''">
+                description = #{interfaceDescr},
+                editor_desc = '1'
+            </if>
+        </set>
+        where id = #{id}
+    </update>
+
+
+    <update id="batchUpdateInterfaceShow" parameterType="cn.mw.monitor.service.model.param.MwModelAssetsInterfaceParam">
+        update mw_cmdbmd_assets_interface set is_show = '1'
+        where id in
+        <foreach collection="ids" item="id" separator="," close=")" open="(">
+            #{id}
+        </foreach>
+    </update>
+
+    <update id="batchUpdateInterfaceHide" parameterType="cn.mw.monitor.service.model.param.MwModelAssetsInterfaceParam">
+        update mw_cmdbmd_assets_interface set is_show = '0'
+        where id not in
+        <foreach collection="ids" item="id" separator="," close=")" open="(">
+            #{id}
+        </foreach>
+        and assets_id = #{deviceId}
+    </update>
+
+
+
+    <update id="updateAlertTag" parameterType="cn.mw.monitor.service.model.param.MwModelAssetsInterfaceParam">
+        update mw_cmdbmd_assets_interface set alert_tag = #{alertTag}
+        where id in
+        <foreach collection="ids" item="id" separator="," close=")" open="(">
+            #{id}
+        </foreach>
+    </update>
+
+    <select id="queryMonitorServerInfo" resultType="cn.mw.monitor.model.param.MwModelTPServerParam">
+        SELECT
+            id,
+            monitoring_server_name AS "monitorServerName",
+            main_server AS "mainServer"
+        FROM
+            mw_thirdparty_server_table a
+        WHERE
+            delete_flag = '0'
+    </select>
+
+    <select id="queryMonitorServerInfoById" resultType="cn.mw.monitor.model.param.MwModelTPServerParam">
+        SELECT
+            id,
+            monitoring_server_ip AS "monitoringServerIp",
+            monitoring_server_name AS "monitorServerName",
+            main_server AS "mainServer"
+        FROM
+            mw_thirdparty_server_table a
+        WHERE
+            delete_flag = '0'
+        and id = #{monitorServerId}
+    </select>
+
+</mapper>

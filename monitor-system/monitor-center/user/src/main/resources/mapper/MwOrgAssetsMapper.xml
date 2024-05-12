@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.mw.monitor.user.dao.MwOrgAssetsMapperDao">
+
+    <!-- 根据机构id查询机构和资产关联关系 -->
+    <select id="countAssetsByOrgId" resultType="java.lang.Integer">
+        SELECT
+            COUNT(1)
+        FROM mw_org_assets_mapper
+        WHERE org_id = #{orgId,jdbcType=INTEGER}
+    </select>
+
+    <!-- 删除机构和资产关联关系表 -->
+    <delete id="deleteOrgMapper">
+        DELETE FROM mw_org_mapper
+        WHERE org_id IN (
+        <foreach collection="list" item="deleteList" separator=",">
+            #{deleteList.value,jdbcType=INTEGER}
+        </foreach>
+        )
+    </delete>
+
+</mapper>

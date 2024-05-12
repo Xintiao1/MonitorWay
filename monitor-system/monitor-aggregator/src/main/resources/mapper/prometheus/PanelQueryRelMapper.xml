@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.mw.monitor.prometheus.dao.PanelQueryRelDao">
+
+    <sql id="columns">
+        PANEL_ID,QUERY_ID,PROPERTY_NAME,COLUMN_NAME,SORT_NO
+    </sql>
+
+    <select id="batchInsertPanelQueryRelList" parameterType="cn.mw.monitor.prometheus.dto.PanelQueryRelDto">
+        INSERT INTO MW_PROMETHEUS_PANEL_QUERY_REL (PANEL_ID,QUERY_ID,PROPERTY_NAME,COLUMN_NAME,SORT_NO)
+        VALUES
+        <foreach collection="panelQueryRelList" item="item" separator=",">
+            ( #{item.panelId,jdbcType=INTEGER},
+            #{item.queryId,jdbcType=INTEGER},
+            #{item.propertyName,jdbcType=VARCHAR},
+            #{item.columnName,jdbcType=VARCHAR},
+            #{item.sortNo,jdbcType=INTEGER}
+            )
+        </foreach>
+
+    </select>
+
+    <select id="getPanelQueryRelListByPanelIds" resultType="cn.mw.monitor.prometheus.dto.PanelQueryRelDto">
+        select
+        <include refid="columns"></include>
+        from MW_PROMETHEUS_PANEL_QUERY_REL
+        where PANEL_ID in
+        <foreach collection="panelIds" item="item" index="index" open="(" separator="," close=")">
+            #{item,jdbcType=INTEGER}
+        </foreach>
+        order by SORT_NO asc
+    </select>
+
+    <delete id="deletePanelQueryRelByLayoutId">
+        delete
+        from MW_PROMETHEUS_PANEL_QUERY_REL
+        WHERE PANEL_ID IN (SELECT ID
+                           FROM MW_PROMETHEUS_PANEL_CONFIG
+                           WHERE LAYOUT_ID = #{layoutId,jdbcType=INTEGER})
+    </delete>
+</mapper>

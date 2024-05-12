@@ -1,0 +1,306 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.mw.monitor.visualized.dao.MwVisualizedMenuDao">
+
+    <resultMap id="BaseMap" type="cn.mw.monitor.visualized.dto.MwVisualizedChartDto">
+        <id column="id" jdbcType="INTEGER" property="id"/>
+        <result column="parent_id" jdbcType="INTEGER" property="parentId"/>
+        <result column="partition_name" jdbcType="VARCHAR" property="partitionName"/>
+        <result column="partition_eng" jdbcType="VARCHAR" property="partition"/>
+        <result column="icon_url" jdbcType="VARCHAR" property="iconUrl"/>
+        <result column="drag_url" jdbcType="VARCHAR" property="dragUrl"/>
+        <result column="sign" jdbcType="VARCHAR" property="sign"/>
+        <result column="delete_flag" jdbcType="BIT" property="deleteFlag"/>
+        <result column="creator" jdbcType="VARCHAR" property="creator"/>
+        <result column="create_date" jdbcType="TIMESTAMP" property="createDate"/>
+        <result column="modifier" jdbcType="VARCHAR" property="modifier"/>
+        <result column="modification_date" jdbcType="TIMESTAMP" property="modificationDate"/>
+    </resultMap>
+
+    <resultMap id="BaseResultMap" type="cn.mw.monitor.visualized.dto.MwVisualizedDimensionDto">
+        <id column="typeId" jdbcType="INTEGER" property="typeId"/>
+        <result column="typeName" jdbcType="VARCHAR" property="typeName"/>
+        <result column="inputFormat" jdbcType="INTEGER" property="inputFormat"/>
+        <result column="url" jdbcType="VARCHAR" property="url"/>
+        <result column="url_type" jdbcType="INTEGER" property="url_type"/>
+        <result column="vendorCustomFlag" jdbcType="INTEGER" property="vendorCustomFlag"/>
+        <collection property="assetsList" resultMap="StringResultMap"/>
+    </resultMap>
+    <resultMap id="StringResultMap" type="cn.mw.monitor.visualized.dto.MwVisualizedAssetsDto">
+        <id column="assetsId" jdbcType="VARCHAR" property="id"/>
+        <result column="assetsName" jdbcType="VARCHAR" property="assetsName"/>
+        <result column="hostId" jdbcType="VARCHAR" property="assetsId"/>
+        <result column="monitorServerId" jdbcType="VARCHAR" property="monitorServerId"/>
+        <result column="ipAddress" jdbcType="VARCHAR" property="ipAddress"/>
+    </resultMap>
+    <resultMap id="SecondResultMap" type="cn.mw.monitor.visualized.dto.MwVisualizedDimensionDto">
+        <id column="s_typeName" jdbcType="VARCHAR" property="typeName"/>
+        <result column="s_typeId" jdbcType="INTEGER" property="typeId"/>
+        <result column="s_url" jdbcType="VARCHAR" property="url"/>
+        <result column="s_url_type" jdbcType="INTEGER" property="url_type"/>
+        <collection property="assetsList" resultMap="StringResultMap"/>
+    </resultMap>
+
+    <select id="selectVisualizedChart" resultMap="BaseMap">
+        SELECT
+            id,
+            parent_id,
+            partition_name,
+            partition_eng,
+            icon_url,
+            drag_url,
+            creator,
+            create_date,
+            modifier,
+            modification_date,
+            sign,
+            delete_flag
+        FROM
+            mw_visualized_chart_table
+        WHERE
+            delete_flag = FALSE
+    </select>
+    <select id="selectVisualizedIndex" resultType="cn.mw.monitor.visualized.dto.MwVisualizedIndexDto">
+        select index_id indexId,index_name indexName,index_monitor_item indexMonitorItem,number_type numberType from mw_visualized_index
+    </select>
+
+    <insert id="addVisualizedChart">
+        insert into mw_visualized_chart_table
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="parentId != null">parent_id,</if>
+            <if test="partitionName != null and partitionName != ''">partition_name,</if>
+            <if test="iconUrl != null and iconUrl != ''">icon_url,</if>
+            <if test="dragUrl != null and dragUrl != ''">drag_url,</if>
+            <if test="sign != null and sign != ''">sign,</if>
+            <if test="creator != null and creator != ''">creator,</if>
+            <if test="createDate != null">create_date,</if>
+            <if test="modifier != null and modifier != ''">modifier,</if>
+            <if test="modificationDate != null">modification_date,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="parentId != null">parentId,</if>
+            <if test="partitionName != null and partitionName != ''">partitionName,</if>
+            <if test="iconUrl != null and iconUrl != ''">iconUrl,</if>
+            <if test="dragUrl != null and dragUrl != ''">dragUrl,</if>
+            <if test="sign != null and sign != ''">sign,</if>
+            <if test="creator != null and creator != ''">#{creator,jdbcType=VARCHAR},</if>
+            <if test="createDate != null"> #{createDate,jdbcType=TIMESTAMP},</if>
+            <if test="modifier != null and modifier != ''">#{modifier,jdbcType=VARCHAR},</if>
+            <if test="modificationDate != null"> #{modificationDate,jdbcType=TIMESTAMP},</if>
+        </trim>
+    </insert>
+
+    <select id="selectAssetsVendorList" resultMap="BaseResultMap">
+        SELECT
+            t1.vendorId typeId,
+        IF
+            ( t1.vendor = '', 'unknown', t1.vendor ) typeName,
+            t1.assetsId,
+            t1.assetsName,
+            t1.hostId,
+            t1.monitorServerId,
+            t1.url,
+            t1.url_type,
+            t1.specificationsId s_typeId,
+            t1.specifications s_typeName,
+            t1.custom_flag vendorCustomFlag,
+            t1.ipAddress
+        FROM
+            (
+            SELECT
+                a1.id assetsId,
+                a1.assets_name assetsName,
+                a1.assets_id hostId,
+                a1.monitor_server_id monitorServerId,
+                a1.manufacturer vendor,
+                a2.id vendorId,
+                a1.specifications specifications,
+                a3.id specificationsId,
+                a2.vendor_small_icon url,
+                a2.custom_flag url_type,
+                a2.custom_flag,
+                a1.in_band_ip ipAddress
+            FROM
+                (
+                SELECT
+                    t1.id,
+                    t1.assets_name,
+                    t1.manufacturer,
+                    t1.monitor_server_id,
+                    t1.assets_id,
+                    t1.specifications,
+                    t1.in_band_ip
+                FROM
+                    mw_tangibleassets_table t1
+                WHERE
+                    t1.delete_flag = FALSE
+                ) a1
+                LEFT JOIN mw_base_vendor_icon a2 ON a2.vendor = a1.manufacturer
+                LEFT JOIN mw_ncm_vendor_table a3 ON a3.specification = a1.specifications
+            AND a3.brand = a1.manufacturer
+            ) t1
+    </select>
+    <select id="selectVisualizedAssetsTypeList" resultMap="BaseResultMap">
+        SELECT
+            t1.assetsTypeId typeId,
+        IF
+            ( t1.assetsTypeName = '' OR t1.assetsTypeName IS NULL, 'unknown', t1.assetsTypeName ) typeName,
+            t1.assetsId,
+            t1.assetsName,
+            t1.ipAddress,
+            t1.url,
+            1 url_type,
+            t1.hostId,
+            t1.monitorServerId,
+        IF
+            ( t1.assetsSubTypeId IS NULL, 0, t1.assetsSubTypeId ) s_typeId,
+        IF
+            ( t1.s_url = '' OR t1.s_url IS NULL, '', t1.s_url ) s_url,
+            1 s_url_type,
+        IF
+            ( t1.assetsSubTypeName = '' OR t1.assetsSubTypeName IS NULL, 'unknown', t1.assetsSubTypeName ) s_typeName
+        FROM
+            (
+            SELECT
+                a1.id assetsId,
+                a1.assets_name assetsName,
+                a1.assets_type_id assetsTypeId,
+                a1.in_band_ip ipAddress,
+                a1.assets_id hostId,
+                a1.monitor_server_id monitorServerId,
+                a2.type_name assetsTypeName,
+                a2.type_icon url,
+                a1.assets_type_sub_id assetsSubTypeId,
+                a3.type_icon s_url,
+                a3.type_name assetsSubTypeName
+            FROM
+                ( SELECT t1.id, assets_name, assets_type_sub_id assets_type_sub_id, monitor_server_id, assets_id, assets_type_id,in_band_ip FROM mw_tangibleassets_table t1 WHERE t1.delete_flag = FALSE ) a1
+                LEFT JOIN mw_assetssubtype_table a2 ON a2.id = a1.assets_type_id
+            LEFT JOIN mw_assetssubtype_table a3 ON a3.id = a1.assets_type_sub_id
+            ) t1
+    </select>
+    <select id="selectVisualizedAssetsLabelList" resultMap="BaseResultMap">
+            SELECT
+                t1.typeId,
+                t1.typeName,
+                t1.assetsId,
+                t1.assetsName,
+                t1.ipAddress,
+                t1.hostId,
+                t1.monitorServerId,
+                t1.s_typeId,
+                t1.s_typeName,
+                t1.inputFormat
+            FROM
+                (
+                SELECT
+                    a1.label_id typeId,
+                    a2.label_name typeName,
+                    a2.input_format inputFormat,
+                    a1.type_id assetsId,
+                    a3.assets_name assetsName,
+                    a3.in_band_ip ipAddress,
+                    a3.assets_id hostId,
+                    a3.monitor_server_id monitorServerId,
+                    a1.id s_typeId,
+                    a1.tagboard s_typeName,
+                    a2.delete_flag
+                FROM
+                    (
+                    SELECT
+                        id,
+                        type_id,
+                        label_id,
+                        tagboard
+                    FROM
+                        mw_label_mapper
+                    WHERE
+                        module_type = 'ASSETS' UNION ALL
+                    SELECT
+                        id,
+                        type_id,
+                        label_id,
+                        drop_tagboard tagboard
+                    FROM
+                        (
+                        SELECT
+                            d1.id,
+                            d1.type_id,
+                            d1.label_id,
+                            d2.drop_value drop_tagboard,
+                            d2.delete_flag
+                        FROM
+                            (
+                            SELECT
+                                id,
+                                type_id,
+                                label_id,
+                                module_type,
+                                drop_tagboard
+                            FROM
+                                mw_label_drop_mapper
+                            WHERE
+                            module_type = 'ASSETS') d1
+                            LEFT JOIN mw_dropdown_table d2 ON d1.drop_tagboard = d2.drop_id
+                        ) drop1
+                    WHERE
+                        drop1.delete_flag = FALSE UNION ALL
+                    SELECT
+                        id,
+                        type_id,
+                        label_id,
+                        date_tagboard tagboard
+                    FROM
+                        mw_label_date_mapper
+                    WHERE
+                        module_type = 'ASSETS'
+                    ) a1
+                    LEFT JOIN mw_labelmanage_table a2 ON a2.label_id = a1.label_id
+                    LEFT JOIN (
+                    SELECT
+                        t1.assets_name,
+                        t1.assets_id,
+                        t1.monitor_server_id,
+                        t1.id,
+                        t1.delete_flag,
+                        t1.in_band_ip
+                    FROM
+                        mw_tangibleassets_table t1
+                    WHERE
+                        t1.delete_flag = FALSE
+                    ) a3 ON a3.id = a1.type_id
+                WHERE
+                    a3.delete_flag = FALSE
+                ) t1
+            WHERE
+                t1.delete_flag = FALSE
+    </select>
+    <select id="selectVisualizedAssetsOrgList" resultType="cn.mw.monitor.visualized.dto.MwVisualizedAssetsDto">
+        SELECT
+            a2.id id,
+            a2.assets_id assetsId,
+            a2.monitor_server_id monitorServerId,
+            a2.assets_name assetsName,
+            a2.in_band_ip ipAddress
+        FROM
+            ( SELECT type_id, org_id FROM mw_org_mapper WHERE `type` = 'ASSETS' AND org_id = #{orgId,jdbcType=INTEGER} ) a1
+            LEFT JOIN (
+            SELECT
+                t1.id,
+                t1.assets_name,
+                t1.monitor_server_id,
+                t1.assets_id,
+                t1.creator,
+                t1.delete_flag,
+                t1.in_band_ip
+            FROM
+                mw_tangibleassets_table t1
+            WHERE
+                t1.delete_flag = FALSE
+            ) a2 ON a1.type_id = a2.id
+        WHERE
+            a2.delete_flag = FALSE
+    </select>
+
+
+</mapper>

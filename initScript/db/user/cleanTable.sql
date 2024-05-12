@@ -1,0 +1,25 @@
+truncate table mw_group_org_mapper;
+truncate table mw_group_table;
+truncate table mw_org_assets_mapper;
+truncate table mw_org_passwdplan_mapper;
+truncate table mw_passwd_his;
+delete from mw_passwd_plan where passwd_id != '1';
+delete from mw_role where id != '0';
+delete from mw_role_module_perm_mapper where role_id !='0';
+delete from mw_sys_org where org_id != '1';
+delete from mw_sys_user where user_id != '106';
+truncate table mw_user_assets_mapper;
+truncate table mw_user_group_mapper;
+truncate table mw_user_manager;
+delete from mw_user_org_mapper where user_id != '106';
+delete from mw_user_role_mapper where user_id != '106';
+truncate table mw_user_mapper;
+truncate table mw_group_mapper;
+truncate table mw_org_mapper;
+truncate table mw_settings_info;
+truncate table mw_passwd_inform;
+truncate table mw_ad_info_mapper;
+truncate table mw_adconfig_user_mapper;
+truncate table mw_adAuthentic_mapper;
+truncate table mw_sys_credential;
+

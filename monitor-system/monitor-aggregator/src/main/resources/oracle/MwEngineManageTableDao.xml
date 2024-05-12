@@ -1,0 +1,539 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.mw.monitor.engineManage.dao.MwEngineManageTableDao">
+    <resultMap id="ParentMap" type="cn.mw.monitor.service.engineManage.model.MwEngineManageTable">
+        <id column="id" jdbcType="VARCHAR" property="id"/>
+        <result column="engine_name" jdbcType="VARCHAR" property="engineName"/>
+        <result column="server_ip" jdbcType="VARCHAR" property="serverIp"/>
+        <result column="mode" jdbcType="VARCHAR" property="mode"/>
+        <result column="description" jdbcType="VARCHAR" property="description"/>
+        <result column="encryption" jdbcType="VARCHAR" property="encryption"/>
+        <result column="key_consistency" jdbcType="VARCHAR" property="keyConsistency"/>
+        <result column="shared_key" jdbcType="VARCHAR" property="sharedKey"/>
+        <result column="publisher" jdbcType="VARCHAR" property="publisher"/>
+        <result column="title" jdbcType="VARCHAR" property="title"/>
+        <result column="compress" jdbcType="VARCHAR" property="compress"/>
+        <result column="Monitor_host_number" jdbcType="INTEGER" property="monitorHostNumber"/>
+        <result column="monitoring_items_number" jdbcType="INTEGER" property="monitoringItemsNumber"/>
+        <result column="performance" jdbcType="VARCHAR" property="performance"/>
+        <result column="creator" jdbcType="VARCHAR" property="creator"/>
+        <result column="create_date" jdbcType="TIMESTAMP" property="createDate"/>
+        <result column="modifier" jdbcType="VARCHAR" property="modifier"/>
+        <result column="modification_date" jdbcType="TIMESTAMP" property="modificationDate"/>
+        <result column="port" jdbcType="VARCHAR" property="port"/>
+        <result column="proxy_id" jdbcType="VARCHAR" property="proxyId"/>
+        <result column="delete_flag" jdbcType="BIT" property="deleteFlag"/>
+        <result column="monitor_server_id" jdbcType="INTEGER" property="monitorServerId"/>
+        <result column="monitoring_server_name" jdbcType="VARCHAR" property="monitorServerName"/>
+        <result column="proxy_name" jdbcType="VARCHAR" property="proxyName"/>
+        <result column="proxy_address" jdbcType="VARCHAR" property="proxyAddress"/>
+    </resultMap>
+
+    <resultMap id="BaseResultMap" type="cn.mw.monitor.service.engineManage.dto.MwEngineManageDTO" extends="ParentMap">
+        <result column="mode_name" jdbcType="VARCHAR" property="modeName"/>
+        <result column="encryption_name" jdbcType="VARCHAR" property="encryptionName"/>
+        <result column="monitorServerName" jdbcType="VARCHAR" property="monitorServerName"/>
+    </resultMap>
+
+    <sql id="Base_Column_List1">
+    ${alias}"engine_name", ${alias}"proxy_name", ${alias}"server_ip", ${alias}"mode", ${alias}"description", ${alias}"encryption", ${alias}"key_consistency",
+    ${alias}"shared_key", ${alias}"publisher", ${alias}"title", ${alias}"compress", ${alias}"Monitor_host_number", ${alias}"monitoring_items_number",
+    ${alias}"performance", ${alias}"creator", ${alias}"create_date", ${alias}"modifier", ${alias}"modification_date",${alias}"port",${alias}"proxy_id",${alias}"delete_flag", ${alias}"monitor_server_id", ${alias}"proxy_address"
+  </sql>
+
+    <sql id="select_Column_List">
+    ${alias}"id", ${alias}"engine_name", ${alias}"proxy_name", ${alias}"server_ip", ${alias}"mode", ${alias}"description", ${alias}"encryption", ${alias}"key_consistency",
+    ${alias}"shared_key", ${alias}"publisher", ${alias}"title", ${alias}"compress", ${alias}"Monitor_host_number", ${alias}"monitoring_items_number",
+    ${alias}"performance", ${alias}"creator", ${alias}"create_date", ${alias}"modifier", ${alias}"modification_date", ${alias}"port", ${alias}"proxy_id", ${alias}"delete_flag", ${alias}"monitor_server_id", ${alias}"proxy_address",
+    case  when ${alias}"mode" = '5' then '主动式' else '被动式' end "mode_name",
+    case  when ${alias}"encryption" = '1' then '非加密' when ${alias}"encryption" = '2' then  '共享密钥PSK' when ${alias}"encryption" = '4' then '证书' else '无' end "encryption_name"
+  </sql>
+
+    <sql id="tb">
+     ${TBSNAME}."mw_enginemanage_table"
+  </sql>
+
+    <sql id="criteria">
+        <if test="engineName != null and engineName != ''">
+            and ${alias}"engine_name" like '%'||#{engineName,jdbcType=VARCHAR}||'%'
+        </if>
+        <if test="serverIp != null and serverIp !=''">
+            and ${alias}"server_ip" like '%'||#{serverIp,jdbcType=VARCHAR}||'%'
+        </if>
+        <if test="mode != null and mode !=''">
+            and ${alias}"mode" = #{mode,jdbcType=VARCHAR}
+        </if>
+        <if test="description != null and description !=''">
+            and ${alias}"description" like '%'||#{description,jdbcType=VARCHAR}||'%'
+        </if>
+
+        <if test="encryption != null and keyConsistency !=''">
+            <if test="encryption == 0 ">
+                and (${alias}"encryption" is null or "encryption" = '')
+            </if>
+            <if test="encryption != 0 ">
+                and ${alias}"encryption" = #{encryption,jdbcType=VARCHAR}
+            </if>
+        </if>
+        <if test="keyConsistency != null and keyConsistency !=''">
+            and ${alias}"key_consistency" = #{keyConsistency,jdbcType=VARCHAR}
+        </if>
+        <if test="sharedKey != null and sharedKey !=''">
+            and ${alias}"shared_key" = #{sharedKey,jdbcType=VARCHAR}
+        </if>
+        <if test="publisher != null and publisher != ''">
+            and ${alias}"publisher" = #{publisher,jdbcType=VARCHAR}
+        </if>
+        <if test="title != null and title != ''">
+            and ${alias}"title" = #{title,jdbcType=VARCHAR}
+        </if>
+        <if test="compress != null and compress != ''">
+            and ${alias}"compress" = #{compress,jdbcType=VARCHAR}
+        </if>
+        <if test="monitorHostNumber != null">
+            and ${alias}"Monitor_host_number" = #{monitorHostNumber,jdbcType=INTEGER}
+        </if>
+        <if test="monitoringItemsNumber != null">
+            and ${alias}"monitoring_items_number" = #{monitoringItemsNumber,jdbcType=INTEGER}
+        </if>
+        <if test="performance != null and performance != ''">
+            and ${alias}"performance" = #{performance,jdbcType=VARCHAR}
+        </if>
+        <if test="port != null and port != ''">
+            and ${alias}"port" = #{port,jdbcType=VARCHAR}
+        </if>
+        <if test="creator != null and creator != ''">
+            and ${alias}"creator" = #{creator,jdbcType=VARCHAR}
+        </if>
+        <if test="createDateStart != null">
+            AND  <![CDATA[#{createDateStart,jdbcType=TIMESTAMP} <= ${alias}"create_date" ]]>
+        </if>
+        <if test="createDateEnd != null">
+            AND <![CDATA[#{createDateEnd,jdbcType=TIMESTAMP} >= ${alias}"create_date" ]]>
+        </if>
+        <if test="modifier != null and modifier != ''">
+            AND ${alias}"modifier" LIKE '%'||#{modifier,jdbcType=VARCHAR}||'%'
+        </if>
+        <if test="modificationDateStart != null">
+            AND  <![CDATA[#{modificationDateStart,jdbcType=TIMESTAMP} <= ${alias}"modification_date" ]]>
+        </if>
+        <if test="modificationDateEnd != null">
+            AND <![CDATA[#{modificationDateEnd,jdbcType=TIMESTAMP} >= ${alias}"modification_date" ]]>
+        </if>
+        <if test="monitorServerId != null and monitorServerId != 0">
+            and ${alias}"monitor_server_id" = #{monitorServerId,jdbcType=INTEGER}
+        </if>
+        <if test="proxyAddress != null and proxyAddress != 0">
+            and ${alias}"proxy_address" = #{proxyAddress,jdbcType=VARCHAR}
+        </if>
+        <if test="fuzzyQuery!= null and fuzzyQuery !='' ">
+            and T(
+            NVL( ${alias}"engine_name", '' )||
+            NVL( ${alias}"server_ip", '' )||
+            NVL( server."monitorServerName", '' )||
+            NVL( case  when ${alias}"mode" = '5' then '主动式' else '被动式' end, '' )||
+            NVL( case  when ${alias}"encryption" = '1' then '非加密' when ${alias}"encryption" = '2' then  '共享密钥PSK' when ${alias}"encryption" = '4' then '证书' else '无' end, '' )||
+            NVL( ${alias}"compress", '' )||
+            NVL( ${alias}"creator", '' )||
+            NVL( ${alias}"modifier", '' )
+            ) LIKE '%'||#{fuzzyQuery,jdbcType=VARCHAR}||'%'
+            ORDER BY
+            ( CASE WHEN INSTR( ${alias}"engine_name", #{fuzzyQuery}) > 0 THEN 0 ELSE 1 END ),
+            ( CASE WHEN INSTR( ${alias}"server_ip", #{fuzzyQuery}) > 0 THEN 0 ELSE 1 END ),
+            ( CASE WHEN INSTR( server."monitorServerName", #{fuzzyQuery}) > 0 THEN 0 ELSE 1 END ),
+            ( CASE WHEN INSTR( ${alias}"creator", #{fuzzyQuery}) > 0 THEN 0 ELSE 1 END ),
+            ( CASE WHEN INSTR( ${alias}"modifier", #{fuzzyQuery} ) > 0 THEN 0 ELSE 1 END ),
+            ( CASE WHEN INSTR( case  when ${alias}"mode" = '5' then '主动式' else '被动式' end, #{fuzzyQuery} ) > 0 THEN 0 ELSE 1 END ),
+            ( CASE WHEN INSTR( case when  ${alias}"encryption" = '1' then '非加密' when  ${alias}"encryption" = '2' then  '共享密钥PSK' when  ${alias}"encryption" = '4' then '证书' else '无' end, #{fuzzyQuery} ) > 0 THEN 0 ELSE 1 END )
+        </if>
+        <if test="systemUser == false">
+            and instr(#{list},${alias}"id")>0
+        </if>
+    </sql>
+
+    <select id="selectById" parameterType="java.lang.String" resultMap="BaseResultMap">
+        select
+        t2."monitoring_server_name" as "monitorServerName",
+        <include refid="select_Column_List">
+            <property name="alias" value="t1."/>
+        </include>
+        from
+        <include refid="tb"/>
+        t1
+        left join ${TBSNAME}."mw_thirdparty_server_table" t2 on t2."id" = t1."monitor_server_id"
+        where t1."id" = #{id,jdbcType=VARCHAR}
+    </select>
+
+    <select id="selectByIds" parameterType="java.util.List" resultMap="BaseResultMap">
+        select
+        t2."monitoring_server_name" as "monitorServerName",
+        <include refid="select_Column_List">
+            <property name="alias" value="t1."/>
+        </include>
+        from
+        <include refid="tb"/>
+        t1
+        left join ${TBSNAME}."mw_thirdparty_server_table" t2 on t2."id" = t1."monitor_server_id"
+        where t1."id" in
+        <foreach collection="list" item="id" index="index" separator="," open="(" close=")">
+            #{id,jdbcType=VARCHAR}
+        </foreach>
+    </select>
+
+    <update id="delete" parameterType="java.util.List">
+        update
+        <include refid="tb"/>
+        set "delete_flag" = 1
+        where "id" in (
+        <foreach collection="list" item="id" separator=",">
+            #{id,jdbcType=VARCHAR}
+        </foreach>
+        )
+    </update>
+
+    <insert id="insert" parameterType="cn.mw.monitor.engineManage.api.param.engineManage.AddOrUpdateEngineManageParam"
+            useGeneratedKeys="false" keyProperty="id">
+        insert into ${TBSNAME}."mw_enginemanage_table"
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="id != null">
+                "id",
+            </if>
+            <if test="engineName != null">
+                "engine_name",
+            </if>
+            <if test="serverIp != null">
+                "server_ip",
+            </if>
+            <if test="mode != null">
+                "mode",
+            </if>
+            <if test="description != null">
+                "description",
+            </if>
+            <if test="encryption != null">
+                "encryption",
+            </if>
+            <if test="keyConsistency != null">
+                "key_consistency",
+            </if>
+            <if test="sharedKey != null">
+                "shared_key",
+            </if>
+            <if test="publisher != null">
+                "publisher",
+            </if>
+            <if test="title != null">
+                "title",
+            </if>
+            <if test="compress != null">
+                "compress",
+            </if>
+            <if test="monitorHostNumber != null">
+                "Monitor_host_number",
+            </if>
+            <if test="monitoringItemsNumber != null">
+                "monitoring_items_number",
+            </if>
+            <if test="performance != null">
+                "performance",
+            </if>
+            <if test="creator != null">
+                "creator",
+            </if>
+            "create_date",
+            <if test="modifier != null">
+                "modifier",
+            </if>
+            "modification_date",
+            <if test="port != null">
+                "port",
+            </if>
+            <if test="proxyId != null">
+                "proxy_id",
+            </if>
+            <if test="deleteFlag != null">
+                "delete_flag",
+            </if>
+            <if test="monitorServerId != null">
+                "monitor_server_id",
+            </if>
+            <if test="proxyName != null">
+                "proxy_name",
+            </if>
+            <if test="proxyAddress != null">
+                "proxy_address"
+            </if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="id != null">
+                #{id,jdbcType=VARCHAR},
+            </if>
+            <if test="engineName != null">
+                #{engineName,jdbcType=VARCHAR},
+            </if>
+            <if test="serverIp != null">
+                #{serverIp,jdbcType=VARCHAR},
+            </if>
+            <if test="mode != null">
+                #{mode,jdbcType=VARCHAR},
+            </if>
+            <if test="description != null">
+                #{description,jdbcType=VARCHAR},
+            </if>
+            <if test="encryption != null">
+                #{encryption,jdbcType=VARCHAR},
+            </if>
+            <if test="keyConsistency != null">
+                #{keyConsistency,jdbcType=VARCHAR},
+            </if>
+            <if test="sharedKey != null">
+                #{sharedKey,jdbcType=VARCHAR},
+            </if>
+            <if test="publisher != null">
+                #{publisher,jdbcType=VARCHAR},
+            </if>
+            <if test="title != null">
+                #{title,jdbcType=VARCHAR},
+            </if>
+            <if test="compress != null">
+                #{compress,jdbcType=VARCHAR},
+            </if>
+            <if test="monitorHostNumber != null">
+                #{monitorHostNumber,jdbcType=INTEGER},
+            </if>
+            <if test="monitoringItemsNumber != null">
+                #{monitoringItemsNumber,jdbcType=INTEGER},
+            </if>
+            <if test="performance != null">
+                #{performance,jdbcType=VARCHAR},
+            </if>
+            <if test="creator != null">
+                #{creator,jdbcType=VARCHAR},
+            </if>
+            SYSDATE,
+            <if test="modifier != null">
+                #{modifier,jdbcType=VARCHAR},
+            </if>
+            SYSDATE,
+            <if test="port != null">
+                #{port,jdbcType=VARCHAR},
+            </if>
+            <if test="proxyId != null">
+                #{proxyId,jdbcType=VARCHAR},
+            </if>
+            <if test="deleteFlag != null">
+                #{deleteFlag,jdbcType=BIT},
+            </if>
+            <if test="monitorServerId != null">
+                #{monitorServerId,jdbcType=INTEGER},
+            </if>
+            <if test="proxyName != null">
+                #{proxyName,jdbcType=VARCHAR},
+            </if>
+            <if test="proxyAddress != null">
+                #{proxyAddress,jdbcType=VARCHAR}
+            </if>
+        </trim>
+    </insert>
+
+    <update id="update" parameterType="cn.mw.monitor.engineManage.api.param.engineManage.AddOrUpdateEngineManageParam">
+        update ${TBSNAME}."mw_enginemanage_table"
+        <set>
+            <if test="engineName != null">
+                "engine_name" = #{engineName,jdbcType=VARCHAR},
+            </if>
+            "server_ip" = #{serverIp,jdbcType=VARCHAR},
+            <if test="mode != null">
+                "mode" = #{mode,jdbcType=VARCHAR},
+            </if>
+            <if test="description != null">
+                "description" = #{description,jdbcType=VARCHAR},
+            </if>
+            "encryption" = #{encryption,jdbcType=VARCHAR},
+            "key_consistency" = #{keyConsistency,jdbcType=VARCHAR},
+            "shared_key" = #{sharedKey,jdbcType=VARCHAR},
+            "publisher" = #{publisher,jdbcType=VARCHAR},
+            "title" = #{title,jdbcType=VARCHAR},
+            <if test="compress != null">
+                "compress" = #{compress,jdbcType=VARCHAR},
+            </if>
+            <if test="monitorHostNumber != null">
+                "Monitor_host_number" = #{monitorHostNumber,jdbcType=INTEGER},
+            </if>
+            <if test="monitoringItemsNumber != null">
+                "monitoring_items_number" = #{monitoringItemsNumber,jdbcType=INTEGER},
+            </if>
+            <if test="performance != null">
+                "performance" = #{performance,jdbcType=VARCHAR},
+            </if>
+            <if test="modifier != null">
+                "modifier" = #{modifier,jdbcType=VARCHAR},
+            </if>
+            <if test="modificationDate != null">
+                "modification_date" = SYSDATE,
+            </if>
+            "port" = #{port,jdbcType=VARCHAR},
+            <if test="proxyId != null">
+                "proxy_id" = #{proxyId,jdbcType=VARCHAR},
+            </if>
+            <if test="monitorServerId != null and monitorServerId != 0">
+                "monitor_server_id" = #{monitorServerId,jdbcType=INTEGER},
+            </if>
+            <if test="proxyAddress != null">
+                "proxy_address" = #{proxyAddress,jdbcType=VARCHAR},
+            </if>
+        </set>
+        where "id" = #{id,jdbcType=VARCHAR}
+    </update>
+
+    <select id="selectPubList" parameterType="cn.mw.monitor.engineManage.api.param.engineManage.QueryEngineManageParam"
+            resultMap="BaseResultMap">
+        select
+        t3."monitorServerName",
+        <include refid="select_Column_List">
+            <property name="alias" value="t3."/>
+        </include>
+        from (
+        select server."monitoring_server_name" as "monitorServerName",t1."id",<include refid="Base_Column_List1"><property name="alias" value="t1."/></include> from ${TBSNAME}."mw_enginemanage_table" t1
+                left join ${TBSNAME}."mw_thirdparty_server_table" server on server."id" = t1."monitor_server_id"
+                WHERE t1."delete_flag" = 0
+                <include refid="criteria"><property name="alias" value="t1."/></include>
+                ) t3 ORDER BY t3."create_date" desc
+    </select>
+
+    <select id="selectDropdownList" resultType="cn.mw.monitor.engineManage.dto.EngineDropdownDTO">
+        select "id","engine_name" AS "engineName"
+        from
+        <include refid="tb"></include>
+        where "delete_flag" = 0
+        <if test="monitorServerId != null">
+            AND "monitor_server_id" = #{monitorServerId,jdbcType=INTEGER}
+        </if>
+        <if test="proxyIds != null and proxyIds.size > 0">
+            and "proxy_id" in (
+            <foreach collection="proxyIds" item="id" separator=",">
+                #{id,jdbcType=INTEGER}
+            </foreach>
+            )
+        </if>
+    </select>
+
+    <select id="selectDropdownBatchList" resultType="cn.mw.monitor.engineManage.dto.EngineDropdownDTO" parameterType="java.util.List">
+        select "id","engine_name" as "engineName", CONCAT("monitor_server_id",'') as "monitorServerId"
+        from
+        <include refid="tb"></include>
+        where "delete_flag" = 0
+        and "monitor_server_id" in (
+        <foreach collection="list" item="id" separator=",">
+            #{id,jdbcType=INTEGER}
+        </foreach>
+        )
+    </select>
+
+    <select id="selectDropdown" resultType="cn.mw.monitor.service.dropdown.param.SelectCharDropDto">
+        select "id" as "dropKey"
+              ,"engine_name" as "dropValue"
+              ,"monitor_server_id" as "monitorServerId"
+        from
+        <include refid="tb"></include>
+        where "delete_flag" = 0
+    </select>
+
+    <select id="selectByServerIp" resultMap="BaseResultMap" parameterType="java.lang.String">
+        select "id"
+        from
+        <include refid="tb"></include>
+        where "server_ip" = #{serverIp,jdbcType=VARCHAR}
+    </select>
+
+    <select id="selectTPProxyById" parameterType="java.lang.String"
+            resultType="cn.mw.monitor.engineManage.dto.EngineProxyDTO">
+        select
+        "id" as "engineId",
+        "monitor_server_id" as "monitorServerId",
+        "proxy_id" as "proxyId",
+        "Monitor_host_number" as "monitorHostNumber",
+        "monitoring_items_number" as "monitoringItemsNumber"
+        from
+        <include refid="tb"></include>
+        where "id" =
+        #{id,jdbcType=VARCHAR}
+    </select>
+
+    <update id="updateProxyMonitorNums">
+        update
+        <include refid="tb"/>
+        set "Monitor_host_number" = #{monitorHostNumber,jdbcType=INTEGER},
+        "monitoring_items_number" = #{monitoringItemsNumber,jdbcType=INTEGER},
+        "modification_date" = SYSDATE
+        where "id" =
+        #{id,jdbcType=VARCHAR}
+    </update>
+
+    <update id="deleteByMonitorServerIds" parameterType="java.util.List">
+        update
+        <include refid="tb"/>
+        set "delete_flag" = 1
+        where "monitor_server_id" in (
+        <foreach collection="list" item="id" separator=",">
+            #{id,jdbcType=INTEGER}
+        </foreach>
+        )
+    </update>
+
+    <select id="selectAssetsByEngine" resultType="java.lang.String" parameterType="java.util.List">
+        select "id"
+        from
+        ${TBSNAME}."mw_tangibleassets_table"
+        where "delete_flag" = 0 and "polling_engine" in (
+        <foreach collection="list" item="id" separator=",">
+            #{id,jdbcType=VARCHAR}
+        </foreach>
+        )
+        union
+        select "id"
+        from
+        ${TBSNAME}."mw_outbandassets_table"
+        where "delete_flag" = 0 and "polling_engine" in (
+        <foreach collection="list" item="id" separator=",">
+            #{id,jdbcType=VARCHAR}
+        </foreach>
+        )
+    </select>
+
+    <select id="fuzzSearchAllFiled" resultType="java.util.Map">
+        SELECT
+            t1."engine_name",
+            t1."server_ip",
+            t2."monitoring_server_name" as "monitor_server_name",
+            case when t1."mode" ='5' then '主动式' else '被动式' end "mode",
+            case when  t1."encryption" = '1' then '非加密' when  t1."encryption" = '2' then  '共享密钥PSK' when  t1."encryption" = '4' then '证书' else '无' end "encryption",
+            t1."compress",
+            t1."creator",
+            t1."modifier"
+        FROM
+        <include refid="tb"/>
+        t1
+        left join ${TBSNAME}."mw_thirdparty_server_table" t2 on t2."id" = t1."monitor_server_id"
+        WHERE
+        t1."delete_flag" = 0
+        and (
+            NVL( t1."engine_name", '' )||
+            NVL( t1."server_ip", '' )||
+            NVL( t2."monitoring_server_name", '' )||
+            NVL( case when t1."mode" = '5' then '主动式' else '被动式' end, '' )||
+            NVL( case  when t1."encryption" = '1' then '非加密' when t1."encryption" = '2' then  '共享密钥PSK' when t1."encryption" = '4' then '证书' else '无' end, '' )||
+            NVL( t1."compress", '' )||
+            NVL( t1."creator", '' )||
+            NVL( t1."modifier", '' )
+            ) LIKE '%'||#{fuzzyQuery,jdbcType=VARCHAR}||'%'
+            ORDER BY
+            ( CASE WHEN INSTR( t1."engine_name", #{fuzzyQuery}) > 0 THEN 0 ELSE 1 END ),
+            ( CASE WHEN INSTR( t1."server_ip", #{fuzzyQuery}) > 0 THEN 0 ELSE 1 END ),
+            ( CASE WHEN INSTR( t2."monitoring_server_name", #{fuzzyQuery}) > 0 THEN 0 ELSE 1 END ),
+            ( CASE WHEN INSTR( t1."creator", #{fuzzyQuery}) > 0 THEN 0 ELSE 1 END ),
+            ( CASE WHEN INSTR( t1."modifier", #{fuzzyQuery} ) > 0 THEN 0 ELSE 1 END ),
+            ( CASE WHEN INSTR( case  when t1."mode" = '5' then '主动式' else '被动式' end, #{fuzzyQuery} ) > 0 THEN 0 ELSE 1 END ),
+            ( CASE WHEN INSTR( case  when t1."encryption" = '1' then '非加密' when t1."encryption" = '2' then  '共享密钥PSK' when t1."encryption" = '4' then '证书' else '无' end, #{fuzzyQuery} ) > 0 THEN 0 ELSE 1 END )
+    </select>
+</mapper>

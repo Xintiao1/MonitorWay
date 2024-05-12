@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.mw.monitor.knowledgeBase.dao.MwKnowledgeLikeOrHateRecordDao">
+    <resultMap id="ParentMap" type="cn.mw.monitor.knowledgeBase.model.MwKnowledgeLikeOrHateRecord">
+        <id column="id" jdbcType="INTEGER" property="id"/>
+        <result column="knowledge_id" jdbcType="VARCHAR" property="knowledgeId"/>
+        <result column="status" jdbcType="INTEGER" property="status"/>
+        <result column="times" jdbcType="INTEGER" property="times"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+    "id", "knowledge_id", "status", "times"
+  </sql>
+
+    <sql id="tb">
+    "mw_knowledge_likeorhate_record"
+  </sql>
+
+    <sql id="criteria">
+        <if test="knowledgeId != null and knowledgeId != ''">
+            and "knowledge_id" = #{knowledgeId,jdbcType=VARCHAR}
+        </if>
+        <if test="status != null">
+            and "status" = #{status,jdbcType=INTEGER}
+        </if>
+        <if test="times != null">
+            and "times" = #{times,jdbcType=INTEGER}
+        </if>
+    </sql>
+
+    <insert id="insert" parameterType="cn.mw.monitor.knowledgeBase.model.MwKnowledgeLikeOrHateRecord"
+            useGeneratedKeys="false" keyProperty="id">
+        insert into
+        <include refid="tb"/>
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="knowledgeId != null">
+                "knowledge_id",
+            </if>
+            <if test="times != null">
+                "times",
+            </if>
+            <if test="status != null">
+                "status"
+            </if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="knowledgeId != null">
+                #{knowledgeId,jdbcType=VARCHAR},
+            </if>
+            <if test="times != null">
+                #{times,jdbcType=INTEGER},
+            </if>
+            <if test="status != null">
+                #{status,jdbcType=INTEGER}
+            </if>
+        </trim>
+    </insert>
+
+    <select id="selectList" resultMap="ParentMap" parameterType="java.util.Map">
+        select
+        <include refid="Base_Column_List"/>
+        from
+        <include refid="tb"/>
+        where 1=1
+        <include refid="criteria"/>
+    </select>
+
+    <delete id="delete" parameterType="java.util.List">
+        delete from
+        <include refid="tb"/>
+        where "knowledge_id" in (
+        <foreach collection="list" item="id" separator=",">
+            #{id,jdbcType=VARCHAR}
+        </foreach>
+        )
+    </delete>
+
+    <!--  批量添加-->
+    <insert id="saveAll" parameterType="java.util.List">
+        insert into <include refid="tb" />
+        ( "knowledge_id", "times", "status")
+        values
+        <foreach collection="list" item="kList" separator=",">
+            (#{kList.knowledgeId,jdbcType=VARCHAR}, #{kList.times,jdbcType=INTEGER}, #{kList.status,jdbcType=INTEGER})
+        </foreach>
+    </insert>
+
+    <select id="selectTimes" resultType="int">
+        select
+        "times"
+        from
+        <include refid="tb"/>
+        where "knowledge_id"=#{knowledgeId,jdbcType=VARCHAR} and "status"=#{status,jdbcType=INTEGER}
+    </select>
+
+    <select id="selectByKnowledgeIdAndStatus" resultMap="ParentMap">
+        select
+        <include refid="Base_Column_List"/>
+        from
+        <include refid="tb"/>
+        where "knowledge_id"=#{knowledgeId,jdbcType=VARCHAR} and "status"=#{status,jdbcType=INTEGER}
+    </select>
+
+    <update id="updateTimes">
+        update "mw_knowledge_likeorhate_record" set "times"=#{times,jdbcType=INTEGER} where "knowledge_id"=#{knowledgeId,jdbcType=VARCHAR} and "status"=#{status,jdbcType=INTEGER}
+    </update>
+</mapper>

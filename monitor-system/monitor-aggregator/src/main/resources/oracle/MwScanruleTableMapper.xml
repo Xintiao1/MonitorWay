@@ -1,0 +1,542 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.mw.monitor.scanrule.dao.MwScanruleTableDao">
+  <resultMap id="BaseResultMap" type="cn.mw.monitor.scanrule.dto.MwScanruleDTO">
+    <id column="scanrule_id" jdbcType="INTEGER" property="scanruleId" />
+    <result column="scanrule_name" jdbcType="VARCHAR" property="scanruleName" />
+    <result column="monitor_server_id" jdbcType="INTEGER" property="monitorServerId" />
+    <result column="creator" jdbcType="VARCHAR" property="creator" />
+    <result column="create_date" jdbcType="TIMESTAMP" property="createDate" />
+    <result column="modifier" jdbcType="VARCHAR" property="modifier" />
+    <result column="modification_date" jdbcType="TIMESTAMP" property="modificationDate" />
+    <result column="scan_start_date" jdbcType="TIMESTAMP" property="scanStartDate" />
+    <result column="scan_end_date" jdbcType="TIMESTAMP" property="scanEndDate" />
+    <result column="engine_id" jdbcType="VARCHAR" property="engineId" />
+
+    <collection property="rulesnmpv1DTOs" javaType="java.util.ArrayList" ofType="cn.mw.monitor.scanrule.dto.MwRulesnmpv1DTO" >
+      <id column="t2id" property="id" />
+      <result column="rule_id" property="ruleId" />
+      <result column="hostId" property="hostId" />
+      <result column="t2.port" property="port" />
+      <result column="community" property="community" />
+    </collection>
+
+    <collection property="rulesnmpDTOs"  ofType="cn.mw.monitor.scanrule.dto.MwRulesnmpDTO" >
+      <id column="t3id" property="id" />
+      <result column="host_id" property="hostId" jdbcType="VARCHAR"/>
+      <result column="t3.port" property="port" jdbcType="INTEGER"/>
+      <result column="t3.community" property="community" jdbcType="VARCHAR"/>
+      <result column="snmpLev" property="snmpLev" jdbcType="VARCHAR"/>
+      <result column="secName" property="secName" jdbcType="VARCHAR"/>
+      <result column="secLevel" property="secLevel" jdbcType="VARCHAR"/>
+      <result column="authAlg" property="authAlg" jdbcType="VARCHAR"/>
+      <result column="authValue" property="authValue" jdbcType="VARCHAR"/>
+      <result column="privAlg" property="privAlg" jdbcType="VARCHAR"/>
+      <result column="priValue" property="priValue" jdbcType="VARCHAR"/>
+      <result column="contextName" property="contextName" jdbcType="VARCHAR"/>
+    </collection>
+
+    <collection property="agentruleDTOs" ofType="cn.mw.monitor.scanrule.dto.MwAgentruleDTO" >
+      <id column="t4id" property="id" />
+      <result column="t4.port" property="port" jdbcType="INTEGER" />
+    </collection>
+
+    <collection property="portruleDTOs" ofType="cn.mw.monitor.scanrule.dto.MwPortruleDTO" >
+      <id column="t5id" property="id" />
+      <result column="t5.port" property="port" jdbcType="INTEGER" />
+    </collection>
+
+    <collection property="icmpruleDTOList" ofType="cn.mw.monitor.scanrule.dto.MwIcmpruleDTO" >
+      <id column="t9id" property="id" />
+      <result column="t9.port" property="port" />
+    </collection>
+
+    <collection property="ipRangDTO" ofType="cn.mw.monitor.scanrule.dto.MwIpRangDTO" >
+      <id column="t6id" property="id" />
+      <result column="ipRangStart" property="ipRangStart"/>
+      <result column="ipRangEnd" property="ipRangEnd"/>
+      <result column="ipTypeRange" property="ipType"/>
+    </collection>
+
+    <collection property="ipAddressesDTO" ofType="cn.mw.monitor.scanrule.dto.MwIpAddressesDTO" >
+      <id column="t7id" property="id" />
+      <result column="ipAddresses" property="ipAddresses"/>
+      <result column="ipTypes" property="ipType"/>
+    </collection>
+
+    <collection property="ipAddressListDTO" ofType="cn.mw.monitor.scanrule.dto.MwIpAddressListDTO" >
+      <id column="t8id" property="id" />
+      <result column="ipAddress" property="ipAddress"/>
+      <result column="ipTypeList"  jdbcType="BIT" property="ipType"/>
+    </collection>
+  </resultMap>
+
+  <sql id="iprange_column_List">
+        ${alias}"ip_rang_start" as "ipRangStart"
+        ,${alias}"ip_rang_end" as "ipRangEnd"
+        ,${alias}"ip_type" as "ipTypeRange"
+  </sql>
+  <select id="selectIpRang" parameterType="java.lang.Integer" resultType="cn.mw.monitor.scanrule.dto.MwIpRangDTO">
+    select <include refid="iprange_column_List" ><property name="alias" value=""/></include>
+    from ${TBSNAME}."mw_iprang_table"
+    where "rule_id" = #{id,jdbcType=INTEGER}
+  </select>
+
+  <sql id="ipaddresses_column_List">
+        ${alias}"ip_addresses" as "ipAddresses"
+        ,${alias}"ip_type" as "ipTypes"
+  </sql>
+  <select id="selectIpAddresses" parameterType="java.lang.Integer" resultType="cn.mw.monitor.scanrule.dto.MwIpAddressesDTO">
+    select <include refid="ipaddresses_column_List" ><property name="alias" value=""/></include>
+    from ${TBSNAME}."mw_ipaddresses_table"
+    where "rule_id" = #{id,jdbcType=INTEGER}
+  </select>
+
+  <sql id="ipaddresslist_column_List">
+        ${alias}"ip_address" as "ipAddress"
+        ,${alias}"ip_type" as "ipTypeList"
+  </sql>
+  <select id="selectIpAddressList" parameterType="java.lang.Integer" resultType="cn.mw.monitor.scanrule.dto.MwIpAddressListDTO">
+    select <include refid="ipaddresslist_column_List" ><property name="alias" value=""/></include>
+    from ${TBSNAME}."mw_ipaddresslist_table"
+    where "rule_id" = #{id,jdbcType=INTEGER}
+  </select>
+
+  <sql id="SnmpV1_column_List">
+        ${alias}"host_id" as "hostId"
+        ,${alias}"port" as "${alias}port"
+        ,${alias}"community" as "community"
+  </sql>
+
+  <sql id="SnmpV3_column_List">
+        ${alias}"host_id" as "hostId"
+        ,${alias}"port" as "${alias}port"
+        ,${alias}"sec_name" as "secName"
+        ,${alias}"sec_level" as "secLevel"
+        ,${alias}"auth_alg" as "authAlg"
+        ,${alias}"auth_value" as "authValue"
+        ,${alias}"priv_alg" as "privAlg"
+        ,${alias}"pri_value" as "priValue"
+        ,${alias}"context_name" as "contextName"
+  </sql>
+
+  <sql id="zabbixAgent_column_List">
+        ${alias}"port" as "${alias}port"
+  </sql>
+
+  <sql id="port_column_List">
+        ${alias}"port" as "${alias}port"
+  </sql>
+
+  <sql id="icmp_column_List">
+        ${alias}"port" as "${alias}port"
+  </sql>
+
+  <sql id="Base_Column_List">
+    ${alias}"scanrule_id" as "scanrule_id", ${alias}"scanrule_name" as "scanrule_name"
+    , ${alias}"creator" as "creator", ${alias}"create_date" as "create_date", ${alias}"modifier" as "modifier"
+    , ${alias}"modification_date" as "modification_date"
+    , ${alias}"monitor_server_id" as "monitor_server_id"
+    , ${alias}"engine_id" as "engine_id"
+  </sql>
+
+  <sql id="Add_Column_List">
+     "scanrule_id",""scanrule_name", "monitor_server_id", "creator", "create_date", "modifier", "modification_date"
+  </sql>
+
+
+  <sql id="tb">
+    ${TBSNAME}."mw_scanrule_table"
+  </sql>
+
+  <sql id="group_column_list">
+    ${alias}"scanrule_id"
+    , ${alias}"scanrule_name"
+    , ${alias}"monitor_server_id"
+    , ${alias}"creator", ${alias}"create_date"
+    , ${alias}"modifier", ${alias}"modification_date"
+    , ${alias}"scan_start_date", ${alias}"scan_end_date"
+  </sql>
+
+
+  <select id="selectById" parameterType="java.lang.Integer" resultMap="BaseResultMap">
+    select
+    <include refid="Base_Column_List" ><property name="alias" value="t1."/></include>
+    ,t2."id" as "t2id"
+    ,<include refid="SnmpV1_column_List" ><property name="alias" value="t2."/></include>
+    ,t3."id" as "t3id"
+    ,<include refid="SnmpV3_column_List" ><property name="alias" value="t3."/></include>
+    ,t4."id" as "t4id"
+    ,<include refid="zabbixAgent_column_List" ><property name="alias" value="t4."/></include>
+    ,t5."id" as "t5id"
+    ,<include refid="port_column_List" ><property name="alias" value="t5."/></include>
+    ,t6."id" as "t6id"
+    ,<include refid="icmp_column_List" ><property name="alias" value="t9."/></include>
+    ,t9."id" as "t9id"
+    ,<include refid="iprange_column_List" ><property name="alias" value="t6."/></include>
+    ,t7."id" as "t7id"
+    ,<include refid="ipaddresses_column_List" ><property name="alias" value="t7."/></include>
+    ,t8."id" as "t8id"
+    ,<include refid="ipaddresslist_column_List" ><property name="alias" value="t8."/></include>
+    from
+    <include refid="tb" /> t1
+    left join ${TBSNAME}."mw_rulesnmpv1_table" t2 on t1."scanrule_id" = t2."rule_id"
+    left join ${TBSNAME}."mw_rulesnmpv3_table" t3 on t1."scanrule_id" = t3."rule_id"
+    left join ${TBSNAME}."mw_agentrule_table" t4 on t1."scanrule_id" = t4."rule_id"
+    left join ${TBSNAME}."mw_portrule_table" t5 on t1."scanrule_id" = t5."rule_id"
+    left join ${TBSNAME}."mw_icmprule_table" t9 on t1."scanrule_id" = t9."rule_id"
+    left join ${TBSNAME}."mw_iprang_table" t6 on t1."scanrule_id" = t6."rule_id"
+    left join ${TBSNAME}."mw_ipaddresses_table" t7 on t1."scanrule_id" = t7."rule_id"
+    left join ${TBSNAME}."mw_ipaddresslist_table" t8 on t1."scanrule_id" = t8."rule_id"
+    where t1."scanrule_id" = #{scanruleId,jdbcType=INTEGER}
+  </select>
+
+  <select id="selectList" parameterType="cn.mw.monitor.scanrule.api.param.scanrule.QueryScanruleParam" resultMap="BaseResultMap">
+    select
+    <include refid="group_column_list" ><property name="alias" value="lastone."/></include>
+    from (
+    select
+        <include refid="group_column_list" ><property name="alias" value="t1."/></include>
+    from
+    <include refid="tb" /> t1
+    where 1=1
+    and t1."delete_flag" = 0
+    <if test="fuzzyQuery!= null and fuzzyQuery !='' ">
+      and (
+      NVL( t1.scanrule_name, '' )||
+      NVL( t1.modifier, '' )
+      ) LIKE ('%'||#{fuzzyQuery,jdbcType=VARCHAR}||'%')
+      ORDER BY
+      ( CASE WHEN INSTR( t1.scanrule_name, #{fuzzyQuery}) > 0 THEN 0 ELSE 1 END ),
+      ( CASE WHEN INSTR( t1.modifier, #{fuzzyQuery}) > 0 THEN 0 ELSE 1 END )
+    </if>
+    <if test="scanruleName != null and scanruleName != ''" >
+      and t1."scanrule_name" like ('%'|| #{scanruleName,jdbcType=VARCHAR}||'%')
+    </if>
+    <if test="creator != null and creator != ''">
+      and t1."modifier" = #{creator,jdbcType=VARCHAR}
+    </if>
+    <if test="createDateStart != null ">
+      and t1."create_date" &gt;= #{createDateStart,jdbcType=DATE}
+    </if>
+    <if test="createDateEnd != null ">
+      and t1."create_date" &lt;= #{createDateEnd,jdbcType=DATE}
+    </if>
+    <if test="scanStartTimeStart != null">
+      and <![CDATA[#{scanStartTimeStart,jdbcType=TIMESTAMP} <= t1."scan_start_date" ]]>
+    </if>
+    <if test="scanStartTimeEnd != null">
+      and <![CDATA[#{scanStartTimeEnd,jdbcType=TIMESTAMP} >= t1."scan_start_date" ]]>
+    </if>
+    <if test="modifier != null and modifier != ''">
+      and t1."modifier" = #{modifier,jdbcType=VARCHAR},
+    </if> ) lastone
+    order by lastone."create_date" desc
+  </select>
+
+  <update id="delete" parameterType="java.util.List">
+    delete from
+    <include refid="tb" />
+    where "scanrule_id" in (
+    <foreach collection="list" item="idList" separator=",">
+      #{idList.value,jdbcType=INTEGER}
+    </foreach>)
+  </update>
+
+  <insert id="insertBatch" parameterType="java.util.List">
+    insert into
+    <include refid="tb" />
+     (
+    <include refid="Add_Column_List" />
+      )
+    select ${TBSNAME}.SEQ_MW_SCANRULE_TABLE.NEXTVAL as "scanrule_id",t.* from (
+    <foreach collection="list" item="ruleList" separator="union all">( select
+      #{
+    ruleList.scanruleName,jdbcType=VARCHAR} as "scanrule_name",
+      #{ruleList.monitorServerId,jdbcType=INTEGER} as "monitor_server_id",
+      #{ruleList.creator,jdbcType=VARCHAR} as "creator", SYSDATE as "create_date", #{
+      ruleList.modifier,jdbcType=VARCHAR} as "modifier",SYSDATE as "modification_date"
+      from dual
+      )
+    </foreach>
+    ) t
+  </insert>
+  <insert id="insert" parameterType="cn.mw.monitor.scanrule.api.param.scanrule.AddScanruleParam">
+    <selectKey keyProperty="id" order="BEFORE" resultType="java.lang.Integer">
+      select ${TBSNAME}.SEQ_MW_SCANRULE_TABLE.NEXTVAL as "id" from DUAL
+    </selectKey>
+    insert into ${TBSNAME}."mw_scanrule_table"
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+      "scanrule_id",
+      <if test="deleteFlag != null">"delete_flag",</if>
+      <if test="scanruleName != null">"scanrule_name",</if>
+      <if test="monitorServerId != null">"monitor_server_id",</if>
+      <if test="creator != null">"creator",</if>
+      "create_date",
+      <if test="modifier != null">"modifier",</if>
+      <if test="scanStartDate != null">"scan_start_date",</if>
+      <if test="engineId != null">"engine_id"</if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+      #{id},
+      <if test="deleteFlag != null">
+        <choose>
+          <when test="deleteFlag == false">
+            0,
+          </when>
+          <otherwise>
+            1,
+          </otherwise>
+        </choose>
+      </if>
+      <if test="scanruleName != null">#{scanruleName,jdbcType=VARCHAR},</if>
+      <if test="monitorServerId != null">#{monitorServerId,jdbcType=INTEGER},</if>
+      <if test="creator != null">#{creator,jdbcType=VARCHAR},</if>
+      <if test="createDate != null"> #{createDate,jdbcType=TIMESTAMP},</if>
+      <if test="modifier != null">#{modifier,jdbcType=VARCHAR},</if>
+      <if test="scanStartDate != null">#{scanStartDate,jdbcType=TIMESTAMP},</if>
+      <if test="engineId != null">#{engineId,jdbcType=VARCHAR}</if>
+    </trim>
+  </insert>
+
+  <update id="update" parameterType="cn.mw.monitor.scanrule.api.param.scanrule.UpdateScanruleParam">
+    update ${TBSNAME}."mw_scanrule_table"
+    <set>
+      <if test="scanruleName != null">
+        "scanrule_name" = #{scanruleName,jdbcType=VARCHAR},
+      </if>
+      <if test="monitorServerId != null">
+        "monitor_server_id" = #{monitorServerId,jdbcType=INTEGER},
+      </if>
+      <if test="creator != null">
+        "creator" = #{creator,jdbcType=VARCHAR},
+      </if>
+      <if test="modifier != null">
+        "modifier" = #{modifier,jdbcType=VARCHAR},
+      </if>
+      <if test="scanStartDate != null">
+        "scan_start_date" = #{scanStartDate,jdbcType=TIMESTAMP},
+      </if>
+      <if test="scanEndDate != null">
+        "scan_end_date" = #{scanEndDate,jdbcType=TIMESTAMP},
+      </if>
+      <if test="engineId != null">
+        "engine_id" = #{engineId,jdbcType=VARCHAR},
+      </if>
+      "modification_date" = SYSDATE
+    </set>
+    where "scanrule_id" = #{id,jdbcType=INTEGER}
+  </update>
+
+  <update id="updateBatch" parameterType="java.util.List">
+    <foreach collection="list" item ="updateList" separator=",">
+    update ${TBSNAME}."mw_scanrule_table"
+    set "scanrule_name" = #{updateList.scanruleName,jdbcType=VARCHAR},
+      "creator" = #{updateList.creator,jdbcType=VARCHAR},
+      "create_date" = SYSDATE,
+      "modifier" = #{updateList.modifier,jdbcType=VARCHAR},
+      "modification_date" = SYSDATE,
+    where "scanrule_id" = #{updateList.scanruleId,jdbcType=INTEGER}
+    </foreach>
+  </update>
+
+  <insert id="createIpRang" parameterType="java.util.List">
+    insert into ${TBSNAME}."mw_iprang_table" ("id","rule_id","ip_rang_start","ip_rang_end","ip_type")
+    select ${TBSNAME}.SEQ_MW_IPRANG_TABLE.NEXTVAL as id,t.* from (
+    <foreach collection="list" item="insertList" separator="union all">
+    (select #{insertList.ruleId,jdbcType=INTEGER} as "rule_id",
+    #{insertList.ipRangStart,jdbcType=VARCHAR} as "ip_rang_start",
+    #{insertList.ipRangEnd,jdbcType=VARCHAR} as "ip_rang_end",
+    #{insertList.ipType,jdbcType=BOOLEAN} as "ip_type"
+      from dual)
+    </foreach>
+    ) t
+  </insert>
+
+  <delete id="deleteIpRang" parameterType="java.util.List">
+    delete from ${TBSNAME}."mw_iprang_table"
+    where "rule_id" in(
+    <foreach collection="list" item="deleteList" separator=",">
+      #{deleteList.value,jdbcType=INTEGER}
+    </foreach>
+    )
+  </delete>
+
+  <insert id="createIpAddresslist" parameterType="java.util.List">
+    insert into  ${TBSNAME}."mw_ipaddresslist_table" ("id","rule_id","ip_address","ip_type")
+    select ${TBSNAME}.SEQ_MW_IPRANG_TABLE.NEXTVAL as id,t.* from (
+    <foreach collection="list" item="insertList" separator="union all">
+      (select
+      #{insertList.ruleId,jdbcType=INTEGER} as "rule_id",#{insertList.ipAddress,jdbcType=VARCHAR} as "ip_address",#{insertList.ipType,jdbcType=BOOLEAN} as "ip_type"
+      from dual)
+    </foreach>
+    ) t
+  </insert>
+
+  <delete id="deleteIpAddresslist" parameterType="java.util.List">
+    delete from ${TBSNAME}."mw_ipaddresslist_table"
+    where "rule_id" in(
+    <foreach collection="list" item="deleteList" separator=",">
+      #{deleteList.value,jdbcType=INTEGER}
+    </foreach>
+    )
+  </delete>
+
+  <insert id="createIpAddresses" parameterType="java.util.List">
+    insert into ${TBSNAME}."mw_ipaddresses_table" ("id","rule_id","ip_addresses","ip_type")
+    select ${TBSNAME}.SEQ_MW_IPRANG_TABLE.NEXTVAL as id,t.* from (
+    <foreach collection="list" item="insertList" separator="union all">
+      (select
+        #{insertList.ruleId,jdbcType=INTEGER} as "rule_id",#{insertList.ipAddresses,jdbcType=VARCHAR} as "ip_addresses",#{insertList.ipType,jdbcType=BOOLEAN} as "ip_type"
+      from dual)
+    </foreach>
+    ) t
+  </insert>
+
+  <delete id="deleteIpAddresses" parameterType="java.util.List">
+    delete from ${TBSNAME}."mw_ipaddresses_table"
+    where "rule_id" in(
+    <foreach collection="list" item="deleteList" separator=",">
+      #{deleteList.value,jdbcType=INTEGER}
+    </foreach>
+    )
+  </delete>
+
+  <insert id="createAgentRule" parameterType="cn.mw.monitor.scanrule.dto.MwAgentruleDTO">
+    insert into ${TBSNAME}."mw_agentrule_table"
+    ("id","rule_id","port")
+    values
+    (${TBSNAME}.SEQ_MW_AGENTRULE_TABLE.NEXTVAL,#{ruleId,jdbcType=INTEGER},#{port,jdbcType=INTEGER})
+  </insert>
+
+  <delete id="deleteAgentRule" parameterType="java.util.List">
+    delete from  ${TBSNAME}."mw_agentrule_table"
+    where "rule_id" in (
+    <foreach collection="list" item="deleteList" separator=",">
+      #{deleteList.value,jdbcType=INTEGER}
+    </foreach>
+    )
+  </delete>
+
+  <insert id="createSnmpv1Rule" parameterType="cn.mw.monitor.scanrule.dto.MwRulesnmpv1DTO">
+    insert into ${TBSNAME}."mw_rulesnmpv1_table"
+    ("id","rule_id","host_id","port","community")
+    values
+    (${TBSNAME}.SEQ_MW_RULESNMPV1_TABLE.NEXTVAL,#{ruleId,jdbcType=INTEGER},#{hostId,jdbcType=INTEGER},#{port,jdbcType=INTEGER},#{community,jdbcType=VARCHAR})
+  </insert>
+
+  <delete id="deleteSnmpv1Rule" parameterType="java.util.List">
+    delete from  ${TBSNAME}."mw_rulesnmpv1_table"
+    where "rule_id" in (
+    <foreach collection="list" item="deleteList" separator=",">
+      #{deleteList.value,jdbcType=INTEGER}
+    </foreach>
+    )
+  </delete>
+
+  <insert id="createSnmpv3Rule" parameterType="cn.mw.monitor.scanrule.dto.MwRulesnmpDTO">
+    insert into  ${TBSNAME}."mw_rulesnmpv3_table"
+    ("id","rule_id","host_id","port","community","sec_name","sec_level","auth_alg","auth_value","priv_alg","pri_value","context_name")
+    values
+    (${TBSNAME}.SEQ_MW_RULESNMPV3_TABLE.NEXTVAL
+    ,#{ruleId,jdbcType=INTEGER}
+    ,#{hostId,jdbcType=INTEGER}
+    ,#{port,jdbcType=INTEGER}
+    ,#{community,jdbcType=VARCHAR}
+    ,#{secName,jdbcType=VARCHAR}
+    ,#{secLevel,jdbcType=VARCHAR}
+    ,#{authAlg,jdbcType=VARCHAR}
+    ,#{authValue,jdbcType=VARCHAR}
+    ,#{privAlg,jdbcType=VARCHAR}
+    ,#{priValue,jdbcType=VARCHAR}
+    ,#{contextName,jdbcType=VARCHAR})
+  </insert>
+
+  <delete id="deleteSnmpv3Rule" parameterType="java.util.List">
+    delete from   ${TBSNAME}."mw_rulesnmpv3_table"
+    where "rule_id" in (
+    <foreach collection="list" item="deleteList" separator=",">
+      #{deleteList.value,jdbcType=INTEGER}
+    </foreach>
+    )
+  </delete>
+
+  <delete id="createPortRule" parameterType="cn.mw.monitor.scanrule.dto.MwPortruleDTO">
+    insert into ${TBSNAME}."mw_portrule_table"
+    ("id","rule_id","protocol_type","port")
+    values
+    (${TBSNAME}.SEQ_MW_PORTRULE_TABLE.NEXTVAL,#{ruleId,jdbcType=INTEGER},#{protocolType,jdbcType=VARCHAR},#{port,jdbcType=INTEGER})
+  </delete>
+
+  <delete id="createIcmpRule" parameterType="cn.mw.monitor.scanrule.dto.MwIcmpruleDTO">
+    insert into ${TBSNAME}."mw_icmprule_table"
+    ("id","rule_id","port")
+    values
+    (${TBSNAME}.SEQ_MW_ICMPRULE_TABLE.NEXTVAL,#{ruleId,jdbcType=INTEGER},#{port,jdbcType=INTEGER})
+  </delete>
+
+  <delete id="deletePortRule" parameterType="java.util.List">
+    delete from  ${TBSNAME}."mw_portrule_table"
+    where "rule_id" in (
+    <foreach collection="list" item="deleteList" separator=",">
+      #{deleteList.value,jdbcType=INTEGER}
+    </foreach>
+    )
+  </delete>
+
+  <delete id="deleteIcmpRule" parameterType="java.util.List">
+    delete from  ${TBSNAME}."mw_icmprule_table"
+    where "rule_id" in (
+    <foreach collection="list" item="deleteList" separator=",">
+      #{deleteList.value,jdbcType=INTEGER}
+    </foreach>
+    )
+  </delete>
+
+  <select id="fuzzSearchAllFiled" resultType="java.util.Map">
+        SELECT
+            a."scanrule_name" "scanruleName",
+            a."modifier"
+        FROM
+            ${TBSNAME}."mw_scanrule_table" a
+        WHERE
+        a."delete_flag" = 0 and
+            (
+                NVL( a.scanrule_name, '' )||
+                NVL( a.modifier, '' )
+            ) LIKE ('%'||#{value,jdbcType=VARCHAR}||'%')
+        ORDER BY
+            ( CASE WHEN INSTR( a.scanrule_name, #{value} ) > 0 THEN 0 ELSE 1 END ),
+            ( CASE WHEN INSTR( a.modifier, #{value} ) > 0 THEN 0 ELSE 1 END )
+    </select>
+
+  <select id="selectGroupServerMap" parameterType="java.lang.Integer"
+          resultType="cn.mw.monitor.service.model.dto.MwModelAssetsGroupTable">
+    select
+    "id" as "id",
+    "group_id" as "groupId",
+    "monitor_server_id" as "monitorServerId",
+    "model_group_id" as "assetsSubtypeId"
+    from
+    ${TBSNAME}."mw_cmdbmd_modelgroup_server_mapper"
+    where "group_id" is not null and "monitor_server_id" is not null and "group_id" != ''
+    <if test="assetsSubTypeId !=null">
+      and "model_group_id" = #{assetsSubTypeId,jdbcType=INTEGER}
+    </if>
+  </select>
+
+  <select id="selectScanGroupServerMap"  parameterType="java.lang.Integer" resultType="cn.mw.monitor.scanrule.dto.MwAssetsScanGroupTable">
+    select
+    "id" as "id",
+    "group_id" as "groupId",
+    "monitor_server_id" as "monitorServerId",
+    "assets_subtype_id" as "assetsSubtypeId"
+    from
+    ${TBSNAME}."mw_assetsgroup_server_mapper"
+    where "group_id" is not null and "monitor_server_id" is not null and "group_id" != ''
+
+    <if test="assetsSubTypeId !=null">
+      and "assets_subtype_id" = #{assetsSubTypeId,jdbcType=INTEGER}
+    </if>
+  </select>
+</mapper>

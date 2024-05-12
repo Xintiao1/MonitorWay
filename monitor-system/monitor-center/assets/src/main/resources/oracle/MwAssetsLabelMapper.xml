@@ -1,0 +1,349 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.mw.monitor.assets.dao.MwAssetsLabelDao">
+
+    <resultMap id="ParentMap" type="cn.mw.monitor.service.assets.model.MwTangibleassetsTable">
+        <id column="id" jdbcType="VARCHAR" property="id" />
+        <result column="assets_id" jdbcType="VARCHAR" property="assetsId" />
+        <result column="assets_name" jdbcType="VARCHAR" property="assetsName" />
+        <result column="host_name" jdbcType="VARCHAR" property="hostName" />
+        <result column="in_band_ip" jdbcType="VARCHAR" property="inBandIp" />
+        <result column="out_band_ip" jdbcType="VARCHAR" property="outBandIp" />
+        <result column="assets_type_id" jdbcType="INTEGER" property="assetsTypeId" />
+        <result column="assetsTypeName" jdbcType="VARCHAR" property="assetsTypeName" />
+        <result column="assets_type_sub_id" jdbcType="INTEGER" property="assetsTypeSubId" />
+        <result column="assetsTypeSubName" jdbcType="VARCHAR" property="assetsTypeSubName" />
+        <result column="polling_engine" jdbcType="VARCHAR" property="pollingEngine" />
+        <result column="monitor_mode" jdbcType="INTEGER" property="monitorMode" />
+        <result column="monitorModeName" jdbcType="INTEGER" property="monitorModeName" />
+        <result column="manufacturer" jdbcType="VARCHAR" property="manufacturer" />
+        <result column="specifications" jdbcType="VARCHAR" property="specifications" />
+        <result column="description" jdbcType="VARCHAR" property="description" />
+        <result column="enable" jdbcType="VARCHAR" property="enable" />
+        <result column="delete_flag" jdbcType="BIT" property="deleteFlag" />
+        <result column="monitor_flag" jdbcType="BIT" property="monitorFlag" />
+        <result column="setting_flag" jdbcType="BIT" property="settingFlag" />
+        <result column="snmp_lev" jdbcType="INTEGER" property="snmpLev" />
+        <result column="creator" jdbcType="VARCHAR" property="creator" />
+        <result column="create_date" jdbcType="TIMESTAMP" property="createDate" />
+        <result column="modifier" jdbcType="VARCHAR" property="modifier" />
+        <result column="modification_date" jdbcType="TIMESTAMP" property="modificationDate" />
+        <result column="scan_success_id" jdbcType="INTEGER" property="scanSuccessId" />
+        <result column="monitor_server_id" jdbcType="INTEGER" property="monitorServerId" />
+        <result column="vendor_small_icon" jdbcType="VARCHAR" property="vendorSmallIcon"/>
+        <result column="template_id" jdbcType="VARCHAR" property="templateId"/>
+    </resultMap>
+
+    <sql id="union_group">
+        <if test="groupIds!=null">
+            UNION
+            SELECT
+            t1.id
+            FROM (SELECT
+            a1.id,
+            a1.assets_name,
+            a1.in_band_ip,
+            a1.manufacturer,
+            d3.drop_value,
+            d4.type_name assetsTypeName,
+            d5.type_name assetsTypeSubName,
+            a1.description,
+            a1.specifications
+            FROM ${tableName} a1
+            LEFT JOIN mw_datapermission t2 ON a1.id = t2.type_id
+            left join mw_dropdown_table d3 on d3.drop_code = 'monitor_mode' and d3.drop_key = a1.monitor_mode
+            left join mw_assetssubtype_table d4 on a1.assets_type_id = d4.id
+            left join mw_assetssubtype_table d5 on a1.assets_type_sub_id = d5.id
+            WHERE
+            t2.is_group =1 AND a1.delete_flag = FALSE
+            <if test="isAlert==true">
+                and alert=FALSE
+            </if>) t1
+            LEFT JOIN
+            (SELECT type_id,group_id FROM mw_group_mapper where type = #{moduleType,jdbcType=VARCHAR}) t2 ON t1.id = t2.type_id
+            where group_id IN
+            <foreach collection="groupIds" item="item" index="index" open="(" separator="," close=")">
+                #{item.value,jdbcType=INTEGER}
+            </foreach>
+            <if test="fuzzyQuery!= null and fuzzyQuery !='' ">
+                and CONCAT(
+                IFNULL( t1.assets_name, '' ),
+                IFNULL( t1.in_band_ip, '' ),
+                IFNULL( t1.manufacturer, '' ),
+                IFNULL( t1.drop_value, '' ),
+                IFNULL( t1.assetsTypeName, '' ),
+                IFNULL( t1.assetsTypeSubName, '' ),
+                IFNULL( t1.description, '' ),
+                IFNULL( t1.specifications, '' )
+                ) LIKE CONCAT('%',#{fuzzyQuery,jdbcType=VARCHAR},'%')
+                ORDER BY
+                ( CASE WHEN INSTR( t1.assets_name, #{fuzzyQuery}) > 0 THEN 0 ELSE 1 END ),
+                ( CASE WHEN INSTR( t1.in_band_ip, #{fuzzyQuery}) > 0 THEN 0 ELSE 1 END ),
+                ( CASE WHEN INSTR( t1.manufacturer, #{fuzzyQuery} ) > 0 THEN 0 ELSE 1 END ),
+                ( CASE WHEN INSTR( t1.specifications, #{fuzzyQuery}) > 0 THEN 0 ELSE 1 END )
+            </if>
+            <include refid="criteria"><property name="alias" value="t1."/></include>
+        </if>
+    </sql>
+
+    <sql id ="tb">
+     mw_tangibleassets_table
+  </sql>
+
+    <sql id="criteria">
+        <if test="monitorServerId != null and monitorServerId !=0 " >
+            and ${alias}monitor_server_id = #{monitorServerId,jdbcType=INTEGER}
+        </if>
+        <if test="assetsIds !=null and assetsIds.size() > 0">
+            and ${alias}id in
+            <foreach collection="assetsIds" item="item" index="index"  separator="," open="(" close=")">
+                #{item}
+            </foreach>
+        </if>
+        <if test="hostName != null and hostName !=''">
+            and ${alias}host_name like  concat ('%' ,#{hostName,jdbcType=VARCHAR},'%')
+        </if>
+        <if test="assetsName != null and assetsName !=''">
+            and ${alias}assets_name like  concat ('%' ,#{assetsName,jdbcType=VARCHAR},'%')
+        </if>
+        <if test="inBandIp != null and inBandIp != '' ">
+            and ${alias}in_band_ip like  concat ('%' ,#{inBandIp,jdbcType=VARCHAR},'%')
+        </if>
+        <if test="outBandIp != null and outBandIp != '' ">
+            and ${alias}out_band_ip = #{outBandIp,jdbcType=VARCHAR}
+        </if>
+        <if test="ipAddress != null">
+            and ${alias}ip_address  like  concat ('%' ,#{ipAddress,jdbcType=VARCHAR},'%')
+        </if>
+        <if test="assetsNumber != null and assetsNumber != ''">
+            and ${alias}assets_number like CONCAT('%',#{assetsNumber,jdbcType=VARCHAR},'%')
+        </if>
+        <if test="subAssetsTypeId != null">
+            and ${alias}sub_assets_type_id = #{subAssetsTypeId,jdbcType=INTEGER}
+        </if>
+        <if test="assetsContent != null">
+            and ${alias}assets_content like CONCAT('%',#{assetsContent,jdbcType=VARCHAR},'%')
+        </if>
+        <if test="remarks != null and remarks != ''">
+            and ${alias}remarks like CONCAT('%',#{remarks,jdbcType=VARCHAR},'%')
+        </if>
+        <if test="assetsTypeId != null and assetsTypeId != 0">
+            and ${alias}assets_type_id = #{assetsTypeId,jdbcType=INTEGER}
+        </if>
+        <if test="assetsTypeSubId != null and assetsTypeSubId != 0">
+            and ${alias}assets_type_sub_id = #{assetsTypeSubId,jdbcType=INTEGER}
+        </if>
+        <if test="pollingEngine != null">
+            and ${alias}polling_engine = #{pollingEngine,jdbcType=VARCHAR}
+        </if>
+        <if test="monitorMode != null">
+            and ${alias}monitor_mode = #{monitorMode,jdbcType=INTEGER}
+        </if>
+        <if test="manufacturer != null and manufacturer != ''">
+            and ${alias}manufacturer = #{manufacturer,jdbcType=VARCHAR}
+        </if>
+        <if test="specifications != null and specifications !=''">
+            and ${alias}specifications = #{specifications,jdbcType=VARCHAR}
+        </if>
+        <if test="description != null and description !=''">
+            and  ${alias}description like concat ('%' ,#{description,jdbcType=VARCHAR},'%')
+        </if>
+        <if test="enable != null and enable !=''">
+            and ${alias}enable = #{enable,jdbcType=VARCHAR}
+        </if>
+        <if test="monitorFlag != null">
+            and  ${alias}monitor_flag = #{monitorFlag,jdbcType=BIT}
+        </if>
+        <if test="settingFlag != null">
+            and ${alias}setting_flag = #{settingFlag,jdbcType=BIT}
+        </if>
+        <if test="creator != null and creator != ''">
+            and ${alias}creator = #{creator,jdbcType=VARCHAR}
+        </if>
+        <if test="createDateStart != null">
+            and <![CDATA[#{createDateStart,jdbcType=TIMESTAMP} <= ${alias}create_date ]]>
+        </if>
+        <if test="createDateEnd != null">
+            and <![CDATA[#{createDateEnd,jdbcType=TIMESTAMP} >= ${alias}create_date ]]>
+        </if>
+        <if test="modifier != null and modifier != ''">
+            and  ${alias}modifier = #{modifier,jdbcType=VARCHAR}
+        </if>
+        <if test="modificationDateStart != null">
+            and  <![CDATA[#{modificationDateStart,jdbcType=TIMESTAMP} <= ${alias}modification_date ]]>
+        </if>
+        <if test="modificationDateEnd != null">
+            and  <![CDATA[#{modificationDateEnd,jdbcType=TIMESTAMP} >= ${alias}modification_date ]]>
+        </if>
+    </sql>
+
+    <select id="selectPriList" parameterType="java.util.HashMap" resultType="java.lang.String">
+        select
+        t1.id
+        from (
+        select distinct t.id,
+        t.assets_name,
+        t.in_band_ip,
+        t.manufacturer,
+        t3.drop_value,
+        t4.type_name assetsTypeName,
+        t5.type_name assetsTypeSubName,
+        t.description,
+        t.specifications
+        from ${tableName} t
+        left join mw_dropdown_table t3 on t3.drop_code = 'monitor_mode' and t3.drop_key = t.monitor_mode
+        left join mw_assetssubtype_table t4 on t.assets_type_id = t4.id
+        left join mw_assetssubtype_table t5 on t.assets_type_sub_id = t5.id
+        left join mw_datapermission t2 ON t.id = t2.type_id
+        WHERE t2.is_user = 1 AND t.delete_flag = FALSE
+        ) t1
+        LEFT JOIN
+        (SELECT type_id,user_id FROM mw_user_mapper where type = #{moduleType,jdbcType=VARCHAR}) t2 ON t1.id = t2.type_id
+        WHERE
+        user_id =#{userId,jdbcType=INTEGER}
+        <if test="fuzzyQuery!= null and fuzzyQuery !='' ">
+            and CONCAT(
+            IFNULL( t1.assets_name, '' ),
+            IFNULL( t1.in_band_ip, '' ),
+            IFNULL( t1.manufacturer, '' ),
+            IFNULL( t1.drop_value, '' ),
+            IFNULL( t1.assetsTypeName, '' ),
+            IFNULL( t1.assetsTypeSubName, '' ),
+            IFNULL( t1.description, '' ),
+            IFNULL( t1.specifications, '' )
+            ) LIKE CONCAT('%',#{fuzzyQuery,jdbcType=VARCHAR},'%')
+            ORDER BY
+            ( CASE WHEN INSTR( t1.assets_name, #{fuzzyQuery}) > 0 THEN 0 ELSE 1 END ),
+            ( CASE WHEN INSTR( t1.in_band_ip, #{fuzzyQuery}) > 0 THEN 0 ELSE 1 END ),
+            ( CASE WHEN INSTR( t1.manufacturer, #{fuzzyQuery} ) > 0 THEN 0 ELSE 1 END ),
+            ( CASE WHEN INSTR( t1.specifications, #{fuzzyQuery}) > 0 THEN 0 ELSE 1 END )
+        </if>
+        <include refid="criteria"><property name="alias" value="t1."/></include>
+        <include refid="union_group"></include>
+    </select>
+
+    <select id="selectPubList" parameterType="java.util.HashMap" resultType="java.lang.String">
+        select
+        t1.id
+        from (
+        select  distinct t1.id,
+        t1.assets_name,
+        t1.in_band_ip,
+        t1.manufacturer,
+        d4.drop_value,
+        t4.type_name assetsTypeName,
+        t5.type_name assetsTypeSubName,
+        t1.description,
+        t1.specifications
+        from ${tableName} t1
+        left join mw_dropdown_table d4 on d4.drop_code = 'monitor_mode' and d4.drop_key = t1.monitor_mode
+        left join mw_assetssubtype_table t4 on t1.assets_type_id = t4.id
+        left join mw_assetssubtype_table t5 on t1.assets_type_sub_id = t5.id
+        <choose>
+            <when test="isAdmin==false">
+                LEFT JOIN
+                (SELECT type_id,org_id FROM mw_org_mapper where type = #{moduleType,jdbcType=VARCHAR}) t2 ON t1.id = t2.type_id
+                WHERE t1.delete_flag = FALSE
+                AND org_id IN
+                <foreach collection="orgIds" item="item" index="index" open="(" separator="," close=")">
+                    #{item.value,jdbcType=INTEGER}
+                </foreach>) t1 where 1=1
+                <if test="fuzzyQuery!= null and fuzzyQuery !='' ">
+                    and CONCAT(
+                    IFNULL( t1.assets_name, '' ),
+                    IFNULL( t1.in_band_ip, '' ),
+                    IFNULL( t1.manufacturer, '' ),
+                    IFNULL( t1.drop_value, '' ),
+                    IFNULL( t1.assetsTypeName, '' ),
+                    IFNULL( t1.assetsTypeSubName, '' ),
+                    IFNULL( t1.description, '' ),
+                    IFNULL( t1.specifications, '' )
+                    ) LIKE CONCAT('%',#{fuzzyQuery,jdbcType=VARCHAR},'%')
+                    ORDER BY
+                    ( CASE WHEN INSTR( t1.assets_name, #{fuzzyQuery}) > 0 THEN 0 ELSE 1 END ),
+                    ( CASE WHEN INSTR( t1.in_band_ip, #{fuzzyQuery}) > 0 THEN 0 ELSE 1 END ),
+                    ( CASE WHEN INSTR( t1.manufacturer, #{fuzzyQuery} ) > 0 THEN 0 ELSE 1 END ),
+                    ( CASE WHEN INSTR( t1.specifications, #{fuzzyQuery}) > 0 THEN 0 ELSE 1 END )
+                </if>
+                <include refid="criteria"><property name="alias" value="t1."/></include>
+                <include refid="union_group"></include>
+            </when>
+            <otherwise>
+                WHERE t1.delete_flag = FALSE
+                <if test="fuzzyQuery!= null and fuzzyQuery !='' ">
+                    and CONCAT(
+                    IFNULL( t1.assets_name, '' ),
+                    IFNULL( t1.in_band_ip, '' ),
+                    IFNULL( t1.manufacturer, '' ),
+                    IFNULL( d4.drop_value, '' ),
+                    IFNULL( t4.type_name, '' ),
+                    IFNULL( t5.type_name, '' ),
+                    IFNULL( t1.description, '' ),
+                    IFNULL( t1.specifications, '' )
+                    ) LIKE CONCAT('%',#{fuzzyQuery,jdbcType=VARCHAR},'%')
+                    ORDER BY
+                    ( CASE WHEN INSTR( t1.assets_name, #{fuzzyQuery}) > 0 THEN 0 ELSE 1 END ),
+                    ( CASE WHEN INSTR( t1.in_band_ip, #{fuzzyQuery}) > 0 THEN 0 ELSE 1 END ),
+                    ( CASE WHEN INSTR( t1.manufacturer, #{fuzzyQuery} ) > 0 THEN 0 ELSE 1 END ),
+                    ( CASE WHEN INSTR( t1.specifications, #{fuzzyQuery}) > 0 THEN 0 ELSE 1 END )
+                </if>
+                <include refid="criteria"><property name="alias" value="t1."/></include>
+                ) t1
+            </otherwise>
+        </choose>
+    </select>
+
+    <select id="selectAssetsLabels" resultType="cn.mw.monitor.assets.dto.AssetsLabelDTO">
+        select
+	        t.assetsId,
+	        t.secondLabel,
+	        t.firstLabel,
+            concat(t.firstLabel,': ', t.secondLabel) totalLabel
+        from (
+            SELECT
+	            l1.type_id assetsId,
+	            l1.date_tagboard secondLabel,
+	            l.label_name firstLabel,
+	            l.delete_flag,
+	            l1.module_type
+            FROM
+	        mw_label_date_mapper l1
+	        LEFT JOIN mw_labelmanage_table l ON l.label_id = l1.label_id
+
+        UNION
+
+            SELECT
+	            l1.type_id assetsId,
+	            l1.tagboard secondLabel,
+	            l.label_name firstLabel,
+	            l.delete_flag,
+	            l1.module_type
+            FROM
+	        mw_label_mapper l1
+	        LEFT JOIN mw_labelmanage_table l ON l.label_id = l1.label_id
+
+        UNION
+
+            SELECT
+	            l1.type_id assetsId,
+	            ld.drop_value secondLabel,
+	            l.label_name firstLabel,
+	            l.delete_flag,
+	            l1.module_type
+            FROM
+	        mw_label_drop_mapper l1
+	        LEFT JOIN mw_dropdown_table ld ON ld.drop_id = l1.drop_tagboard
+	        LEFT JOIN mw_labelmanage_table l ON l.label_id = l1.label_id
+        ) t
+    WHERE
+	t.delete_flag = FALSE
+	AND t.firstLabel is not null
+	AND t.secondLabel is not null
+	AND t.module_type = #{moduleType,jdbcType=VARCHAR}
+	and t.assetsId in (
+        <foreach collection="assetsIds" item="id" separator=",">
+            #{id ,jdbcType=VARCHAR}
+        </foreach>)
+    </select>
+</mapper>
+

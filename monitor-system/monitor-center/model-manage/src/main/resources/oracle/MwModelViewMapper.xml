@@ -1,0 +1,815 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.mw.monitor.model.dao.MwModelViewDao">
+
+    <sql id="selectSuccessList_Column">
+        DISTINCT(${alias}"id") as "id",
+         (${alias}"id") as "scanSuccessId"
+        ,${alias}"scanrule_id" as "scanrule_id"
+        ,${alias}"template_id" as "template_id"
+        ,${alias}"group_id" as "group_id"
+        ,${alias}"scan_batch" as "scan_batch"
+        ,${alias}"host_name" as "host_name"
+        ,${alias}"ip_address" as "ip_address"
+        ,${alias}"sys_obj_id" as "sys_obj_id"
+        ,${alias}"brand" as "brand"
+        ,${alias}"description" as "description"
+        ,${alias}"specifications" as "specifications"
+        ,${alias}"assets_type_id" as "assets_type_id"
+        ,${alias}"assets_sub_type_id" as "assets_sub_type_id"
+        ,${alias}"polling_engine" as "polling_engine"
+        ,${alias}"monitor_mode" as "monitor_mode"
+        ,${alias}"scan_time" as "scan_time"
+        ,${alias}"creator" as "creator"
+        ,${alias}"create_date" as "create_date"
+        ,${alias}"modifier" as "modifier"
+        ,${alias}"port" as "port"
+        ,${alias}"monitor_port" as "monitor_port"
+        ,${alias}"community" as "community"
+        ,${alias}"security_name" as "security_name"
+        ,${alias}"context_name" as "context_name"
+        ,${alias}"security_level" as "security_level"
+        ,${alias}"auth_protocol" as "auth_protocol"
+        ,${alias}"auth_token" as "auth_token"
+        ,${alias}"priv_protocol" as "priv_protocol"
+        ,${alias}"priv_token" as "priv_token"
+        ,${alias}"template_match_id" as "template_match_id"
+        ,${alias}"monitor_server_id" as "monitor_server_id"
+    </sql>
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="cn.mw.monitor.model.param.MwModelScanResultSuccessParam">
+        <result column="id" property="id"/>
+        <result column="scanrule_id" property="scanruleId"/>
+        <result column="scan_batch" property="scanBatch"/>
+        <result column="host_name" property="hostName"/>
+        <result column="ip_address" property="inBandIp"/>
+        <result column="template_id" property="templateId"/>
+        <result column="templateName" property="templateName"/>
+        <result column="group_id" property="hostGroupId"/>
+        <result column="sys_obj_id" property="sysObjId"/>
+        <result column="brand" property="manufacturer"/>
+        <result column="description" property="description"/>
+        <result column="specifications" property="specifications"/>
+        <result column="assets_type_id" property="assetsTypeId"/>
+        <result column="assets_sub_type_id" property="assetsTypeSubId"/>
+        <result column="groupTypeName" property="groupTypeName"/>
+        <result column="polling_engine" property="pollingEngine"/>
+        <result column="monitor_mode" property="monitorMode"/>
+        <result column="scan_time" property="scanTime"/>
+        <result column="creator" property="creator"/>
+        <result column="create_date" property="createDate"/>
+        <result column="modifier" property="modifier"/>
+        <result column="modification_date" property="modificationDate"/>
+        <result column="port" property="port"/>
+        <result column="monitor_port" property="monitorPort"/>
+        <result column="community" property="community"/>
+        <result column="security_name" property="securityName"/>
+        <result column="context_name" property="contextName"/>
+        <result column="security_level" property="securityLevel"/>
+        <result column="auth_protocol" property="authProtocol"/>
+        <result column="auth_token" property="authToken"/>
+        <result column="priv_protocol" property="privProtocol"/>
+        <result column="priv_token" property="privToken"/>
+        <result column="template_match_id" property="templateMatchId"/>
+        <result column="monitor_server_id" property="monitorServerId"/>
+        <result column="scanSuccessId" property="scanSuccessId"/>
+        <result column="instanceName" property="instanceName"/>
+    </resultMap>
+
+    <resultMap id="iconMap" type="cn.mw.monitor.service.assets.model.AssetTypeIconDTO">
+        <result column="model_group_id" jdbcType="INTEGER" property="id"/>
+        <result column="model_group_name" jdbcType="INTEGER" property="name"/>
+        <result column="url" jdbcType="VARCHAR" property="url"/>
+    </resultMap>
+
+    <select id="getScanSuccessInfoById" resultMap="BaseResultMap">
+        SELECT
+        <include refid="selectSuccessList_Column">
+            <property name="alias" value="tb1."/>
+        </include>
+        ,( tb2."template_name"|| '@'|| t4."drop_value" ) AS "templateName"
+        ,"host_name" AS "instanceName"
+        from ${TBSNAME}."mw_scanresultsuccess_table" tb1
+        LEFT JOIN ${TBSNAME}."mw_cmdbmd_template_table" tb2 ON tb1."template_match_id" = tb2."id"
+        LEFT JOIN ${TBSNAME}."mw_dropdown_table" t4 ON tb2."monitor_mode" = t4."drop_key"
+        AND t4."drop_code" = 'monitor_mode'
+        WHERE
+        tb1."id" = #{scanRuleId}
+    </select>
+
+    <select id="getScanTemplateInfoByICMP" resultType="cn.mw.monitor.model.param.MwModelScanResultSuccessParam">
+          SELECT
+           tb1."id" AS "templateId",
+		   ( tb1."template_name"|| '@'|| t4."drop_value" ) AS "templateName",
+           tb1."brand" AS "manufacturer",
+           tb1."description" AS "description",
+           tb1."specification" AS "specifications",
+           tb1."assets_type_id" AS "assetsTypeId",
+           tb1."sub_assets_type_id" AS "assetsTypeSubId"
+        from  ${TBSNAME}."mw_cmdbmd_template_table" tb1
+        LEFT JOIN ${TBSNAME}."mw_dropdown_table" t4 ON tb1."monitor_mode" = t4."drop_key"
+        AND t4."drop_code" = 'monitor_mode'
+        WHERE
+        "template_name" LIKE '%ICMP_通用模版%'
+        and rownum &lt;= 1
+    </select>
+
+    <select id="getModelIdGroups" resultType="java.lang.String">
+        select CONCAT("group_nodes","model_id") AS "groupNodes"
+        from ${TBSNAME}."mw_cmdbmd_manage"
+        where "model_id" = #{modelId}
+    </select>
+
+    <select id="getModelGroupByBase" resultType="cn.mw.monitor.model.dto.MwModelAssetsTreeDTO">
+        SELECT
+            "model_group_id" AS "typeId",
+            "model_group_name" AS "typeName",
+            '' AS "url"
+        from  ${TBSNAME}."mw_cmdbmd_group"
+        WHERE
+            "pid" = '0'
+            AND "is_show" = 1
+    </select>
+
+    <select id="getModelIdByBase" resultType="cn.mw.monitor.model.param.AddAndUpdateModelParam">
+        SELECT
+            "model_id" AS "modelId",
+            "model_name" AS "modelName",
+            "model_index" AS "modelIndex"
+        from  ${TBSNAME}."mw_cmdbmd_manage"
+        WHERE
+            "group_nodes" LIKE '%,0,%'
+            AND "is_show" = 1
+            And "delete_flag" = 0
+    </select>
+
+    <select id="getPropertiesIndexByCommon" resultType="cn.mw.monitor.service.model.param.MwCustomColByModelDTO">
+        SELECT DISTINCT
+            t1."prop",
+            t1."label",
+            t1."type",
+            t1."order_number" AS "orderNum",
+            t5."model_id" AS "modelId",
+            t2."id" AS "customId",
+            t2."col_id" AS "colId",
+            t2."user_id" AS "userId",
+            t2."sortable",
+            t2."width",
+            t2."visible",
+            t2."order_number" AS "orderNumber",
+            t2."delete_flag" AS "deleteFlag"
+        FROM
+            ${TBSNAME}."mw_cmdbmd_pagefield_table" t1
+            LEFT JOIN ${TBSNAME}."mw_cmdbmd_customcol_table" t2 ON t1."id" = t2."col_id"
+            LEFT JOIN ${TBSNAME}."mw_cmdbmd_manage" t5 ON t5."model_id" = t1."model_id"
+        WHERE
+            t2."user_id" = #{userId,jdbcType=INTEGER}
+            and t5."is_show" = 1
+            and t1."visible" = '1'
+            AND ((t1."model_id" in (${parentModelIds})) or
+                 (t1."model_id" in ('16') and t1."prop" = 'instanceName')
+                 )
+        order by
+			 "orderNumber"
+    </select>
+
+
+    <select id="getPropertiesNameByMoreModel" resultType="cn.mw.monitor.service.model.param.AddModelInstancePropertiesParam">
+        SELECT DISTINCT
+            t3."id" AS "propertiesId",
+			t3."prop" AS "propertiesIndexId",
+            t3."label" AS "propertiesName",
+            t3."type" AS "propertiesType"
+        FROM
+            ${TBSNAME}."mw_cmdbmd_pagefield_table" t3
+        WHERE
+            (
+            t3."model_id" IN ( ${parentModelIds} ))
+            OR ( t3."model_id" IN ( '16' ) AND t3."prop" = 'instanceName' )
+    </select>
+
+
+    <select id="getInstanceIdByBase" resultType="java.lang.Integer">
+        SELECT
+        a."instance_id" AS "instanceId"
+        from ${TBSNAME}."mw_cmdbmd_instance" a
+        LEFT JOIN ${TBSNAME}."mw_cmdbmd_manage" b ON a."model_id" = b."model_id"
+        WHERE
+        b."model_index" in
+        <foreach collection="modelIndexList" item="item" index="index" open="(" close=")" separator=",">
+            #{item}
+        </foreach>
+    </select>
+
+    <select id="getModelGroupTreeByView" resultType="cn.mw.monitor.model.dto.MwModelViewTreeDTO">
+        ( SELECT DISTINCT
+        b."model_group_name" AS "name",
+        CASE WHEN b."model_group_id"='0' THEN TO_CHAR(b."model_group_id") ELSE CONCAT('group_',b."model_group_id") END
+        AS "id",
+        b."model_group_id" AS "realId",
+        CASE WHEN (b."pid"='0' or b."pid"='-1') THEN TO_CHAR(b."pid") ELSE CONCAT('group_',b."pid") END AS "pId",
+        b."nodes" AS "nodes",
+        0 AS "instanceNum",
+        'groupNodes' AS "type",
+        b."url" AS "url",
+        1 AS "customFlag",
+        1 AS "propertiesType"
+        from ${TBSNAME}."mw_cmdbmd_manage" a
+        LEFT JOIN ${TBSNAME}."mw_cmdbmd_group" b ON a."group_nodes" LIKE ( '%,'|| b."model_group_id"|| ',%' )
+        LEFT JOIN ${TBSNAME}."mw_cmdbmd_instance" c ON a."model_id" = c."model_id"
+        WHERE
+        a."is_show" = '1'
+        AND a."group_nodes" LIKE '%,0,%'
+        AND a."model_level" = '0'
+        and c."instance_id" IN
+        <foreach collection="instanceIdList" item="item" index="index" open="(" close=")" separator=",">
+            #{item}
+        </foreach>
+        )
+        UNION
+        (SELECT DISTINCT
+        a."model_name" AS "name",
+        CONCAT('model_',a."model_id") AS "id",
+        a."model_id" AS "realId",
+        CONCAT('group_',a."model_group_id") AS "pId",
+        CONCAT("group_nodes",a."model_id") AS "nodes",
+        0 AS "instanceNum",
+        'assetsTypeSubId' AS "type",
+        a."model_icon" AS "url",
+        a."icon_type" AS "customFlag",
+        1 AS "propertiesType"
+        from ${TBSNAME}."mw_cmdbmd_manage" a
+        left join ${TBSNAME}."mw_cmdbmd_instance" c on a."model_id" = c."model_id"
+        WHERE
+        a."is_show" = '1'
+        AND a."group_nodes" LIKE '%,0,%'
+        AND a."model_level" = '0'
+        and c."instance_id" IN
+        <foreach collection="instanceIdList" item="item" index="index" open="(" close=")" separator=",">
+            #{item}
+        </foreach>
+        )
+    </select>
+
+    <select id="getAllTemplateName" resultType="cn.mw.monitor.model.param.MwModelTemplateInfo">
+        SELECT DISTINCT
+            t1."template_name" AS "templateName"
+        from  ${TBSNAME}."mw_cmdbmd_template_table" t1
+            LEFT JOIN ${TBSNAME}."mw_cmdbmd_template_server_mapper" t2 ON t1."id" = t2."assetstemplate_id"
+        WHERE
+            1 = 1
+            AND t2."template_id" IS NOT NULL
+        ORDER BY
+            t1."template_name"
+    </select>
+
+    <select id="getServerTemplateIdByName" resultType="cn.mw.monitor.model.param.MwModelTemplateInfo"
+            parameterType="cn.mw.monitor.model.param.MwModelTemplateInfo">
+        SELECT DISTINCT
+        t2."template_id" AS "serverTemplateId",
+        t2."server_id" AS "serverId"
+        from ${TBSNAME}."mw_cmdbmd_template_table" t1
+        LEFT JOIN ${TBSNAME}."mw_cmdbmd_template_server_mapper" t2 ON t1."id" = t2."assetstemplate_id"
+        WHERE
+        1 = 1
+        AND t2."template_id" IS NOT NULL
+        <if test="templateName!=null">
+            AND t1."template_name" = #{templateName}
+        </if>
+        <if test="templateId!=null">
+            AND t1."id" = #{templateId}
+        </if>
+        <if test="serverId!=null">
+            and t2."server_id" = #{serverId}
+        </if>
+        <if test="monitorMode!=null">
+            and t1."monitor_mode" = #{monitorMode}
+        </if>
+    </select>
+
+    <select id="getServerGroupId" resultType="java.lang.String">
+        SELECT
+            "group_id" AS "serverGroupId"
+        from  ${TBSNAME}."mw_cmdbmd_modelgroup_server_mapper"
+        WHERE
+            "model_group_id" = #{modelGroupId}
+            AND "monitor_server_id" = #{monitorServerId}
+    </select>
+
+    <select id="getMonitorModelByModelGroup" resultType="java.lang.Integer"
+            parameterType="cn.mw.monitor.service.assets.param.AddUpdateTangAssetsParam">
+        SELECT DISTINCT
+            "monitor_mode"
+        from  ${TBSNAME}."mw_cmdbmd_template_table"
+        WHERE
+            "template_name" = #{templateName}
+        and rownum &lt;= 1
+    </select>
+
+    <select id="getTemplateNameByModeAndId" resultType="cn.mw.monitor.model.param.MwModelTemplateInfo">
+        SELECT DISTINCT
+            t2."template_id" AS "serverTemplateId",
+            (t1."template_name"|| '@'|| t4."drop_value") AS "templateName",
+            t1."monitor_mode" AS "monitorMode"
+        from  ${TBSNAME}."mw_cmdbmd_template_table" t1
+            LEFT JOIN ${TBSNAME}."mw_cmdbmd_template_server_mapper" t2 ON t1."id" = t2."assetstemplate_id"
+            LEFT JOIN ${TBSNAME}."mw_dropdown_table" t4 ON t1."monitor_mode" = t4."drop_key"
+            AND t4."drop_code" = 'monitor_mode'
+        WHERE
+            t2."template_id" IS NOT NULL
+        ORDER BY
+            t2."template_id"
+    </select>
+
+    <select id="getModelIndexANDInstanceInfo" resultType="cn.mw.monitor.service.model.dto.ModelInstanceBaseInfoDTO">
+        SELECT
+        a."instance_id" AS "instanceId" ,
+        b."model_index" AS "modelIndex"
+        FROM
+        ${TBSNAME}."mw_cmdbmd_instance" a
+        LEFT JOIN ${TBSNAME}."mw_cmdbmd_manage" b ON a."model_id" = b."model_id"
+        WHERE
+        b."delete_flag" = '0'
+        <if test="isBaseData!=null and isBaseData == true">
+            AND b."group_nodes" LIKE '%,0,%'
+            AND b."model_level" = '0'
+        </if>
+        AND b."is_show" = '1'
+    </select>
+
+    <select id="getTemplateNameAndMonitorMode" resultType="cn.mw.monitor.model.param.MwModelTemplateInfo"
+            parameterType="cn.mw.monitor.model.param.MwModelTemplateInfo">
+        SELECT DISTINCT
+        ( t2."template_name"|| '@'|| t4."drop_value" ) AS "templateName",
+        t2."monitor_mode" AS "monitorMode",
+        t4."drop_value" AS "monitorModeName"
+        from ${TBSNAME}."mw_cmdbmd_template_table" t2
+        LEFT JOIN ${TBSNAME}."mw_dropdown_table" t4 ON t2."monitor_mode" = t4."drop_key"
+        AND t4."drop_code" = 'monitor_mode'
+        <where>
+         1 = 1
+            <if test="templateId!=null and templateId!=''">
+              and t2."id" = #{templateId}
+            </if>
+        </where>
+        ORDER BY
+        "templateName"
+    </select>
+
+    <!--    <select id="checkAuthenticationInfo" resultType="java.lang.Integer">-->
+    <!--        SELECT-->
+    <!--	        count( id )-->
+    <!--        FROM-->
+    <!--            mw_cmdbmd_authentication-->
+    <!--        WHERE-->
+    <!--            "template_name" = #{templateName}-->
+    <!--        AND profile_name = #{profileName}-->
+    <!--    </select>-->
+
+    <select id="getAllVendorInfo" resultType="cn.mw.monitor.model.param.AddAndUpdateModelFirmParam">
+        select "id","vendor" AS "brand"
+        from ${TBSNAME}."mw_cmdbmd_vendor_icon"
+    </select>
+
+    <select id="getAllSpecificationInfo" resultType="cn.mw.monitor.model.param.AddAndUpdateModelFirmParam">
+        select "id","specification"
+        from ${TBSNAME}."mw_cmdbmd_vendor_specification"
+    </select>
+
+    <select id="getBrandByTemplateName" resultType="cn.mw.monitor.model.param.AddAndUpdateModelFirmParam">
+        select  DISTINCT
+            "brand"
+        from ${TBSNAME}."mw_cmdbmd_template_table"
+        WHERE
+            "template_name" = #{templateName}
+    </select>
+
+    <select id="getSpecificationByTemplateNameAndBrand"
+            resultType="cn.mw.monitor.model.param.AddAndUpdateModelFirmParam"
+            parameterType="cn.mw.monitor.model.param.MwModelTemplateInfo">
+        SELECT DISTINCT
+            b."specification",
+            b."device_height" AS "deviceHeight"
+        FROM
+            ${TBSNAME}."mw_cmdbmd_template_table"a
+        LEFT JOIN ${TBSNAME}."mw_cmdbmd_vendor_specification" b ON a."specification" = b."specification"
+        WHERE
+            a."template_name" = #{templateName}
+          AND a."brand" = #{brand}
+          AND b."specification" is not null
+    </select>
+
+    <select id="getDescriptionByTemplateSpecification" resultType="cn.mw.monitor.model.param.AddAndUpdateModelFirmParam"
+            parameterType="cn.mw.monitor.model.param.MwModelTemplateInfo">
+        select  DISTINCT
+            to_char("description")
+        from ${TBSNAME}."mw_cmdbmd_template_table"
+        WHERE
+            "template_name" = #{templateName}
+        and "brand" =#{brand}
+        and "specification" =#{specification}
+    </select>
+
+    <select id="getOrgInfoById" resultType="cn.mw.monitor.model.dto.MwModelViewTreeDTO">
+        SELECT
+        "org_id" AS "id",
+        "org_name" AS "name",
+        CASE WHEN ("pid"=0) THEN -1 ELSE "pid" END AS "pId",
+        'orgIds' AS "type",
+        11 AS "propertiesType"
+        from ${TBSNAME}."mw_sys_org"
+        WHERE
+        "delete_flag" = 0
+        and
+        "org_id" IN
+        <foreach collection="orgIds" item="item" index="index" open="(" close=")" separator=",">
+            #{item}
+        </foreach>
+    </select>
+
+    <select id="getGroupInfoById" resultType="cn.mw.monitor.model.dto.MwModelViewTreeDTO">
+        SELECT
+        "group_id" AS "id",
+        "group_name" AS "name",
+        -1 AS "pId",
+        'groupIds' AS "type",
+        13 AS "propertiesType"
+        from ${TBSNAME}."mw_group_table"
+        WHERE
+        "delete_flag" = 0
+        and "group_id" IN
+        <foreach collection="groupIds" item="item" index="index" open="(" close=")" separator=",">
+            #{item}
+        </foreach>
+    </select>
+
+    <select id="getAllTangibleAssetsInfo" resultMap="ParentMap">
+        select
+        <include refid="Base_Column_List">
+            <property name="alias" value="t1."/>
+        </include>
+        from ${TBSNAME}."mw_tangibleassets_table" t1
+        where t1."delete_flag" = 0
+    </select>
+
+    <select id="getAllModelInfo" resultType="cn.mw.monitor.model.dto.MwModelInfoDTO">
+        SELECT
+            "model_id" AS "modelId",
+            "model_name" AS "modelName",
+            "model_index" AS "modelIndex"
+        from  ${TBSNAME}."mw_cmdbmd_manage"
+        WHERE
+            "delete_flag" = 0
+    </select>
+
+    <select id="getAllUserPerInfoByAssets" resultType="cn.mw.monitor.model.dto.MwModelTangiblePermDTO">
+        SELECT
+            t1."type_id" AS "typeId",
+            LISTAGG(t1."user_id") AS "perId"
+        from  ${TBSNAME}."mw_user_mapper" t1
+        WHERE
+            t1."type"='ASSETS'
+        GROUP BY t1."type_id"
+    </select>
+
+    <select id="getAllOrgPerInfoByAssets" resultType="cn.mw.monitor.model.dto.MwModelTangiblePermDTO">
+        SELECT
+            t1."type_id" AS "typeId",
+            t2."nodes" AS "perId"
+        from  ${TBSNAME}."mw_org_mapper" t1
+            LEFT JOIN ${TBSNAME}."mw_sys_org" t2 on t1."org_id" = t2."org_id"
+        WHERE
+            t1."type"='ASSETS'
+    </select>
+
+    <select id="getAllGroupPerInfoByAssets" resultType="cn.mw.monitor.model.dto.MwModelTangiblePermDTO">
+        SELECT
+            t1."type_id" AS "typeId",
+            LISTAGG(t1."group_id") AS "perId"
+        from  ${TBSNAME}."mw_group_mapper" t1
+        WHERE
+            t1."type"='ASSETS'
+        GROUP BY t1."type_id"
+    </select>
+
+    <select id="checkModelGroupExist" resultType="java.lang.Integer">
+        SELECT
+            count( "model_group_id" )
+        from  ${TBSNAME}."mw_cmdbmd_group"
+        WHERE
+            "model_group_id" = #{groupId}
+    </select>
+
+    <select id="selectAssetsTypeInfoById" resultType="cn.mw.monitor.model.dto.MwModelSubTypeTable">
+        SELECT
+        "id","type_name" AS "typeName","pid","type_desc" AS "typeDesc","nodes"
+        from ${TBSNAME}."mw_assetssubtype_table"
+        WHERE
+        "id" in
+        <foreach collection="ids" item="item" index="index" open="(" close=")" separator=",">
+            #{item}
+        </foreach>
+    </select>
+
+    <select id="getVendorIcon" resultType="cn.mw.monitor.model.param.AddAndUpdateModelFirmParam">
+        select "vendor" AS "brand","vendor_small_icon" AS "vendorSmallIcon","custom_flag" AS "customFlag"
+        from ${TBSNAME}."mw_cmdbmd_vendor_icon"
+    </select>
+
+    <select id="getTemplateInfoByMode" resultType="cn.mw.monitor.model.param.MwModelTemplateInfo">
+        SELECT DISTINCT
+            "template_name" AS "templateName"
+        from  ${TBSNAME}."mw_cmdbmd_template_table"
+        WHERE
+            "monitor_mode" = #{monitorMode}
+    </select>
+
+    <update id="updateModelGroupId">
+        update ${TBSNAME}."mw_cmdbmd_group" set
+        "model_group_id" = #{modelGroupId}
+        where "model_group_name"=#{modelGroupName}
+    </update>
+
+    <update id="updateModelId">
+        update ${TBSNAME}."mw_cmdbmd_manage" set
+        "model_id" = #{finalModelId}
+        where "model_id" = #{modelId}
+    </update>
+
+    <update id="updateModelPagefield">
+        update ${TBSNAME}."mw_cmdbmd_pagefield_table" set
+        "model_id" = #{finalModelId}
+        where "model_id" = #{modelId}
+    </update>
+
+
+    <resultMap id="ParentMap" type="cn.mw.monitor.model.param.MwModelTangibleAssetsDTO">
+        <id column="id" jdbcType="VARCHAR" property="id"/>
+        <result column="assets_id" jdbcType="VARCHAR" property="assetsId"/>
+        <result column="assets_name" jdbcType="VARCHAR" property="instanceName"/>
+        <result column="host_name" jdbcType="VARCHAR" property="hostName"/>
+        <result column="in_band_ip" jdbcType="VARCHAR" property="inBandIp"/>
+        <result column="out_band_ip" jdbcType="VARCHAR" property="outBandIp"/>
+        <result column="assets_type_id" jdbcType="INTEGER" property="assetsTypeId"/>
+        <result column="assets_type_sub_id" jdbcType="INTEGER" property="assetsTypeSubId"/>
+        <result column="polling_engine" jdbcType="VARCHAR" property="pollingEngine"/>
+        <result column="monitor_mode" jdbcType="INTEGER" property="monitorMode"/>
+        <result column="manufacturer" jdbcType="VARCHAR" property="manufacturer"/>
+        <result column="specifications" jdbcType="VARCHAR" property="specifications"/>
+        <result column="description" jdbcType="VARCHAR" property="description"/>
+        <result column="enable" jdbcType="VARCHAR" property="enable"/>
+        <result column="monitor_flag" jdbcType="INTEGER" property="monitorFlag"/>
+        <result column="setting_flag" jdbcType="INTEGER" property="settingFlag"/>
+        <result column="snmp_lev" jdbcType="INTEGER" property="snmpLev"/>
+        <result column="creator" jdbcType="VARCHAR" property="creator"/>
+        <result column="create_date" jdbcType="TIMESTAMP" property="createDate"/>
+        <result column="modifier" jdbcType="VARCHAR" property="modifier"/>
+        <result column="modification_date" jdbcType="TIMESTAMP" property="modificationDate"/>
+        <result column="scan_success_id" jdbcType="INTEGER" property="scanSuccessId"/>
+        <result column="monitor_server_id" jdbcType="INTEGER" property="monitorServerId"/>
+        <result column="vendor_small_icon" jdbcType="VARCHAR" property="vendorSmallIcon"/>
+        <result column="template_id" jdbcType="VARCHAR" property="templateId"/>
+        <result column="tp_server_host_name" jdbcType="VARCHAR" property="TPServerHostName"/>
+        <result column="open_connect" jdbcType="INTEGER" property="openConnect"/>
+        <result column="vxlan_user" jdbcType="VARCHAR" property="vxlanUserName"/>
+        <result column="vxlan_passwd" jdbcType="VARCHAR" property="vxlanPassWord"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        ${alias}"id",
+        ${alias}"assets_id",
+        ${alias}"assets_name",
+        ${alias}"host_name",
+        ${alias}"in_band_ip",
+        ${alias}"out_band_ip",
+        ${alias}"assets_type_id",
+        ${alias}"assets_type_sub_id",
+        ${alias}"polling_engine",
+        ${alias}"monitor_mode",
+        ${alias}"manufacturer",
+        ${alias}"specifications",
+        ${alias}"description",
+        ${alias}"enable",
+        ${alias}"delete_flag",
+        ${alias}"monitor_flag",
+        ${alias}"setting_flag",
+        ${alias}"creator",
+        ${alias}"create_date",
+        ${alias}"modifier",
+        ${alias}"modification_date",
+        ${alias}"scan_success_id",
+        ${alias}"monitor_server_id",
+        ${alias}"template_id",
+        ${alias}"tp_server_host_name",
+        ${alias}"open_connect",
+        ${alias}"vxlan_user",
+        ${alias}"vxlan_passwd"
+    </sql>
+
+    <select id="selectAllAssetsTypeIcon" resultMap="iconMap">
+		select "model_group_id" ,"model_group_name" ,"url" from  ${TBSNAME}."mw_cmdbmd_group"
+	</select>
+
+    <!--    <select id="queryAuthInfoByView" resultType="cn.mw.monitor.model.param.MwModelAutoInfoParam">-->
+    <!--        SELECT-->
+    <!--            a."id",-->
+    <!--            a."model_id" AS "modelId ",-->
+    <!--            a.macro,-->
+    <!--            a.macro_name AS "macroName",-->
+    <!--            b.macro_id AS "macroId",-->
+    <!--            b.auth_name AS "authName",-->
+    <!--            b.macro_val AS "macroVal"-->
+    <!--        FROM-->
+    <!--            mw_cmdbmd_model_macro a-->
+    <!--            LEFT JOIN mw_cmdbmd_macro_value b ON a."id" = b.macro_id-->
+    <!--            <where>-->
+    <!--                 1 = 1-->
+    <!--                 <if test="modelId!=null">-->
+    <!--                    and a."model_id" = #{modelId}-->
+    <!--                 </if>-->
+    <!--            </where>-->
+    <!--    </select>-->
+
+    <!--    <select id="getMacrosInfoByModel" resultType="cn.mw.monitor.model.param.MwModelMacrosInfoParam">-->
+    <!--        SELECT-->
+    <!--            a."id",-->
+    <!--            a."model_id" AS "modelId",-->
+    <!--            a.macro,-->
+    <!--            a.macro_name AS "macroName",-->
+    <!--            a.description,-->
+    <!--			a.macro_type AS "macroType"-->
+    <!--        FROM-->
+    <!--            mw_cmdbmd_model_macro a-->
+    <!--        where a."model_id" = #{modelId}-->
+    <!--    </select>-->
+    <select id="getMacrosInfoByModel" resultType="cn.mw.monitor.model.param.MwModelMacrosValInfoParam">
+        select
+        c."macro_val" AS "macroVal",
+        c."auth_name" AS "authName",
+        a."id" AS "modelMacroId",
+        b."macro",
+        b."macro_name" AS "macroName",
+        b."macro_type" AS "macroType",
+        a."macro_id" AS "macroId",
+        a."model_id" AS "modelId"
+        from ${TBSNAME}."mw_cmdbmd_model_macro" a
+        LEFT JOIN ${TBSNAME}."mw_cmdbmd_macro" b ON a."macro_id" = b."id"
+        LEFT JOIN ${TBSNAME}."mw_cmdbmd_macro_value_authname" c ON a."macro_id" = c."modelmacro_id" and a."model_id" = c."model_id"
+        WHERE a."model_id" in
+        (
+        <foreach collection="list" item="modelId" separator=",">
+            #{modelId,jdbcType=INTEGER}
+        </foreach>
+        )
+    </select>
+
+    <select id="getMacrosInfoByName" resultType="cn.mw.monitor.model.param.MwModelMacrosValInfoParam"
+            parameterType="cn.mw.monitor.model.param.MwModelMacrosValInfoParam">
+        select
+        c."macro_val" AS "macroVal",
+        c."auth_name" AS "authName",
+        a."id" AS "modelMacroId",
+        b."macro",
+        b."macro_type" AS "macroType",
+        a."macro_id" AS "macroId",
+        a."model_id" AS "modelId"
+        from ${TBSNAME}."mw_cmdbmd_model_macro" a
+        LEFT JOIN ${TBSNAME}."mw_cmdbmd_macro" b ON a."macro_id" = b."id"
+        LEFT JOIN ${TBSNAME}."mw_cmdbmd_macro_value_authname" c ON a."id" = c."modelmacro_id"
+        WHERE a."model_id" = #{modelId,jdbcType=INTEGER}
+        and c."auth_name" = #{authName}
+    </select>
+
+
+    <select id="getMacrosFieldByModel" resultType="cn.mw.monitor.model.param.MwModelMacrosValInfoParam">
+        select
+        a."id" AS "modelMacroId",
+        b."macro",
+        b."macro_name" AS "macroName",
+        b."macro_type" AS "macroType",
+        a."macro_id" AS "macroId",
+        a."model_id" AS "modelId"
+        from  ${TBSNAME}."mw_cmdbmd_model_macro" a
+        LEFT JOIN ${TBSNAME}."mw_cmdbmd_macro" b ON a."macro_id" = b."id"
+        WHERE a."model_id" =#{modelId}
+    </select>
+
+    <select id="getModelIdByTemplateNameAndMode" resultType="java.lang.Integer"
+            parameterType="cn.mw.monitor.model.param.MwModelTemplateInfo">
+        SELECT DISTINCT
+            t2."sub_assets_type_id" AS "modelId"
+        from  ${TBSNAME}."mw_cmdbmd_template_table" t2
+        WHERE
+            t2."template_name" = #{templateName,jdbcType=VARCHAR}
+            AND t2."monitor_mode" = #{monitorMode,jdbcType=INTEGER}
+    </select>
+
+    <select id="checkAuthenticationInfo" resultType="java.lang.Integer"
+            parameterType="cn.mw.monitor.model.param.MwModelMacrosValInfoParam">
+        SELECT
+            count(b."id") AS "num"
+        from  ${TBSNAME}."mw_cmdbmd_model_macro" a
+            LEFT JOIN ${TBSNAME}."mw_cmdbmd_macro_value_authname" b ON a."id" = b."modelmacro_id"
+        WHERE
+            a."model_id" = #{modelId}
+            AND b."auth_name"= #{authName}
+    </select>
+
+    <insert id="saveMacroValAuthName" parameterType="java.util.List">
+        INSERT INTO ${TBSNAME}."mw_cmdbmd_macro_value_authname"("id","modelmacro_id", "macro_val", "auth_name","model_id")
+        select ${TBSNAME}.SEQ_MW_CMDBMD_MACRO_VALUE_AUTHNAME.NEXTVAL,a.* from(
+        <foreach collection="list" item="item" separator="union all">
+            select #{item.macroId,jdbcType=INTEGER},#{item.macroVal,jdbcType=VARCHAR},
+            #{item.authName,jdbcType=VARCHAR},#{item.modelId,jdbcType=INTEGER} from dual
+        </foreach>
+        )a
+    </insert>
+
+    <select id="getGroupInstanceInfoByModelId" resultType="cn.mw.monitor.service.model.param.MwModelInstanceParam">
+        SELECT
+            a."model_index" AS "modelIndex",
+			b."instance_id" AS "instanceId"
+        FROM
+            ${TBSNAME}."mw_cmdbmd_manage" a
+            LEFT JOIN ${TBSNAME}."mw_cmdbmd_instance" b ON a."model_id" = b."model_id"
+        WHERE
+            b."model_id" IN (SELECT a."model_id" FROM ${TBSNAME}."mw_cmdbmd_manage" a
+                            WHERE
+                                a."model_group_id" IN ( SELECT "model_group_id" FROM ${TBSNAME}."mw_cmdbmd_manage" WHERE "model_id" = #{modelId})
+                            AND a."model_id" != #{modelId})
+    </select>
+
+    <select id="getSystemAndClassifyInstanceInfo" resultType="cn.mw.monitor.service.model.param.MwModelInstanceParam">
+        SELECT
+            t2."model_id" AS "modelId",
+            t1."model_name" AS "modelName",
+            t2."instance_name" AS "instanceName",
+            t1."model_index" AS "modelIndex",
+            t2."instance_id" AS "instanceId"
+        FROM
+            ${TBSNAME}."mw_cmdbmd_manage" t1
+            left join ${TBSNAME}."mw_cmdbmd_instance" t2 on t1."model_id" = t2."model_id"
+        WHERE
+            t1."model_index" in (
+                <foreach collection="list" item="item" index="index" separator=",">
+                    #{item}
+                </foreach>
+            )
+            AND t1."delete_flag" = '0'
+            and t2."instance_id" is not null
+            and t2."instance_name" is not null
+    </select>
+
+    <select id="getModelUserInfo" resultType="cn.mw.monitor.model.param.MwModelUserDTO">
+        SELECT
+        "user_id" AS "userId",
+        ("login_name"||'('||"user_name"||')') AS "userName"
+        FROM
+        ${TBSNAME}."mw_sys_user"
+        WHERE
+        "delete_flag" = '0'
+        AND "user_id" in (
+        <foreach collection="list" item="item" index="index" separator=",">
+            #{item}
+        </foreach>)
+    </select>
+
+    <select id="getModelOrgInfo" resultType="cn.mw.monitor.model.param.MwModelOrgDTO">
+        SELECT
+        "org_id" AS "orgId",
+        "org_name" AS "orgName"
+        FROM
+        ${TBSNAME}."mw_sys_org"
+        WHERE
+        "delete_flag" = '0'
+        and "org_id" in (
+        <foreach collection="list" item="item" index="index" separator=",">
+            #{item}
+        </foreach>)
+    </select>
+
+    <select id="getModelGroupInfo" resultType="cn.mw.monitor.model.param.MwModelGroupDTO">
+        SELECT
+        "group_id" AS "groupId",
+        "group_name" AS "groupName"
+        <choose>
+            <when test="loginName == null">
+                FROM ${TBSNAME}."mw_group_table"
+                WHERE "delete_flag" = 0
+            </when>
+            <otherwise>
+                FROM ${TBSNAME}."view_user_group"
+                WHERE "login_name" = #{loginName}
+            </otherwise>
+        </choose>
+    </select>
+
+
+
+    <delete id="deleteMarcoInfoByModel" parameterType="cn.mw.monitor.model.param.DeleteModelMacrosParam">
+        delete from ${TBSNAME}."mw_cmdbmd_macro_value_authname"
+        where "auth_name" = #{authName}
+        and "model_id" = #{modelId}
+    </delete>
+</mapper>

@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.mw.monitor.assets.dao.MwAssetsInfoSyncDao">
+    <select id="getZabbixServerInfoIds" resultType="java.lang.Integer">
+        SELECT
+            id
+        FROM
+            mw_thirdparty_server_table a
+        WHERE
+            a.delete_flag = '0'
+	</select>
+
+    <select id="countAssectNotHostId" resultType="java.lang.String" parameterType="cn.mw.monitor.assets.dto.MwAddAndUpdateTangibleAssetsTable">
+        select id
+        from mw_tangibleassets_table a
+        where in_band_ip = #{inBandIp}
+        and monitor_server_id = #{monitorServerId}
+        and template_id = #{templateId}
+        and tp_server_host_name = #{tpServerHostName}
+        and assets_id != #{assetsId}
+        and delete_flag = '0'
+    </select>
+
+    <select id="countAssectByHostId" resultType="java.lang.Integer" parameterType="cn.mw.monitor.assets.dto.MwAddAndUpdateTangibleAssetsTable">
+        select count(*)
+        from mw_tangibleassets_table a
+        where in_band_ip = #{inBandIp}
+        and monitor_server_id = #{monitorServerId}
+        and template_id = #{templateId}
+        and tp_server_host_name = #{tpServerHostName}
+        and assets_id = #{assetsId}
+        and delete_flag = '0'
+    </select>
+
+    <update id="deleteAssetsInfoByRepeat" parameterType="java.util.List">
+        update mw_tangibleassets_table
+        set delete_flag = '1'
+        where id in (
+        <foreach collection="list" item="deleteList" separator=",">
+            #{deleteList}
+        </foreach>
+        )
+    </update>
+
+
+    <select id="getEnginemanageId" resultType="java.lang.String">
+        select id
+        from mw_enginemanage_table a
+        where a.proxy_id = #{proxyId}
+        and monitor_server_id = #{serverId}
+        and delete_flag = '0'
+    </select>
+
+    <select id="getAssetsTemplateId" resultType="java.lang.String">
+        select a.assetstemplate_id AS "assetsTemplateId"
+        from mw_assetstemplate_server_mapper a
+        where a.template_id = #{templateId}
+        and a.server_id = #{serverId}
+        LIMIT 1
+    </select>
+
+
+    <select id="getAssetsTemplateInfoById" resultType="cn.mw.monitor.assets.dto.MwGetAssetsTemplateInfoDTO">
+        SELECT
+            description,
+            brand,
+            specification,
+            assets_type_id,
+            sub_assets_type_id,
+            monitor_mode
+        FROM
+            mw_assetstemplate_table
+        WHERE
+            id = #{assetsTemplateId}
+    </select>
+
+    <insert id="InsertAssetsInfo" parameterType="cn.mw.monitor.assets.dto.MwAddAndUpdateTangibleAssetsTable" useGeneratedKeys="true" keyColumn="id" keyProperty="id" >
+         insert into mw_tangibleassets_table
+        (
+        id,
+        assets_id,
+        assets_name,
+        host_name,
+        in_band_ip,
+        out_band_ip,
+        assets_type_id,
+        assets_type_sub_id,
+        polling_engine,
+        monitor_mode,
+        manufacturer,
+        specifications,
+        description,
+        enable,
+        delete_flag,
+        monitor_flag,
+        setting_flag,
+        creator,
+        create_date,
+        modifier,
+        modification_date,
+        scan_success_id,
+        snmp_lev,
+        monitor_server_id,
+        timing,
+        tp_server_host_name,
+        template_id)
+        values
+        (
+        #{id,jdbcType=VARCHAR},
+        #{assetsId,jdbcType=VARCHAR},
+        #{assetsName,jdbcType=VARCHAR},
+        #{hostName,jdbcType=VARCHAR},
+        #{inBandIp,jdbcType=VARCHAR},
+        #{outBandIp,jdbcType=VARCHAR},
+        #{assetsTypeId,jdbcType=INTEGER},
+        #{assetsTypeSubId,jdbcType=INTEGER},
+        #{pollingEngine,jdbcType=VARCHAR},
+        #{monitorMode,jdbcType=INTEGER},
+        #{manufacturer,jdbcType=VARCHAR},
+        #{specifications,jdbcType=VARCHAR},
+        #{description,jdbcType=VARCHAR},
+        #{enable,jdbcType=VARCHAR},
+        #{deleteFlag,jdbcType=INTEGER},
+        #{monitorFlag,jdbcType=INTEGER},
+        #{settingFlag,jdbcType=INTEGER},
+        #{creator,jdbcType=VARCHAR},
+        now(),
+        #{modifier,jdbcType=VARCHAR},
+        now(),
+        #{scanSuccessId,jdbcType=INTEGER},
+        #{snmpLev,jdbcType=INTEGER},
+        #{monitorServerId,jdbcType=INTEGER},
+        #{timing,jdbcType=VARCHAR},
+        #{tpServerHostName,jdbcType=VARCHAR},
+        #{templateId,jdbcType=VARCHAR}
+        )
+    </insert>
+
+    <select id="selectAssetsIdAndName" resultType="java.util.Map">
+        select assets_id assetsId,assets_name assetsName,monitor_server_id serverId from ${tableName} where delete_flag = false
+    </select>
+</mapper>

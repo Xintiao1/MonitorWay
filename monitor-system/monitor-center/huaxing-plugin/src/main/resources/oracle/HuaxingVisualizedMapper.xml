@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.huaxing.dao.HuaxingVisualizedDao">
+    <select id="getHuaxingDataBaseConnectionInfo" resultType="cn.huaxing.dto.HuaxingVisualizedDataSourceDto">
+        select "ID" as "id","USER_NAME" as "userName","PASS_WORD" as "passWord","DRIVER" as "driver","URL" as "url" from ${TBSNAME}."MW_HUAXING_VISUALIZED_DATASOURCE"
+    </select>
+    <select id="getHuaxingDataBaseSqlInfo" resultType="cn.huaxing.dto.HuaxingVisualizedDataSourceSqlDto">
+        select
+            "ID" as id,
+            "DATASOURCE_ID" as "dataSourceId",
+            "SQL_STRING" as "sqlString",
+            "CHAR_TYPE" as "charType",
+            "PARTITION_NAME" as "partitionName"
+        from ${TBSNAME}.MW_HUAXING_VISUALIZED_SQL
+    </select>
+    <delete id="deleteHuaxingCacheData">
+        delete from
+            ${TBSNAME}."MW_HUAXING_DATA_CACHE_TABLE"
+    </delete>
+    <insert id="insertHuaxingcacheData" parameterType="java.util.List">
+        insert into  ${TBSNAME}."MW_HUAXING_DATA_CACHE_TABLE"
+        ("CHART_TYPE","PARTITION_NAME","DATA_STR","CREATE_DATE")
+        select t.* from (
+        <foreach collection="list" item="item" separator="union all">
+            (select
+            #{item.chartType,jdbcType=INTEGER} as "CHART_TYPE",
+            #{item.partitionName,jdbcType=VARCHAR} as "PARTITION_NAME",
+            #{item.dataStr,jdbcType=CLOB} as "DATA_STR",
+            SYSDATE as "CREATE_DATE"
+            from dual
+            )
+        </foreach>
+        ) t
+    </insert>
+    <select id="selectHuaxingcacheData" resultType="cn.huaxing.dto.HuaxingVisualizedDataDto">
+        select "CHART_TYPE" as "chartType","PARTITION_NAME" as "partitionName","DATA_STR" as "dataStr"
+        from ${TBSNAME}."MW_HUAXING_DATA_CACHE_TABLE"
+        where "CHART_TYPE" = #{chartType} and "PARTITION_NAME" = #{partitionName}
+    </select>
+</mapper>

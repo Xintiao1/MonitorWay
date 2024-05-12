@@ -1,0 +1,179 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.mw.monitor.model.dao.MwModelExportDao">
+
+    <select id="selectUserIdByName" resultType="java.lang.Integer">
+        SELECT
+            "user_id"
+        from  ${TBSNAME}."mw_sys_user"
+        WHERE
+            instr( ','||#{userName}||',' , ','||"user_name"||',')>0
+        AND "delete_flag" = '0'
+    </select>
+
+    <select id="selectOrgIdByName" resultType="java.lang.String">
+        SELECT
+        trim( LEADING ',' from "nodes" ) AS "nodes"
+        from  ${TBSNAME}."mw_sys_org"
+        WHERE
+            instr( ','||#{orgName}||',' , ','||"org_name"||',')>0
+        AND "delete_flag" = '0'
+    </select>
+
+    <select id="selectGroupIdByName" resultType="java.lang.Integer">
+        SELECT
+            "group_id"
+        from  ${TBSNAME}."mw_group_table"
+        WHERE
+            instr( ','||#{groupName}||',' , ','||"group_name"||',')>0
+        AND "delete_flag" = '0'
+    </select>
+
+    <select id="selectUserIdInfo" resultType="cn.mw.monitor.model.dto.MwModelPowerDTO">
+        SELECT
+            "user_id" AS "id",
+            "user_name" AS "name"
+        FROM
+            ${TBSNAME}."mw_sys_user"
+        WHERE
+            "delete_flag" = '0'
+    </select>
+
+    <select id="selectOrgIdInfo" resultType="cn.mw.monitor.model.dto.MwModelPowerDTO">
+        SELECT
+            trim( LEADING ',' from "nodes" ) AS "id",
+            "org_name" AS "name"
+        FROM
+            ${TBSNAME}."mw_sys_org"
+        WHERE
+            "delete_flag" = '0'
+    </select>
+
+    <select id="selectGroupIdInfo" resultType="cn.mw.monitor.model.dto.MwModelPowerDTO">
+        SELECT
+            "group_id" AS "id",
+            "group_name" AS "name"
+        FROM
+            ${TBSNAME}."mw_group_table"
+        WHERE
+            "delete_flag" = '0'
+    </select>
+
+    <select id="selectMonitorServerId" resultType="java.lang.String">
+        SELECT
+            "id"
+        FROM
+            ${TBSNAME}."mw_thirdparty_server_table"
+        WHERE
+            "monitoring_server_name" = #{monitorServerName}
+            AND "delete_flag" = '0'
+         and rownum &lt;= 1
+    </select>
+
+    <select id="getOrgNameByExport" resultType="java.lang.String">
+       SELECT
+            LISTAGG( "org_name",  '/' ) AS "orgName"
+        from  ${TBSNAME}."mw_sys_org"
+        WHERE
+        instr( ','||#{orgIds}||',' , ','||"org_id"||',')>0
+    </select>
+
+    <select id="getUserNameByExport" resultType="java.lang.String">
+        SELECT
+            LISTAGG("user_name",'/') AS "userName"
+        from  ${TBSNAME}."mw_sys_user"
+        WHERE
+           instr( ','||#{userIds}||',' , ','||"user_id"||',')>0
+    </select>
+
+    <select id="getGroupNameByExport" resultType="java.lang.String">
+        SELECT
+            LISTAGG("group_name" , '/') AS "groupName"
+        from  ${TBSNAME}."mw_group_table"
+        WHERE
+        instr( ','||#{groupIds}||',' , ','||"group_id"||',')>0
+    </select>
+
+    <select id="getOrgNameAllByExport" resultType="cn.mw.monitor.model.dto.MwModelViewTreeDTO">
+        SELECT
+            "org_id" AS "id",
+            "org_name" AS "name"
+        from  ${TBSNAME}."mw_sys_org"
+        WHERE
+            "delete_flag" = '0'
+    </select>
+
+    <select id="getUserNameAllByExport" resultType="cn.mw.monitor.model.dto.MwModelViewTreeDTO">
+        SELECT
+            "user_id" AS "id",
+            "user_name" AS "name"
+        from  ${TBSNAME}."mw_sys_user"
+        WHERE
+            "delete_flag" = '0'
+    </select>
+
+    <select id="getGroupNameAllByExport" resultType="cn.mw.monitor.model.dto.MwModelViewTreeDTO">
+        SELECT
+            "group_name" AS "name",
+            "group_id" AS "id"
+        from  ${TBSNAME}."mw_group_table"
+        WHERE
+            "delete_flag" = '0'
+    </select>
+
+    <select id="getIndexInfoByGroup" resultType="java.util.Map">
+        select a."model_index",a."model_id",a."model_name"
+        from ${TBSNAME}."mw_cmdbmd_manage" a
+        LEFT JOIN ${TBSNAME}."mw_cmdbmd_group" b on a."model_group_id" = b."model_group_id"
+        where a."model_name" = #{modelName,jdbcType=VARCHAR}
+        and b."model_group_name" = #{groupName,jdbcType=VARCHAR}
+        and a."delete_flag" = '0'
+         and rownum &lt;= 1
+    </select>
+
+    <select id="getAssetsTypeByExport" resultType="cn.mw.monitor.model.dto.MwModelViewTreeDTO">
+        SELECT
+            "model_group_id" AS "id",
+            "model_group_name" AS "name"
+        from  ${TBSNAME}."mw_cmdbmd_group"
+    </select>
+
+    <select id="getAssetsSubTypeByExport" resultType="cn.mw.monitor.model.dto.MwModelViewTreeDTO">
+        SELECT
+            "model_id" AS "id",
+            "model_name" AS "name"
+        from  ${TBSNAME}."mw_cmdbmd_manage"
+        WHERE
+            "delete_flag" = '0'
+    </select>
+
+    <select id="getServerNameByExport" resultType="cn.mw.monitor.model.dto.MwModelViewTreeDTO">
+        SELECT
+            "id",
+            "monitoring_server_name" AS "name"
+        from  ${TBSNAME}."mw_thirdparty_server_table"
+        WHERE
+            "delete_flag" = '0'
+    </select>
+
+    <select id="getMonitorModeByExport" resultType="cn.mw.monitor.model.dto.MwModelViewTreeDTO">
+        SELECT
+            "drop_key" AS "id",
+            "drop_value" AS "name"
+        from  ${TBSNAME}."mw_dropdown_table"
+        WHERE
+            "drop_code" = 'monitor_mode'
+            and "delete_flag" = '0'
+    </select>
+
+    <select id="getAllProxyInfoByExport" resultType="cn.mw.monitor.model.dto.MwModelViewTreeDTO">
+        select
+            "id" AS "id",
+            "engine_name" AS "name"
+        from
+            ${TBSNAME}."mw_enginemanage_table"
+        WHERE
+            "delete_flag" = '0'
+    </select>
+
+</mapper>

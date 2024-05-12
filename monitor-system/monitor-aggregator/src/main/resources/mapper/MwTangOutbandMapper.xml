@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.mw.monitor.server.dao.TangibleOutbandDao">
+    <sql id="Add_Column_List">
+     , polling_engine, monitor_mode, manufacturer, specifications, description,
+    enable, delete_flag, monitor_flag, setting_flag,snmp_lev,
+    creator, create_date, modifier, modification_date, scan_success_id, monitor_server_id, tp_server_host_name, template_id
+  </sql>
+    <select id="checkIpAddress" parameterType="java.lang.String"
+            resultType="cn.mw.monitor.service.assets.model.MwTangibleassetsDTO">
+        select id,assets_id assetsId, assets_name assetsName, host_name hostName, in_band_ip inBandIp, monitor_server_id monitorServerId, assets_type_id assetsTypeId,
+        assets_type_sub_id assetsTypeSubId from
+        mw_tangibleassets_table
+        where
+        delete_flag = false
+        and assets_type_id = 1
+        and in_band_ip = #{checkParam,jdbcType=VARCHAR}
+    </select>
+
+    <select id="getOutHostId" parameterType="java.lang.String" resultType="cn.mw.monitor.service.server.api.dto.AssetsBaseDTO">
+        select
+        assets_id assetsId,
+        monitor_server_id monitorServerId
+        from mw_outbandassets_table
+        where delete_flag = false and ip_address = #{ipAddress,jdbcType=VARCHAR}
+    </select>
+
+</mapper>
