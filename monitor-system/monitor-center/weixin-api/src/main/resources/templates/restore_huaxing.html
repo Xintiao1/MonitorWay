@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en"
+	  xmlns="http://www.w3.org/1999/xhtml"
+	  xmlns:th="http://www.thymeleaf.org">
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+	<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+	<title>告警恢复通知</title>
+
+</head>
+<body>
+<table width="645" border="0" align="center" cellpadding="0" cellspacing="0">
+	<tbody><tr><td height="150" align="left" valign="top" style="border:1px solid #000000;word-break:break-all;padding:0px">
+		<table width="650" border="0" align="center" cellpadding="0" cellspacing="0">
+			<tbody>
+			<tr>
+				<td width="650" height="89" th:style="${emailParam.hidden}">
+					<img class="logo" src="cid:logoImage" width="139" height="31"/>
+				</td>
+			</tr>
+			<tr>
+				<td width="650" height="45" valign="top" style="padding-bottom:10pt; ">
+					<table width="620" border="0" align="center" cellspacing="0" bordercolor="#000000" class="MaoNormalTable" style="color: rgb(0, 0, 0); font-family: 'lucida Grande', Verdana, 'Microsoft YaHei'; font-size: 15px; font-style: normal; font-variant: normal; font-weight: normal; letter-spacing: normal; line-height: 22pt; orphans: auto; text-align: start; text-indent: 0px; text-transform: none; white-space: normal; widows: auto; word-spacing: 0px; -webkit-text-stroke-width: 0px; background-color: rgb(255, 255, 255);">
+						<tr>
+							<td width="620" height="27" style="font-family: '微软雅黑'; font-size: 15px; -webkit-font-smoothing: subpixel-antialiased; padding: 3pt;">【恢复】告警恢复通知：</td>
+						</tr>
+					</table>
+					<table width="620" border="0" align="center" cellspacing="0" bordercolor="#000000" class="MaoNormalTable" style="color: rgb(0, 0, 0); font-family: 'lucida Grande', Verdana, '微软雅黑'; font-size: 15px; font-style: normal; font-variant: normal; font-weight: normal; letter-spacing: normal; line-height: 22pt; orphans: auto; text-align: start; text-indent: 0px; text-transform: none; white-space: normal; widows: auto; word-spacing: 0px; -webkit-text-stroke-width: 0px; background-color: rgb(255, 255, 255); border-top:1px solid #000000; border-right:1px solid #000000; border-bottom:1px solid #000000;">
+						<tr>
+							<td width="147" height="27" style="font-family: '微软雅黑'; font-size: 15px; -webkit-font-smoothing: subpixel-antialiased; padding: 3pt; border-right:1px solid #000000; border-left:1px solid #000000; border-bottom:1px solid #000000;">业务系统：</td>
+							<td width="467" height="27" style="font-family: '微软雅黑'; font-size: 15px; -webkit-font-smoothing: subpixel-antialiased; padding: 3pt; border-bottom:1px solid #000000;"><span th:text="${emailParam.applicationSystem}"></span></td>
+						</tr>
+						<tr>
+							<td width="147" height="27" style="font-family: '微软雅黑'; font-size: 15px; -webkit-font-smoothing: subpixel-antialiased; padding: 3pt; border-right:1px solid #000000; border-left:1px solid #000000; border-bottom:1px solid #000000;">主机名称：</td><td width="467" height="27" style="font-family: '微软雅黑'; font-size: 15px;-webkit-font-smoothing: subpixel-antialiased; padding: 3pt; border-bottom:1px solid #000000;"><span th:text="${emailParam.name}">XXX</span></td>
+						</tr>
+						<tr>
+							<td width="147" height="27" style="font-family: '微软雅黑'; font-size: 15px; -webkit-font-smoothing: subpixel-antialiased; padding: 3pt; border-right:1px solid #000000; border-left:1px solid #000000; border-bottom:1px solid #000000;">IP地址：</td>
+							<td width="467" height="27" style="font-family: '微软雅黑'; font-size: 15px; -webkit-font-smoothing: subpixel-antialiased; padding: 3pt; border-bottom:1px solid #000000;"><span th:text="${emailParam.ip}">XXX</span></td>
+						</tr>
+						<tr>
+							<td width="147" height="27" style="font-family: '微软雅黑'; font-size: 15px; -webkit-font-smoothing: subpixel-antialiased; padding: 3pt; border-left:1px solid #000000; border-right:1px solid #000000; border-bottom:1px solid #000000;">主题： </td><td width="467" height="27" style="font-family: '微软雅黑'; font-size: 15px; -webkit-font-smoothing: subpixel-antialiased; padding: 3pt; border-bottom:1px solid #000000;"><span th:text="${emailParam.title}">XXX</span></td>
+						</tr>
+						<tr>
+							<td width="147" height="27" style="font-family: '微软雅黑'; font-size: 15px; -webkit-font-smoothing: subpixel-antialiased; padding: 3pt; border-right:1px solid #000000; border-left:1px solid #000000; border-bottom:1px solid #000000;">告警信息：</td>
+							<td width="467" height="27" style="font-family: '微软雅黑'; font-size: 15px; -webkit-font-smoothing: subpixel-antialiased; padding: 3pt; border-bottom:1px solid #000000;"><span th:text="${emailParam.message}">XXX</span></td>
+						</tr>
+						<tr>
+							<td width="147" height="27" style="font-family: '微软雅黑'; font-size: 15px; -webkit-font-smoothing: subpixel-antialiased; padding: 3pt; border-right:1px solid #000000; border-left:1px solid #000000; border-bottom:1px solid #000000;">设备型号：</td>
+							<td width="467" height="27" style="font-family: '微软雅黑'; font-size: 15px; -webkit-font-smoothing: subpixel-antialiased; padding: 3pt; border-bottom:1px solid #000000;"><span th:text="${emailParam.specifications}">XXX</span></td>
+						</tr>
+						<tr th:style="${emailParam.systemHidden}">
+							<td width="147" height="27" style="font-family: '微软雅黑'; font-size: 15px; -webkit-font-smoothing: subpixel-antialiased; padding: 3pt; border-right:1px solid #000000; border-left:1px solid #000000; border-bottom:1px solid #000000;">区域：</td>
+							<td width="467" height="27" style="font-family: '微软雅黑'; font-size: 15px; -webkit-font-smoothing: subpixel-antialiased; padding: 3pt; border-bottom:1px solid #000000;"><span th:text="${emailParam.domain}">XXX</span></td>
+						</tr>
+						<td width="147" height="27" style="font-family: '微软雅黑'; font-size: 15px; -webkit-font-smoothing: subpixel-antialiased; padding: 3pt; border-right:1px solid #000000; border-left:1px solid #000000; border-bottom:1px solid #000000;">告警等级：</td>
+						<td width="467" height="27" style="font-family: '微软雅黑'; font-size: 15px; -webkit-font-smoothing: subpixel-antialiased; padding: 3pt; border-bottom:1px solid #000000;"><span th:text="${emailParam.level}">XXX</span></td>
+				
+						<tr>
+							<td width="147" height="27" style="font-family: '微软雅黑'; font-size: 15px; -webkit-font-smoothing: subpixel-antialiased; padding: 3pt; border-right:1px solid #000000; border-left:1px solid #000000; border-bottom:1px solid #000000;">负责人：</td>
+							<td width="467" height="27" style="font-family: '微软雅黑'; font-size: 15px; -webkit-font-smoothing: subpixel-antialiased; padding: 3pt; border-bottom:1px solid #000000;"><span th:text="${emailParam.person}">xxx</span></td>
+						</tr>
+						<tr>
+							<td width="147" height="27" style="font-family: '微软雅黑'; font-size: 15px; -webkit-font-smoothing: subpixel-antialiased; padding: 3pt; border-right:1px solid #000000; border-left:1px solid #000000; border-bottom:1px solid #000000;">告警时间：</td>
+							<td width="467" height="27" style="font-family: '微软雅黑'; font-size: 15px; -webkit-font-smoothing: subpixel-antialiased; padding: 3pt; border-bottom:1px solid #000000;"><span th:text="${emailParam.date}">XXX</span></td>
+						</tr>
+						<tr>
+							<td width="147" height="27" style="font-family: '微软雅黑'; font-size: 15px; -webkit-font-smoothing: subpixel-antialiased; padding: 3pt; border-right:1px solid #000000; border-left:1px solid #000000; border-bottom:1px solid #000000;">关闭时间：</td>
+							<td width="467" height="27" style="font-family: '微软雅黑'; font-size: 15px; -webkit-font-smoothing: subpixel-antialiased; padding: 3pt; border-bottom:1px solid #000000;"><span th:text="${emailParam.hfdate}">XXX</span></td>
+						</tr>
+						<tr>
+							<td width="147" height="27" style="font-family: '微软雅黑'; font-size: 15px; -webkit-font-smoothing: subpixel-antialiased; padding: 3pt; border-right:1px solid #000000; border-left:1px solid #000000; border-bottom:1px solid #000000;">告警时长：</td>
+							<td width="467" height="27" style="font-family: '微软雅黑'; font-size: 15px; -webkit-font-smoothing: subpixel-antialiased; padding: 3pt; border-bottom:1px solid #000000;"><span th:text="${emailParam.longTime}">NA</span></td>
+						</tr>
+						<tr>
+							<td width="147" height="27" style="font-family: '微软雅黑'; font-size: 15px; -webkit-font-smoothing: subpixel-antialiased; padding: 3pt; border-right:1px solid #000000; border-left:1px solid #000000; border-bottom:1px solid #000000;">当前状态：</td>
+							<td width="467" height="27" style="font-family: '微软雅黑'; font-size: 15px; -webkit-font-smoothing: subpixel-antialiased; padding: 3pt; border-bottom:1px solid #000000;"><span th:text="${emailParam.state}">XXX</span></td>
+						</tr>				
+						<tr>
+							<td width="147" height="27" style="font-family: '微软雅黑'; font-size: 15px; -webkit-font-smoothing: subpixel-antialiased; padding: 3pt; border-left:1px solid #000000; border-right:1px solid #000000;">事件ID：</td>
+							<td width="467" height="27" style="font-family: '微软雅黑'; font-size: 15px;-webkit-font-smoothing: subpixel-antialiased; padding: 3pt;"><span th:text="${emailParam.id}">XXX</span></td>
+						</tr>
+					</table>
+				</td>
+			</tr>
+			<tr>
+				<td width="650" height="40" bgcolor="#EFEFEF">
+					<div align="center" style="font-family:'微软雅黑'; color:#333333; font-size:14px; ">请运维人员相互转告！</div>
+				</td>
+			</tr>
+			</tbody>
+		</table></td></tr>
+	</tbody>
+</table>
+</body>
+</html>

@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.mw.monitor.model.dao.MwModelCitrixDao">
+    <select id="getModelProperticewInfoByName" resultType="cn.mw.monitor.service.model.param.AddModelInstancePropertiesParam">
+        SELECT
+            a."model_id" AS "modelId",
+            a."model_index" AS "modelIndex",
+            a."model_name" AS "modelName",
+            a."model_desc" AS "modelDesc",
+            b."properties_id" AS "propertiesId",
+            b."index_id" AS "propertiesIndexId",
+            b."properties_name" AS "propertiesName",
+            b."properties_type_id" AS "propertiesType"
+        from  ${TBSNAME}."mw_cmdbmd_manage" a
+            LEFT JOIN ${TBSNAME}."mw_cmdbmd_properties" b ON a."model_id" = b."model_id"
+        WHERE
+            a."model_id" IN ( SELECT a."model_id" from ${TBSNAME}."mw_cmdbmd_manage" a WHERE a."model_name" = #{modelName} )
+            OR INSTR(','||( SELECT "pids" from ${TBSNAME}."mw_cmdbmd_manage" WHERE a."model_name" = #{modelName} )||',' , ','||a."model_id"||',' )>0
+    </select>
+
+    <select id="getModelIndexByName" resultType="cn.mw.monitor.model.dto.MwModelInfoDTO">
+        SELECT
+            "model_name" AS "modelName",
+            "model_id" AS "modelId",
+            "model_index" AS "modelIndex"
+        from  ${TBSNAME}."mw_cmdbmd_manage" a
+        WHERE
+            "model_group_id" ='16'
+            and ( "model_name" like '%LB%' OR "model_name" like '%Load Balancing%')
+    </select>
+
+    <select id="getModelIndexByModelName" resultType="cn.mw.monitor.model.dto.MwModelInfoDTO">
+        SELECT
+            "model_name" AS "modelName",
+            "model_id" AS "modelId",
+            "model_index" AS "modelIndex"
+        from  ${TBSNAME}."mw_cmdbmd_manage" a
+        WHERE
+            "model_name" = #{modelName}
+    </select>
+
+    <select id="getModelInstanceInfoByName" resultType="cn.mw.monitor.service.model.param.MwModelInstanceParam">
+        SELECT
+            t1."instance_name" AS "instanceName",
+            t1."model_id" AS "modelId",
+            t2."model_index" AS "modelIndex",
+            t1."instance_id" AS "instanceId"
+        FROM
+            ${TBSNAME}."mw_cmdbmd_instance" t1
+            LEFT JOIN ${TBSNAME}."mw_cmdbmd_manage" t2 ON t1."model_id" = t2."model_id"
+        WHERE
+           t2."model_group_id" ='16'
+            and ( t2."model_id" in (${citrixModelId}))
+            and t1."relation_instance_id" = #{instanceId}
+            and t2."delete_flag" = '0'
+            and t1."instance_id" is not null
+    </select>
+
+    <select id="getAllCitrixModelInfo" resultType="cn.mw.monitor.model.dto.MwModelInfoDTO">
+        SELECT
+            a."model_index" AS "modelIndex",
+            b."instance_id" AS "instanceId"
+        from  ${TBSNAME}."mw_cmdbmd_manage" a
+            LEFT JOIN ${TBSNAME}."mw_cmdbmd_instance" b ON a."model_id" = b."model_id"
+        WHERE
+            a."model_id" = '21'
+    </select>
+
+    <select id="getAllCitrixInstanceInfo" resultType="cn.mw.monitor.model.dto.ModelInstanceDto">
+        SELECT
+            b."instance_id" AS "instanceId",
+            b."instance_name" AS "instanceName"
+        from  ${TBSNAME}."mw_cmdbmd_manage" a
+            LEFT JOIN ${TBSNAME}."mw_cmdbmd_instance" b ON a."model_id" = b."model_id"
+        WHERE
+            a."model_id" = '21'
+    </select>
+
+    <select id="getModelIndexInfo" resultType="cn.mw.monitor.model.dto.MwModelInfoDTO">
+        SELECT
+            "model_name" AS "modelName",
+            "model_id" AS "modelId",
+            "model_index" AS "modelIndex"
+        from  ${TBSNAME}."mw_cmdbmd_manage"
+        WHERE
+             "model_name" = #{modelName}
+    </select>
+</mapper>

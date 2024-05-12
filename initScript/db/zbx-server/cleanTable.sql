@@ -1,0 +1,1 @@
+truncate table mw_thirdparty_server_table;

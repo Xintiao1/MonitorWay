@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.mw.monitor.model.dao.MwModelSysLogDao">
+
+    <insert id="saveInstaceChangeHistory" parameterType="cn.mw.monitor.model.dto.SystemLogDTO">
+        insert into ${TBSNAME}."mw_cmdbmd_model_sys_log"(
+        "id",
+       "log_time",
+       "user_name",
+       "model_name",
+       "obj_name",
+       "operate_des_after",
+       "operate_des_before",
+       "version",
+       "type"
+        )
+        values(
+        ${TBSNAME}.SEQ_MW_CMDBMD_MODEL_SYS_LOG.NEXTVAL,
+        SYSDATE,
+        #{userName,jdbcType=VARCHAR},
+        #{modelName,jdbcType=VARCHAR},
+        #{objName,jdbcType=VARCHAR},
+        #{operateDes,jdbcType=VARCHAR},
+        #{operateDesBefore,jdbcType=VARCHAR},
+        #{version,jdbcType=INTEGER},
+        #{type,jdbcType=VARCHAR}
+        )
+    </insert>
+
+    <insert id="batchSaveInstaceChangeHistory" parameterType="java.util.List">
+        insert into ${TBSNAME}."mw_cmdbmd_model_sys_log"(
+        "id",
+        "log_time",
+        "user_name",
+        "model_name",
+        "obj_name",
+        "operate_des_after",
+        "operate_des_before",
+        "version",
+        "type"
+        )
+        values
+        <foreach collection="list" item="item" separator=",">
+            (
+            ${TBSNAME}.SEQ_MW_CMDBMD_MODEL_SYS_LOG.NEXTVAL,
+            SYSDATE,
+            #{item.userName,jdbcType=VARCHAR},
+            #{item.modelName,jdbcType=VARCHAR},
+            #{item.objName,jdbcType=VARCHAR},
+            #{item.operateDes,jdbcType=VARCHAR},
+            #{item.operateDesBefore,jdbcType=VARCHAR},
+            #{item.version,jdbcType=INTEGER},
+            #{item.type,jdbcType=VARCHAR}
+            )
+        </foreach>
+    </insert>
+
+    <select id="getChangeHistoryVersion" resultType="java.lang.Integer">
+        SELECT
+            max("version") AS "version"
+        from  ${TBSNAME}."mw_cmdbmd_model_sys_log"
+        WHERE
+            "type" = #{type}
+    </select>
+
+    <select id="getInstaceChangeHistory" resultType="cn.mw.monitor.model.dto.SystemLogDTO"
+            parameterType="cn.mw.monitor.model.param.SystemLogParam">
+        SELECT
+        "log_time",
+        "user_name",
+        "model_name",
+        "obj_name",
+        "operate_des_before",
+        "operate_des_after" AS "operateDes",
+        "type",
+        "version"
+        from  ${TBSNAME}."mw_cmdbmd_model_sys_log"
+        <where>
+            1 =1
+            <if test="type!=null and type!=''">
+                and "type" = #{type}
+            </if>
+        </where>
+        order by "id" desc
+    </select>
+
+    <update id="updateInstaceChangeHistory">
+        update ${TBSNAME}."mw_cmdbmd_model_sys_log"
+        SET "type" = #{targetType}
+        WHERE
+            "type" = #{ownType}
+    </update>
+</mapper>

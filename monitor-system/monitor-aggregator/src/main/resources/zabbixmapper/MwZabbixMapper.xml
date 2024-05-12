@@ -1,0 +1,18 @@
+<!--<?xml version="1.0" encoding="UTF-8"?>-->
+<!--<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">-->
+<!--<mapper namespace="cn.mw.zbx.dao.MWZabbixDao">-->
+<!--&lt;!&ndash;    <select id="getItemidBykey" resultType="java.lang.Integer">&ndash;&gt;-->
+<!--&lt;!&ndash;    SELECT itemid FROM items WHERE&ndash;&gt;-->
+<!--&lt;!&ndash;	items.hostid = #{hostId,jdbcType=INTEGER} and type=9 and key_=#{key_,jdbcType=VARCHAR}&ndash;&gt;-->
+<!--&lt;!&ndash;    </select>&ndash;&gt;-->
+<!--&lt;!&ndash;    <select id="getValueByItemid" resultType="java.lang.String">&ndash;&gt;-->
+<!--&lt;!&ndash;        select value from history where itemid=#{itemid,jdbcType=INTEGER} order by  clock desc limit 1&ndash;&gt;-->
+<!--&lt;!&ndash;    </select>&ndash;&gt;-->
+<!--&lt;!&ndash;    <select id="getValueByItemidAndClock" resultType="cn.mw.monitor.service.server.api.dto.MWItemHistoryDto">&ndash;&gt;-->
+<!--&lt;!&ndash;        select itemid,clock,value,ns from history where itemid=#{itemid,jdbcType=INTEGER} and&ndash;&gt;-->
+<!--&lt;!&ndash;        clock between #{clockFrom,jdbcType=NUMERIC} and #{clockTill,jdbcType=NUMERIC}&ndash;&gt;-->
+<!--&lt;!&ndash;    </select>&ndash;&gt;-->
+<!--&lt;!&ndash;    <select id="getUintValueByItemid" resultType="java.lang.String">&ndash;&gt;-->
+<!--&lt;!&ndash;        select value from history_uint where itemid=#{itemid,jdbcType=INTEGER} order by  clock desc limit 1&ndash;&gt;-->
+<!--&lt;!&ndash;    </select>&ndash;&gt;-->
+<!--</mapper>-->

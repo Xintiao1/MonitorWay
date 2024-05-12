@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.mw.monitor.ipaddressmanage.dao.MwIpConfictTableDao">
+
+    <sql id="tb">
+        mw_ipconfict_his
+    </sql>
+
+    <sql id="insert_his_column">
+        id ,ip ,mac ,device_name ,port_name ,create_time
+    </sql>
+
+    <insert id="batchInsertIpConflictHis" parameterType="java.util.List">
+        insert into
+        <include refid="tb"></include>
+        (<include refid="insert_his_column"></include>)
+        values
+        <foreach collection="list" item="insertList" separator=",">
+            ( #{insertList.id,jdbcType=VARCHAR},
+            #{insertList.ip,jdbcType=VARCHAR},
+            #{insertList.mac,jdbcType=VARCHAR},
+            #{insertList.deviceName,jdbcType=VARCHAR},
+            #{insertList.portName,jdbcType=VARCHAR},
+            #{insertList.createTime,jdbcType=TIMESTAMP}
+            )
+        </foreach>
+    </insert>
+
+    <insert id="batchInsertIpConflictHisDetail" parameterType="java.util.List">
+        insert into
+        <include refid="tb"></include>
+        (conflict_id ,<include refid="insert_his_column"></include>)
+        values
+        <foreach collection="list" item="insertList" separator=",">
+            ( #{insertList.conflictId,jdbcType=VARCHAR},
+            #{insertList.id,jdbcType=VARCHAR},
+            #{insertList.ip,jdbcType=VARCHAR},
+            #{insertList.mac,jdbcType=VARCHAR},
+            #{insertList.deviceName,jdbcType=VARCHAR},
+            #{insertList.portName,jdbcType=VARCHAR},
+            #{insertList.createTime,jdbcType=TIMESTAMP}
+            )
+        </foreach>
+    </insert>
+</mapper>

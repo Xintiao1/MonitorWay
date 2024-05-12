@@ -1,0 +1,193 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.mw.monitor.model.dao.MwModelExportDao">
+
+    <select id="selectUserIdByName" resultType="java.lang.Integer">
+        SELECT
+            user_id
+        FROM
+            mw_sys_user
+        WHERE
+            FIND_IN_SET(user_name, #{userName})
+        AND delete_flag = FALSE
+    </select>
+
+    <select id="selectOrgIdByName" resultType="java.lang.String">
+        SELECT
+        trim( LEADING "," FROM nodes ) AS "nodes"
+        FROM
+            mw_sys_org
+        WHERE
+            FIND_IN_SET( org_name, #{orgName} )
+        AND delete_flag = FALSE
+    </select>
+
+    <select id="selectUserIdInfo" resultType="cn.mw.monitor.model.dto.MwModelPowerDTO">
+        SELECT
+            user_id AS "id",
+            user_name AS "name"
+        FROM
+            mw_sys_user
+        WHERE
+            delete_flag = FALSE
+    </select>
+
+    <select id="selectOrgIdInfo" resultType="cn.mw.monitor.model.dto.MwModelPowerDTO">
+        SELECT
+            trim(LEADING "," FROM nodes) AS "id",
+            org_name AS "name"
+        FROM
+            mw_sys_org
+        WHERE
+            delete_flag = FALSE
+    </select>
+
+    <select id="selectGroupIdInfo" resultType="cn.mw.monitor.model.dto.MwModelPowerDTO">
+        SELECT
+            group_id AS "id",
+            group_name AS "name"
+        FROM
+            mw_group_table
+        WHERE
+            delete_flag = FALSE
+    </select>
+
+    <select id="selectGroupIdByName" resultType="java.lang.Integer">
+        SELECT
+            group_id
+        FROM
+            mw_group_table
+        WHERE
+            FIND_IN_SET( group_name, #{groupName} )
+        AND delete_flag = FALSE
+    </select>
+
+    <select id="selectMonitorServerId" resultType="java.lang.String">
+        SELECT
+            id
+        FROM
+            mw_thirdparty_server_table
+        WHERE
+            monitoring_server_name = #{monitorServerName}
+            AND delete_flag = '0'
+            LIMIT 1
+    </select>
+
+
+    <select id="getOrgNameByExport" resultType="java.lang.String">
+        SELECT
+            GROUP_CONCAT( org_name SEPARATOR '/' ) AS "orgName"
+        FROM
+            mw_sys_org
+        WHERE
+            FIND_IN_SET( org_id, #{orgIds})
+    </select>
+
+    <select id="getUserNameByExport" resultType="java.lang.String">
+        SELECT
+            GROUP_CONCAT(user_name SEPARATOR '/') AS "userName"
+        FROM
+            mw_sys_user
+        WHERE
+            FIND_IN_SET( user_id, #{userIds})
+    </select>
+
+    <select id="getGroupNameByExport" resultType="java.lang.String">
+        SELECT
+            GROUP_CONCAT(group_name SEPARATOR '/') AS "groupName"
+        FROM
+            mw_group_table
+        WHERE
+            FIND_IN_SET( group_id, #{groupIds})
+    </select>
+
+    <select id="getOrgNameAllByExport" resultType="cn.mw.monitor.model.dto.MwModelViewTreeDTO">
+        SELECT
+            org_id AS "id",
+            org_name AS "name"
+        FROM
+            `mw_sys_org`
+        WHERE
+            delete_flag = FALSE
+    </select>
+
+    <select id="getUserNameAllByExport" resultType="cn.mw.monitor.model.dto.MwModelViewTreeDTO">
+        SELECT
+            user_id AS "id",
+            user_name AS "name"
+        FROM
+            mw_sys_user
+        WHERE
+            delete_flag = FALSE
+    </select>
+
+    <select id="getGroupNameAllByExport" resultType="cn.mw.monitor.model.dto.MwModelViewTreeDTO">
+        SELECT
+            group_name AS "name",
+            group_id AS "id"
+        FROM
+            mw_group_table
+        WHERE
+            delete_flag = false
+    </select>
+
+    <select id="getIndexInfoByGroup" resultType="java.util.Map">
+        select a.model_index,a.model_id,a.model_name
+        from mw_cmdbmd_manage a
+        left join mw_cmdbmd_group b on a.model_group_id = b.model_group_id
+        where a.model_name = #{modelName,jdbcType=VARCHAR}
+        and b.model_group_name = #{groupName,jdbcType=VARCHAR}
+        and a.delete_flag = false
+        LIMIT 1
+    </select>
+
+    <select id="getAssetsTypeByExport" resultType="cn.mw.monitor.model.dto.MwModelViewTreeDTO">
+        SELECT
+            model_group_id AS "id",
+            model_group_name AS "name"
+        FROM
+            mw_cmdbmd_group
+    </select>
+
+    <select id="getAssetsSubTypeByExport" resultType="cn.mw.monitor.model.dto.MwModelViewTreeDTO">
+        SELECT
+            model_id AS "id",
+            model_name AS "name"
+        FROM
+            mw_cmdbmd_manage
+        WHERE
+            delete_flag = FALSE
+    </select>
+
+    <select id="getServerNameByExport" resultType="cn.mw.monitor.model.dto.MwModelViewTreeDTO">
+        SELECT
+            id,
+            monitoring_server_name AS "name"
+        FROM
+            mw_thirdparty_server_table
+        WHERE
+            delete_flag = FALSE
+    </select>
+
+    <select id="getMonitorModeByExport" resultType="cn.mw.monitor.model.dto.MwModelViewTreeDTO">
+        SELECT
+            drop_key AS "id",
+            drop_value AS "name"
+        FROM
+            mw_dropdown_table
+        WHERE
+            drop_code = 'monitor_mode'
+            and delete_flag = FALSE
+    </select>
+
+    <select id="getAllProxyInfoByExport" resultType="cn.mw.monitor.model.dto.MwModelViewTreeDTO">
+        select
+            id AS "id",
+            engine_name AS "name"
+        from
+            mw_enginemanage_table
+        WHERE
+            delete_flag = FALSE
+    </select>
+
+</mapper>

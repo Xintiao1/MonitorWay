@@ -1,0 +1,264 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.mw.monitor.user.dao.MwGroupTableDao">
+
+
+    <resultMap id="UserOrgMap" type="cn.mw.monitor.service.user.dto.GroupUserDTO" >
+        <id column="user_id" jdbcType="INTEGER" property="userId"/>
+        <id column="login_name" jdbcType="VARCHAR" property="loginName"/>
+        <id column="user_name" jdbcType="VARCHAR" property="userName"/>
+        <id column="user_state" jdbcType="VARCHAR" property="userState"/>
+    </resultMap>
+
+    <resultMap id="BaseResultMap" type="cn.mw.monitor.user.dto.MwGroupDTO">
+        <id column="group_id" jdbcType="INTEGER" property="groupId"/>
+        <result column="group_name" jdbcType="VARCHAR" property="groupName"/>
+        <result column="enable" jdbcType="VARCHAR" property="enable"/>
+    </resultMap>
+
+    <resultMap id="ListResultMap" type="cn.mw.monitor.user.dto.MwGroupDTO">
+        <id column="group_id" jdbcType="INTEGER" property="groupId"/>
+        <result column="group_name" jdbcType="VARCHAR" property="groupName"/>
+        <result column="enable" jdbcType="VARCHAR" property="enable"/>
+        <result column="creator" jdbcType="VARCHAR" property="creator"/>
+        <result column="modifier" jdbcType="VARCHAR" property="modifier"/>
+        <result column="create_date" jdbcType="TIMESTAMP" property="createDate"/>
+        <result column="modification_date" jdbcType="TIMESTAMP" property="modificationDate"/>
+    </resultMap>
+
+    <!-- 新增用户组信息 -->
+    <insert id="insert" parameterType="cn.mw.monitor.user.model.MwGroupTable"
+            useGeneratedKeys="true" keyProperty="groupId">
+        <selectKey keyProperty="groupId" order="BEFORE" resultType="java.lang.Integer">
+            select ${TBSNAME}.SEQ_GROUP_TABLE.NEXTVAL from dual
+        </selectKey>
+        INSERT INTO ${TBSNAME}."mw_group_table" (
+            "group_id",
+            "group_name",
+            "enable",
+            "creator",
+            "modifier",
+            "create_date",
+            "modification_date"
+        ) VALUES (
+            #{groupId},
+            #{groupName},
+            #{enable},
+            #{creator},
+            #{modifier},
+            sysdate,
+            sysdate
+        )
+    </insert>
+
+    <!-- 删除用户组信息 -->
+    <update id="delete">
+        UPDATE ${TBSNAME}."mw_group_table"
+        SET "modifier" = #{modifier},
+            "modification_date" = sysdate,
+            "delete_flag" = 1
+        WHERE "delete_flag" = 0
+        AND "group_id" IN (
+        <foreach collection="groupIds" item="list" separator=",">
+            #{list}
+        </foreach>
+        )
+    </update>
+
+    <!-- 根据用户组id查询用户组名称 -->
+    <select id="selectGroupNameById" resultType="java.lang.String">
+        SELECT
+            "group_name"
+        FROM ${TBSNAME}."mw_group_table"
+        WHERE "delete_flag" = 0
+        AND "group_id" = #{groupId}
+    </select>
+
+    <!-- 根据用户组id查询用户组和资产关联关系 -->
+    <select id="countGroupAssetsByGroupId" resultType="java.lang.Integer">
+        SELECT
+            COUNT(1)
+        FROM ${TBSNAME}."mw_group_assets_mapper"
+        WHERE "group_id" = #{groupId}
+    </select>
+
+    <!-- 根据用户组id查询用户组和监控关联关系 -->
+    <select id="countGroupMonitorByGroupId" resultType="java.lang.Integer">
+        SELECT
+            COUNT(1)
+        FROM ${TBSNAME}."mw_group_webmonitor_mapper"
+        WHERE "group_id" = #{groupId}
+    </select>
+
+    <!-- 更新用户组状态信息 -->
+    <update id="updateGroupState" parameterType="cn.mw.monitor.user.model.MwGroupTable">
+        UPDATE ${TBSNAME}."mw_group_table"
+        SET "enable" = #{enable},
+            "modifier" = #{modifier},
+            "modification_date" = sysdate
+        WHERE "group_id" = #{groupId}
+    </update>
+
+    <!-- 更新用户组信息 -->
+    <update id="update" parameterType="cn.mw.monitor.user.model.MwGroupTable">
+        UPDATE ${TBSNAME}."mw_group_table"
+        SET "modifier" = #{modifier},
+            <if test="groupName != null and groupName != ''">
+                "group_name" = #{groupName},
+            </if>
+            "modification_date" = sysdate
+        WHERE "group_id" = #{groupId}
+    </update>
+
+    <!-- 查询用户组列表 -->
+    <select id="selectList" parameterType="java.util.Map" resultMap="ListResultMap">
+        SELECT
+            "group_id",
+            "group_name",
+            "enable",
+            "creator",
+            "create_date",
+            "modifier",
+            "modification_date"
+        FROM ${TBSNAME}."mw_group_table"
+        WHERE "delete_flag" = 0
+        <if test="groupName != null and groupName != ''">
+            AND "group_name" LIKE ('%'||#{groupName}||'%')
+        </if>
+        <if test="enable != null and enable != ''">
+            AND "enable" = #{enable}
+        </if>
+        <if test="creator != null and creator != ''">
+            AND "creator" LIKE ('%'||#{creator}||'%')
+        </if>
+        <if test="modifier != null and modifier != ''">
+            AND "modifier" LIKE ('%'||#{modifier}||'%')
+        </if>
+        <if test="createDateStart != null">
+            AND <![CDATA[ "create_date" >= #{createDateStart,jdbcType=TIMESTAMP} ]]>
+        </if>
+        <if test="createDateEnd != null">
+            AND <![CDATA[ "create_date" <= #{createDateEnd,jdbcType=TIMESTAMP} ]]>
+        </if>
+        <if test="modificationDateStart != null">
+            AND <![CDATA[ "modification_date" >= #{modificationDateStart,jdbcType=TIMESTAMP} ]]>
+        </if>
+        <if test="modificationDateEnd != null">
+            AND <![CDATA[ "modification_date" <= #{modificationDateEnd,jdbcType=TIMESTAMP} ]]>
+        </if>
+    </select>
+
+    <select id="selectGroupUser" resultMap="UserOrgMap" parameterType="java.lang.Integer">
+        SELECT
+            t2."user_id",
+            t2."login_name",
+            t2."user_name",
+            t2."user_state",
+            t1."id" as sort
+        FROM ${TBSNAME}."mw_user_group_mapper" t1
+        LEFT JOIN ${TBSNAME}."mw_sys_user" t2 ON t2."user_id" = t1."user_id"
+        WHERE t2."delete_flag" = 0
+        AND t1."delete_flag" = 0
+        AND t1."group_id" = #{groupId}
+    </select>
+
+    <select id="selectGroupUsers" resultMap="UserOrgMap" parameterType="java.util.List">
+        SELECT
+        t2."user_id",
+        t2."login_name",
+        t2."user_name",
+        t2."user_state"
+        FROM ${TBSNAME}."mw_user_group_mapper" t1
+        LEFT JOIN ${TBSNAME}."mw_sys_user" t2 ON t2."user_id" = t1."user_id"
+        WHERE t2."delete_flag" = 0
+        AND t1."delete_flag" = 0
+        AND t1."group_id" in
+        <foreach collection="list" item="item" index="index" open="(" separator="," close=")">
+            #{item}
+        </foreach>
+
+    </select>
+
+    <select id="selectUserOrg" resultType="cn.mw.monitor.service.user.dto.OrgDTO" parameterType="java.lang.Integer"  >
+        SELECT
+            t2."org_id" as "orgId",
+            t2."org_name" as "orgName"
+        FROM ${TBSNAME}."mw_user_org_mapper" t1
+        LEFT JOIN ${TBSNAME}."mw_sys_org" t2 ON t2."org_id" = t1."org_id"
+	    WHERE t2."delete_flag" = 0
+	    AND t1."delete_flag" = 0
+	    AND t1."user_id" = #{userId}
+    </select>
+
+    <select id="selectOrg" resultType="cn.mw.monitor.service.user.dto.OrgDTO" parameterType="java.lang.Integer">
+        SELECT
+            t2."org_id" as "orgId",
+            t2."org_name" as "orgName"
+        FROM ${TBSNAME}."mw_group_org_mapper" t1
+        LEFT JOIN ${TBSNAME}."mw_sys_org" t2 ON t1."org_id" = t2."org_id"
+        WHERE t2."delete_flag" = 0
+        AND t1."delete_flag" = 0
+	    AND t1."group_id" = #{groupId}
+    </select>
+
+    <!-- 根据用户组id获取用户组信息 -->
+    <select id="selectById" resultMap="BaseResultMap">
+        SELECT
+            "group_id",
+            "group_name",
+            "enable"
+        FROM ${TBSNAME}."mw_group_table"
+        WHERE "delete_flag" = 0
+        AND "group_id" = #{groupId}
+    </select>
+    
+    <!-- 用户组下拉框查询 -->
+    <select id="selectDropdown" resultMap="BaseResultMap">
+        SELECT
+        "group_id",
+        "group_name",
+        "enable"
+        <choose>
+            <when test="loginName == null">
+                FROM ${TBSNAME}."mw_group_table"
+                WHERE "delete_flag" = 0
+            </when>
+            <otherwise>
+                FROM ${TBSNAME}."view_user_group"
+                WHERE "login_name" = #{loginName}
+            </otherwise>
+        </choose>
+    </select>
+
+    <!-- 根据用户名查询用户组信息 -->
+    <select id="selectListByLoginName" parameterType="java.lang.StringBuffer" resultMap="BaseResultMap">
+        SELECT
+            a."group_id",
+            a."group_name",
+            a."creator",
+            a."create_date",
+            a."modifier",
+            a."modification_date",
+            a."enable"
+        FROM ${TBSNAME}."mw_group_table" a, ${TBSNAME}."view_user_group" b
+        WHERE b."login_name" = #{loginName}
+        AND b."group_id" = a."group_id"
+        AND a."delete_flag" = 0
+    </select>
+
+    <select id="selectByLoginName" resultType="java.lang.Integer">
+        select
+            count(1)
+        from
+            ${TBSNAME}."mw_group_table"
+        where "delete_flag" = 0
+        and "group_name" = #{groupName}
+    </select>
+
+    <select id="selectGroupIdsByGroupNames" resultType="java.lang.Integer">
+        select "group_id" from ${TBSNAME}."mw_group_table" where "delete_flag" = 0 and "group_name" in
+        <foreach collection="list" index="index" item="item" separator="," open="(" close=")">
+            #{item}
+        </foreach>
+    </select>
+</mapper>

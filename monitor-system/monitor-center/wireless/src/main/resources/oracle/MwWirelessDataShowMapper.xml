@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.mw.monitor.wireless.dao.MwWirelessDataShowDao">
+    <sql id="Base_Column_List">
+        ${alias}id,
+        ${alias}assets_id,
+        ${alias}assets_name,
+        ${alias}host_name,
+        ${alias}in_band_ip,
+        ${alias}out_band_ip,
+        ${alias}assets_type_id,
+        ${alias}assets_type_sub_id,
+        ${alias}polling_engine,
+        ${alias}monitor_mode,
+        ${alias}manufacturer,
+        ${alias}specifications,
+        ${alias}description,
+        ${alias}enable,
+        ${alias}delete_flag,
+        ${alias}monitor_flag,
+        ${alias}setting_flag,
+        ${alias}creator,
+        ${alias}create_date,
+        ${alias}modifier,
+        ${alias}modification_date,
+        ${alias}scan_success_id,
+        ${alias}monitor_server_id,
+        ${alias}template_id
+    </sql>
+    <select id="selectAssetsByAssetsTypeId" resultType="cn.mw.monitor.service.assets.model.MwTangibleassetsTable"
+            parameterType="java.lang.Integer">
+        select
+        <include refid="Base_Column_List">
+            <property name="alias" value="t."/>
+        </include>
+        from mw_tangibleassets_table t
+        where t.delete_flag = false
+        and t.assets_type_id = #{assetsTypeId,jdbcType=INTEGER}
+        and t.assets_type_sub_id = #{assetsTypeSubId,jdbcType=INTEGER}
+    </select>
+</mapper>

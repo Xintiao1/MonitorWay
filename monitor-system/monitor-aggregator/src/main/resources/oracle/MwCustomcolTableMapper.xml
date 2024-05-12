@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.mw.monitor.customPage.dao.MwCustomcolTableDao">
+
+    <insert id="insert" parameterType="java.util.List">
+        INSERT INTO ${TBSNAME}."mw_customcol_table"
+        (
+        "id",
+        "col_id",
+        "user_id",
+        "sortable",
+        "width",
+        "visible",
+        "order_number",
+        "delete_flag"
+        )
+        select ${TBSNAME}.SEQ_CUSTOMCOL_TABLE.NEXTVAL, a.* from
+        (
+        <foreach collection="list" item="colList" separator=" UNION ALL ">
+            (
+            select
+            #{colList.colId} as "col_id",
+            #{colList.userId} as "user_id",
+            #{colList.sortable} as "sortable",
+            null,
+            #{colList.visible} as "visible",
+            #{colList.orderNumber} as "order_number",
+            0 as "delete_flag"
+            from dual
+            )
+        </foreach>
+        ) a
+    </insert>
+
+    <insert id="insertByModel" parameterType="java.util.List">
+        INSERT INTO ${TBSNAME}."mw_cmdbmd_customcol_table"
+        (
+        "id",
+        "col_id",
+        "user_id",
+        "sortable",
+        "width",
+        "visible",
+        "model_properties_id",
+        "order_number",
+        "delete_flag"
+        )
+        select ${TBSNAME}.SEQ_CMDBMD_CUSTOMCOL_TABLE.NEXTVAL, a.* from
+        (
+        <foreach collection="list" item="colList" separator=" UNION ALL ">
+            (
+            select
+            #{colList.colId} as "col_id",
+            #{colList.userId} as "user_id",
+            #{colList.sortable} as "sortable",
+            null,
+            #{colList.visible} as "visible",
+            #{colList.modelPropertiesId} as "model_properties_id",
+            #{colList.orderNumber} as "order_number",
+            0 as "delete_flag"
+            from dual
+            )
+        </foreach>
+        ) a
+    </insert>
+
+
+    <update id="updateBatch" parameterType="java.util.List">
+        <foreach collection="list" item="updateList" separator=";" open="BEGIN" close="; END ;">
+            <if test="updateList.customId != null and updateList.customId > 0">
+                update ${TBSNAME}."mw_customcol_table"
+                set "col_id" = #{updateList.colId},
+                "user_id" = #{updateList.userId},
+                "sortable" = #{updateList.sortable},
+                "width" = #{updateList.width},
+                "visible" = #{updateList.visible},
+                "order_number" = #{updateList.orderNumber},
+                <choose>
+                    <when test="updateList.deleteFlag != null and updateList.deleteFlag == 1">
+                        "delete_flag" = 1
+                    </when>
+                    <otherwise>
+                        "delete_flag" = 0
+                    </otherwise>
+                </choose>
+                where "id" = #{updateList.customId}
+            </if>
+        </foreach>
+    </update>
+
+    <update id="updateBatchByModel" parameterType="java.util.List">
+        <foreach collection="list" item="updateList" separator=";">
+            update ${TBSNAME}."mw_cmdbmd_customcol_table"
+            set col_id = #{updateList.colId},
+            user_id = #{updateList.userId},
+            sortable = #{updateList.sortable},
+            width = #{updateList.width},
+            visible = #{updateList.visible},
+            order_number = #{updateList.orderNumber},
+            delete_flag = #{updateList.deleteFlag}
+            where id = #{updateList.customId}
+        </foreach>
+    </update>
+
+    <update id="reset">
+        <foreach collection="list" item="updateList" separator=";" close="; END ;" open="BEGIN ">
+            <if test="updateList.customId != null and updateList.customId > 0">
+                update
+                ${TBSNAME}."mw_customcol_table"
+                set
+                "delete_flag" = #{updateList.deleteFlag}
+                where "id" = #{updateList.customId}
+            </if>
+        </foreach>
+    </update>
+
+</mapper>

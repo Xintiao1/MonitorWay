@@ -1,0 +1,447 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.mw.monitor.ipaddressmanage.dao.MwIpv6ManageTableDao">
+
+  <resultMap id="BaseResultMap" type="cn.mw.monitor.ipaddressmanage.paramv6.Ipv6ManageTableParam">
+    <id column="id" jdbcType="INTEGER" property="id" />
+    <result column="parent_id" jdbcType="INTEGER" property="parentId" />
+    <result column="label" jdbcType="VARCHAR" property="label" />
+    <result column="descri" jdbcType="VARCHAR" property="descri" />
+    <result column="type" jdbcType="VARCHAR" property="type" />
+    <result column="ip_addresses" jdbcType="VARCHAR" property="ipAddresses" />
+    <result column="leaf" jdbcType="VARCHAR" property="leaf" />
+    <result column="is_include" jdbcType="INTEGER" property="include" />
+    <result column="mask" jdbcType="VARCHAR" property="mask" />
+    <result column="creator" jdbcType="VARCHAR" property="creator" />
+    <result column="create_date" jdbcType="TIMESTAMP" property="createDate" />
+    <result column="modifier" jdbcType="VARCHAR" property="modifier" />
+    <result column="modification_date" jdbcType="TIMESTAMP" property="modificationDate" />
+    <result column="use_count" jdbcType="INTEGER" property="useCount" />
+    <result column="notuse_count" jdbcType="INTEGER" property="notuseCount" />
+    <result column="reserved_count" jdbcType="INTEGER" property="reservedCount" />
+    <result column="online" jdbcType="INTEGER" property="online" />
+    <result column="offline" jdbcType="INTEGER" property="offline" />
+    <result column="timing" jdbcType="INTEGER" property="timing" />
+    <result column="country" jdbcType="VARCHAR" property="country" />
+    <result column="state" jdbcType="VARCHAR" property="state" />
+    <result column="city" jdbcType="VARCHAR" property="city" />
+    <result column="region" jdbcType="VARCHAR" property="region" />
+    <result column="address_desc" jdbcType="VARCHAR" property="addressDesc" />
+    <result column="longitude" jdbcType="VARCHAR" property="longitude" />
+    <result column="latitude" jdbcType="VARCHAR" property="latitude" />
+    <result column="index_sort" jdbcType="INTEGER" property="indexSort" />
+    <collection property="principal" ofType="cn.mw.monitor.ipaddressmanage.dto.UserDTO" select="selectUser" column="id">
+      <result property="userId" jdbcType="INTEGER" column="userId"/>
+      <result property="userName" jdbcType="VARCHAR" column="userName"/>
+      <result property="loginName" jdbcType="VARCHAR" column="loginName"/>
+    </collection>
+    <collection property="orgIds" ofType="cn.mw.monitor.ipaddressmanage.dto.OrgDTO" select="selectOrg" column="id">
+      <result property="orgId" jdbcType="INTEGER" column="orgId"/>
+      <result property="orgName" jdbcType="VARCHAR" column="orgName"/>
+      <result property="nodes" jdbcType="VARCHAR" column="nodes"/>
+    </collection>
+    <collection property="groupIds" ofType="cn.mw.monitor.ipaddressmanage.dto.GroupDTO" select="selectGroup" column="id">
+      <result property="groupId" jdbcType="INTEGER" column="groupId"/>
+      <result property="groupName" jdbcType="VARCHAR" column="groupName"/>
+    </collection>
+  </resultMap>
+
+  <resultMap id="BaseResultMap1" type="cn.mw.monitor.ipaddressmanage.paramv6.Ipv6ManageTable1Param">
+    <id column="id" jdbcType="INTEGER" property="id" />
+    <result column="parent_id" jdbcType="INTEGER" property="parentId" />
+    <result column="label" jdbcType="VARCHAR" property="label" />
+    <result column="descri" jdbcType="VARCHAR" property="descri" />
+    <result column="type" jdbcType="VARCHAR" property="type" />
+    <result column="ip_addresses" jdbcType="VARCHAR" property="ipAddresses" />
+    <result column="leaf" jdbcType="VARCHAR" property="leaf" />
+    <result column="mask" jdbcType="VARCHAR" property="mask" />
+    <result column="creator" jdbcType="VARCHAR" property="creator" />
+    <result column="create_date" jdbcType="TIMESTAMP" property="createDate" />
+    <result column="modifier" jdbcType="VARCHAR" property="modifier" />
+    <result column="modification_date" jdbcType="TIMESTAMP" property="modificationDate" />
+    <result column="use_count" jdbcType="INTEGER" property="useCount" />
+    <result column="notuse_count" jdbcType="INTEGER" property="notuseCount" />
+    <result column="reserved_count" jdbcType="INTEGER" property="reservedCount" />
+    <result column="online" jdbcType="INTEGER" property="online" />
+    <result column="offline" jdbcType="INTEGER" property="offline" />
+    <result column="country" jdbcType="VARCHAR" property="country" />
+    <result column="state" jdbcType="VARCHAR" property="state" />
+    <result column="city" jdbcType="VARCHAR" property="city" />
+    <result column="region" jdbcType="VARCHAR" property="region" />
+    <result column="address_desc" jdbcType="VARCHAR" property="addressDesc" />
+    <result column="longitude" jdbcType="VARCHAR" property="longitude" />
+    <result column="latitude" jdbcType="VARCHAR" property="latitude" />
+    <result column="ip_rand_start" jdbcType="VARCHAR" property="ipRandStart" />
+    <result column="ip_rand_end" jdbcType="VARCHAR" property="ipRandEnd" />
+    <result column="index_sort" jdbcType="INTEGER" property="indexSort" />
+    <collection property="principal" ofType="java.lang.Integer" select="selectUser1" column="id">
+    </collection>
+    <collection property="orgIdss" ofType="java.util.List" select="selectOrg1" column="id">
+    </collection>
+    <collection property="groupIds" ofType="java.lang.Integer" select="selectGroup1" column="id">
+    </collection>
+  </resultMap>
+
+  <select id="selectUser1" parameterType="java.lang.String" resultType="java.lang.Integer">
+    select
+    t2."user_id" "userId"
+    from
+    ${TBSNAME}."mw_user_mapper" t1
+    left join ${TBSNAME}."mw_sys_user" t2 on t1."user_id" = t2."user_id"
+    where t1."type"='IPV6' and t1."type_id" = #{id}
+  </select>
+
+  <select id="selectOrg1" parameterType="java.lang.String" resultType="java.lang.Integer">
+    select
+    t2."org_id" "orgId"
+    from ${TBSNAME}."mw_org_mapper" t1
+    left join ${TBSNAME}."mw_sys_org" t2 on t1."org_id" = t2."org_id"
+    where t1."type"='IPV6' and t1."type_id" = #{id}
+  </select>
+
+  <select id="selectOrg2" parameterType="java.lang.Integer" resultType="java.lang.String">
+    select "nodes" from ${TBSNAME}."mw_sys_org" where "org_id" in
+    <foreach collection="orgIds" item="item" index="index" open="(" separator="," close=")">
+      #{item.value}
+    </foreach>
+  </select>
+
+  <select id="selectGroup1" parameterType="java.lang.String" resultType="java.lang.Integer">
+    select
+    t1."group_id"  "groupId"
+    from ${TBSNAME}."mw_group_mapper" t1
+    left join ${TBSNAME}."mw_group_table" t2 on t1."group_id" = t2."group_id"
+    where t1."type"='IPV6' and t1."type_id" = #{id}
+  </select>
+
+  <select id="selectUser" parameterType="java.lang.String" resultType="cn.mw.monitor.ipaddressmanage.dto.UserDTO">
+    select
+    t2."user_id" "userId",
+    t2."login_name" "loginName",
+    t2."user_name" "userName"
+    from
+    ${TBSNAME}."mw_user_mapper" t1
+    left join ${TBSNAME}."mw_sys_user" t2 on t1."user_id" = t2."user_id"
+    where t1."type"='IPV6' and t1."type_id" = #{id}
+  </select>
+
+  <select id="selectOrg" parameterType="java.lang.String" resultType="cn.mw.monitor.ipaddressmanage.dto.OrgDTO">
+    select
+    t2."org_id" "orgId",
+    t2."org_name" "orgName",
+    t2."nodes"
+    from ${TBSNAME}."mw_org_mapper" t1
+    left join ${TBSNAME}."mw_sys_org" t2 on t1."org_id" = t2."org_id"
+    where t1."type"='IPV6' and t1."type_id" = #{id}
+  </select>
+
+  <select id="selectGroup" parameterType="java.lang.String" resultType="cn.mw.monitor.ipaddressmanage.dto.GroupDTO">
+    select
+    t1."group_id"  "groupId",
+    t2."group_name" "groupName"
+    from ${TBSNAME}."mw_group_mapper" t1
+    left join ${TBSNAME}."mw_group_table" t2 on t1."group_id" = t2."group_id"
+    where t1."type"='IPV6' and t1."type_id" = #{id}
+  </select>
+
+  <select id="selectIpv6ById" resultMap="BaseResultMap1" parameterType="cn.mw.monitor.ipaddressmanage.paramv6.Ipv6ManageTable1Param">
+    select
+    <include refid="Base_Column_List"></include>
+    from
+    ${TBSNAME}."mw_ipv6manage_table" a1
+    where
+    <if test="id !=null">
+      a1."id" = #{id}
+    </if>
+  </select>
+
+  <select id="selectPictureIpv6ById1" resultMap="BaseResultMap" parameterType="java.lang.Integer">
+    select
+    <include refid="Base_Column_List"></include>
+    from
+    ${TBSNAME}."mw_ipv6manage_table" a1
+    where
+    <if test="id !=null">
+      a1."id" = #{id}
+    </if>
+  </select>
+
+
+  <select id="selectPicture"  parameterType="java.lang.Integer" resultType="java.lang.Integer">
+    select count(*) as "no_use" from
+    ${TBSNAME}."mw_ipv6managelist_table" where "link_id"= #{id} and "ip_state"=0
+union all
+select count(*) as "used" from
+    ${TBSNAME}."mw_ipv6managelist_table" where "link_id"= #{id} and "ip_state"=1
+	union all
+select count(*) as "reserve" from
+    ${TBSNAME}."mw_ipv6managelist_table" where "link_id"= #{id} and "ip_state"=2
+		union all
+select count(*) as "on_line" from
+    ${TBSNAME}."mw_ipv6managelist_table" where "link_id"= #{id} and "online"=1
+		union all
+select count(*) as "off_line" from
+    ${TBSNAME}."mw_ipv6managelist_table" where "link_id"= #{id} and ("online" is NULL OR "online" != 1 )
+    union all
+select count(*) as "off_line" from
+    ${TBSNAME}."mw_ipv6managelist_table" where "link_id"= #{id} and "assets_type"='已知'
+		union all
+select count(*) as "off_line" from
+    ${TBSNAME}."mw_ipv6managelist_table" where "link_id"= #{id}  and ("assets_type" is NULL OR "assets_type" !='已知')
+		union all
+select count(*) as "off_line" from
+    ${TBSNAME}."mw_ipv6managelist_table" where "link_id"= #{id} and "distribution_status"=0
+		union all
+select count(*) as "off_line" from
+    ${TBSNAME}."mw_ipv6managelist_table" where "link_id"= #{id} and "distribution_status"=1
+  </select>
+
+  <select id="checkIsLeaf"  parameterType="java.lang.Integer" resultType="java.lang.Integer">
+     select count(*) from
+    ${TBSNAME}."mw_ipv6manage_table" where
+    "parent_id"=#{id}
+     </select>
+
+  <select id="countIPv6" resultMap="BaseResultMap1">
+    select * from
+    ${TBSNAME}."mw_ipv6manage_table" where (#{ipRandStrat} between "ip_rand_start" and "ip_rand_end" ) or
+    (#{ipRandEnd} between "ip_rand_start" and "ip_rand_end" )
+  </select>
+
+
+
+  <sql id="Base_Column_List">
+        a1."id","parent_id","label",a1."type","leaf",a1."timing",
+        "ip_addresses","descri","creator","create_date","modifier","is_include",
+        "modification_date","use_count","notuse_count",
+        "reserved_count","online","offline","mask","country","state","city","region","address_desc","longitude","latitude","radio_status","index_sort","ip_rand_start","ip_rand_end"
+        ,"sign_id"
+  </sql>
+
+  <select id="selectPriIpAddress" resultMap="BaseResultMap">
+    select
+    <include refid="Base_Column_List"></include>
+    from
+    "mw_ipv6manage_table" a1
+    left join ${TBSNAME}."mw_datapermission" a4 ON a1."id" = a4."type_id" and a1."parent_id" = #{parentId}
+    left join
+    (select ${TBSNAME}."type_id","user_id" from ${TBSNAME}."mw_user_mapper" where type='IPV6') a5 ON a1."id" = a5."type_id"
+    where  a4."is_user" = 1
+    and a5."user_id" = #{userId}
+    <include refid="criteria"></include>
+    <include refid="union_group"></include>
+  </select>
+
+  <select id="selectPubIpAddress" resultMap="BaseResultMap">
+    select * from (
+    select
+    <include refid="Base_Column_List"></include>
+    from
+    ${TBSNAME}."mw_ipv6manage_table" a1 where a1."parent_id" = #{parentId} ) a2
+    <choose>
+      <when test="isAdmin==false">
+        left join
+        (select "type_id","org_id" from ${TBSNAME}."mw_org_mapper" where type='IPV6') t2 ON a2."id" = t2."type_id"
+        where
+        "org_id" in
+        <foreach collection="orgIds" item="item" index="index" open="(" separator="," close=")">
+          #{item.value}
+        </foreach>
+        GROUP BY "id"
+        <include refid="criteria"></include>
+        <include refid="union_group"></include>
+      </when>
+      <otherwise>
+        <include refid="criteria"></include>
+      </otherwise>
+    </choose>
+  </select>
+
+  <sql id="criteria">
+  </sql>
+
+  <sql id="union_group">
+    <if test="groupIds!=null">
+      UNION
+      select * from (
+      select
+      <include refid="Base_Column_List"></include>
+      from
+      ${TBSNAME}."mw_ipv6manage_table" a1
+      left join ${TBSNAME}."mw_datapermission" a4 ON a1."id" = a4."type_id"
+      left join
+      (  SELECT a."type_id",a."group_id" FROM ${TBSNAME}."mw_group_mapper" a LEFT JOIN ${TBSNAME}."mw_datapermission" b ON a."type_id" = b."type_id" WHERE b."type" = 'IPV6' and b."is_group" = 1) t2 ON a1."id" = t2."type_id"
+      where
+      "group_id" IN
+      <foreach collection="groupIds" item="item" index="index" open="(" separator="," close=")">
+        #{item.value}
+      </foreach>
+      <include refid="criteria"></include>
+      ) a2
+      <if test="isAdmin==false">
+        left join
+        (select "type_id","org_id" from ${TBSNAME}."mw_org_mapper" where type='IPV6') t2 ON a2."id" = t2."type_id"
+        where
+        "parent_id" = #{parentId} and
+        "org_id" in
+        <foreach collection="orgIds" item="item" index="index" open="(" separator="," close=")">
+          #{item.value}
+        </foreach>
+      </if>
+    </if>
+  </sql>
+
+  <insert id="insert" parameterType="cn.mw.monitor.ipaddressmanage.paramv6.AddUpdateIpv6ManageParam" useGeneratedKeys="true" keyProperty="id">
+    <selectKey keyProperty="id" order="BEFORE" resultType="java.lang.Integer">
+      select ${TBSNAME}.SEQ_PASSWORD_PLAN.NEXTVAL from dual
+    </selectKey>
+
+    insert into ${TBSNAME}."mw_ipv6manage_table"
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+        "id",
+      <if test="timing != null">"timing",</if>
+      <if test="parentId != null">"parent_id",</if>
+      <if test="label != null and label != ''">"label",</if>
+      <if test="type != null and type != ''">"type",</if>
+      <if test="leaf != null">"leaf",</if>
+      <if test="include != null">"is_include",</if>
+      <if test="descri != null and descri != ''">"descri",</if>
+      <if test="mask != null and mask != ''">"mask",</if>
+      <if test="ipAddresses != null and ipAddresses != ''">"ip_addresses",</if>
+      <if test="creator != null">"creator",</if>
+      <if test="createDate != null">"create_date",</if>
+      <if test="modifier != null">"modifier",</if>
+      <if test="modificationDate != null">"modification_date",</if>
+      <if test="country!= null">"country",</if>
+      <if test="state!= null and state != ''">"state",</if>
+      <if test="city!= null and city != ''">"city",</if>
+      <if test="region!= null and region != ''">"region", </if>
+      <if test="addressDesc != null and addressDesc != ''">"address_desc",</if>
+      <if test="longitude != null and longitude != ''">"longitude",</if>
+      <if test="latitude != null and latitude != ''">"latitude",</if>
+      <if test="ipRandStart != null">"ip_rand_start",</if>
+      <if test="ipRandEnd != null">"ip_rand_end",</if>
+      <if test="radioStatus != null">"radio_status",</if>
+      <if test="sign_id != null">"sign_id"</if>
+    </trim>
+    values (
+      #{id},
+      <if test="timing != null">#{timing},</if>
+      <if test="parentId != null">#{parentId},</if>
+      <if test="label != null and label != ''">#{label},</if>
+      <if test="type != null and type != ''">#{type},</if>
+      <if test="leaf != null ">#{leaf},</if>
+      <if test="include != null ">#{include},</if>
+      <if test="descri != null and descri != ''">#{descri},</if>
+      <if test="mask != null and mask != ''">#{mask},</if>
+      <if test="ipAddresses != null and ipAddresses != ''">#{ipAddresses},</if>
+      <if test="creator != null">#{creator},</if>
+      <if test="createDate != null"> #{createDate},</if>
+      <if test="modifier != null">#{modifier},</if>
+      <if test="modificationDate != null"> #{modificationDate},</if>
+      <if test="country!= null">#{country},</if>
+      <if test="state!= null and state != ''">#{state},</if>
+      <if test="city!= null and city != ''">#{city},</if>
+      <if test="region!= null and region != ''">#{region}, </if>
+      <if test="addressDesc != null and addressDesc != ''">#{addressDesc},</if>
+      <if test="longitude != null and longitude != ''">#{longitude},</if>
+      <if test="latitude != null and latitude != ''">#{latitude},</if>
+      <if test="ipRandStart != null">#{ipRandStart},</if>
+      <if test="ipRandEnd != null">#{ipRandEnd},</if>
+      <if test="radioStatus != null">#{radioStatus},</if>
+      <if test="sign_id != null">#{signId}</if>
+    )
+  </insert>
+
+  <update id="update" parameterType="cn.mw.monitor.ipaddressmanage.paramv6.AddUpdateIpv6ManageParam">
+    update ${TBSNAME}."mw_ipv6manage_table"
+    <set>
+      <if test="label != null">
+        label = #{label},
+      </if>
+      <if test="descri != null">
+        descri = #{descri},
+      </if>
+      <if test="modifier != null">
+        modifier = #{modifier},
+      </if>
+      <if test="country!= null">
+        country=#{country},
+      </if>
+      <if test="state!= null">
+        state=#{state},
+      </if>
+      <if test="city!= null">
+        city=#{city},
+      </if>
+      <if test="region!= null">
+        region=#{region},
+      </if>
+      <if test="addressDesc!= null">
+        address_desc=#{addressDesc},
+      </if>
+      <if test="longitude!= null">
+        longitude=#{longitude},
+      </if>
+      <if test="latitude!= null">
+        latitude=#{latitude},
+      </if>
+      <if test="radioStatus!= null">
+        radio_status=#{radioStatus},
+      </if>
+      modification_date = now()
+    </set>
+    where id = #{id}
+  </update>
+
+  <delete id="delete" parameterType="java.lang.Integer">
+    delete from
+        ${TBSNAME}."mw_ipv6manage_table"
+    where "id" = #{id}
+  </delete>
+
+  <delete id="deleteList" parameterType="java.lang.Integer">
+    delete from
+        ${TBSNAME}."mw_ipv6managelist_table"
+    where "link_id" = #{id}
+  </delete>
+
+  <select id="selectSubIpAddress" resultMap="BaseResultMap" parameterType="java.lang.Integer">
+    select * from
+       ${TBSNAME}. "mw_ipv6manage_table"
+    where
+        "parent_id" = #{id}
+  </select>
+
+  <select id="selectListByIds" resultMap="BaseResultMap" parameterType="java.lang.Integer">
+    select * from
+    ${TBSNAME}."mw_ipv6manage_table"
+    where "id" in
+    <foreach collection="ids" item="item" index="index" open="(" separator="," close=")">
+      #{item.value}
+    </foreach>
+  </select>
+
+  <select id="selectAllIpaddresses" resultType="java.lang.String">
+    select "ip_addresses" from
+    ${TBSNAME}."mw_ipv6manage_table"
+    where "type" = 'iPaddresses'
+  </select>
+
+  <select id="selectIPv6IpAddress" resultMap="BaseResultMap">
+    select * from
+       ${TBSNAME}. "mw_ipv6manage_table"
+    where "type" = 'iPaddresses'
+  </select>
+
+
+  <select id="selectListByIdsHaveOper" resultType="java.lang.Integer" parameterType="java.lang.Integer">
+    select count(*) from
+    mw_ipv6managelist_table
+    where link_id in
+    <foreach collection="ids" item="item" index="index" open="(" separator="," close=")">
+      #{item.value,jdbcType=INTEGER}
+    </foreach>
+    and distribution_status = 1
+  </select>
+</mapper>

@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.mw.monitor.scan.dao.AssetsLogoDao">
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="cn.mw.monitor.service.topo.model.MwAssetsLogoDTO">
+        <id column="id" property="id" />
+        <result column="asset_type" property="assetType" />
+        <result column="assetTypeName" property="assetTypeName" />
+        <result column="asset_sub_type" property="assetSubType" />
+        <result column="assetSubTypeName" property="assetSubTypeName" />
+        <result column="logo_desc" property="logoDesc" />
+        <result column="normal_logo" property="normalLogo" />
+        <result column="alert_logo" property="alertLogo" />
+        <result column="severity_logo" property="severityLogo" />
+        <result column="urgency_logo" property="urgencyLogo" />
+    </resultMap>
+
+    <sql id="Base_Column_List" >
+        ${alias}"id"
+        ,${alias}"asset_type"
+        ,${alias}"asset_sub_type"
+        ,${alias}"logo_desc"
+        ,${alias}"normal_logo"
+        ,${alias}"alert_logo"
+        ,${alias}"severity_logo"
+        ,${alias}"urgency_logo"
+    </sql>
+
+    <sql id="tb">
+        ${TBSNAME}."mw_assets_logo"
+    </sql>
+
+    <sql id="tb_type">
+        ${TBSNAME}."mw_assetssubtype_table"
+    </sql>
+
+    <sql id="cols_all">
+        <include refid="Base_Column_List" ><property name="alias" value="${alias}"/></include>
+    </sql>
+
+    <sql id="criteria">
+
+        <if test="desc != null and desc !=''">
+            AND ${alias}"logo_desc" LIKE '%'||#{desc,jdbcType=VARCHAR}||'%'
+        </if>
+
+        <if test="typeName != null and typeName !=''">
+            AND b."type_name" LIKE '%'||#{typeName,jdbcType=VARCHAR}||'%'
+        </if>
+
+        <if test="subTypeName != null and subTypeName !=''">
+            AND c."type_name" LIKE '%'||#{subTypeName,jdbcType=VARCHAR}||'%'
+        </if>
+        <if test="assetType != null and assetType !=0">
+            AND ${alias}"asset_type" = #{assetType,jdbcType=INTEGER}
+        </if>
+    </sql>
+
+    <!-- 分页查询 -->
+    <select id="selectList" resultType="cn.mw.monitor.service.topo.model.MwAssetsLogoDTO" parameterType="cn.mw.monitor.service.topo.param.QueryAssetsLogoParam">
+        SELECT
+        <include refid="cols_all"><property name="alias" value="a."/></include>
+        ,b."type_name" as "assetTypeName"
+        ,c."type_name" as "assetSubTypeName"
+        FROM <include refid="tb"/> a
+        left join <include refid="tb_type"/> b on a."asset_type" = b."id"
+        left join <include refid="tb_type"/> c on a."asset_sub_type" = c."id"
+        WHERE 1=1
+        <include refid="criteria"><property name="alias" value="a."/></include>
+        ORDER BY a."id"
+    </select>
+
+    <!-- ID查找 -->
+    <select id="selectById" parameterType="java.lang.Integer" resultMap="BaseResultMap">
+        SELECT
+        <include refid="cols_all"><property name="alias" value=""/></include>
+        FROM
+        <include refid="tb"/>
+        WHERE  "id" = #{id,jdbcType=INTEGER}
+    </select>
+
+    <!--修改-->
+    <update id="update" parameterType="cn.mw.monitor.service.topo.model.MwAssetsLogoDTO" >
+        UPDATE <include refid="tb"/>
+        <set>
+            <if test="assetType != null" >
+                "asset_type" = #{assetType,jdbcType=INTEGER},
+            </if>
+            <if test="assetSubType != null" >
+                "asset_sub_type" = #{assetSubType,jdbcType=INTEGER},
+            </if>
+            <if test="logoDesc != null" >
+                logo_desc = #{logoDesc,jdbcType=VARCHAR},
+            </if>
+            <if test="normalLogo != null" >
+                "normal_logo" = #{normalLogo,jdbcType=VARCHAR},
+            </if>
+            <if test="alertLogo != null" >
+                "alert_logo" = #{alertLogo,jdbcType=VARCHAR},
+            </if>
+            <if test="severityLogo != null" >
+                "severity_logo" = #{severityLogo,jdbcType=VARCHAR},
+            </if>
+            <if test="urgencyLogo != null" >
+                "urgency_logo" = #{urgencyLogo,jdbcType=VARCHAR}
+            </if>
+        </set>
+        WHERE "id" = #{id,jdbcType=INTEGER}
+    </update>
+
+    <!--删除部门-->
+    <delete id="delete" parameterType="int">
+        DELETE FROM
+        <include refid="tb"/>
+        WHERE "id" = #{id,jdbcType=INTEGER}
+    </delete>
+
+    <!--新增-->
+    <insert id="insert" parameterType="cn.mw.monitor.service.topo.param.InsertAssetsLogoParam" useGeneratedKeys="true" keyProperty="id" keyColumn="id" >
+        <selectKey keyProperty="id" order="BEFORE" resultType="java.lang.Integer">
+            select ${TBSNAME}.SEQ_MW_ALERT_RECORD_TABLE.NEXTVAL as "id" from DUAL
+        </selectKey>
+        INSERT INTO
+        <include refid="tb" />
+        (<include refid="Base_Column_List" ><property name="alias" value=""/></include>)
+        VALUES (
+             #{id},
+            #{assetType,jdbcType=INTEGER},
+            #{assetSubType,jdbcType=INTEGER},
+            #{logoDesc,jdbcType=VARCHAR},
+            #{normalLogo,jdbcType=VARCHAR},
+            #{alertLogo,jdbcType=VARCHAR},
+            #{severityLogo,jdbcType=VARCHAR},
+            #{urgencyLogo,jdbcType=VARCHAR}
+        )
+    </insert>
+</mapper>

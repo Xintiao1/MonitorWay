@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.mw.monitor.customPage.dao.MwPageselectTableDao">
+
+    <select id="selectByPageId" resultType="cn.mw.monitor.customPage.model.MwPageselectTable">
+        SELECT
+            id,
+            page_Id pageId,
+            prop,
+            label,
+            input_format inputFormat,
+            url,
+            typeof
+        FROM mw_pageselect_table
+        WHERE page_id = #{pageId,jdbcType=INTEGER}
+    </select>
+
+    <select id="selectByMultiPageId" parameterType="java.util.List" resultMap="GroupResultMap">
+        select
+            id,
+            page_Id,
+            prop,
+            label,
+            input_format,
+            url
+        from mw_pageselect_table
+        where page_id in (
+        <foreach collection="list" index="index" item="item" separator=",">
+            #{item}
+        </foreach>
+        )
+    </select>
+
+    <resultMap id="GroupResultMap" type="cn.mw.monitor.customPage.model.MwMultiPageselectTable">
+        <id column="page_Id" jdbcType="INTEGER" property="pageId" />
+        <collection property="pagelist" ofType="cn.mw.monitor.customPage.model.MwPageselectTable">
+            <result column="id" jdbcType="INTEGER" property="id" />
+            <result column="prop" jdbcType="VARCHAR" property="prop" />
+            <result column="label" jdbcType="VARCHAR" property="label" />
+            <result column="input_format" jdbcType="VARCHAR" property="inputFormat" />
+            <result column="url" jdbcType="VARCHAR" property="url" />
+        </collection>
+    </resultMap>
+
+</mapper>

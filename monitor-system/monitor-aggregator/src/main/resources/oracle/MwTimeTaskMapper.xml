@@ -1,0 +1,365 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.mw.monitor.timetask.dao.MwTimeTaskDao">
+
+  <resultMap id="BaseMap" type="cn.mw.monitor.timetask.entity.MwTimeTaskTable">
+    <id column="id" jdbcType="VARCHAR" property="id"/>
+    <result column="config_type" jdbcType="VARCHAR" property="configType"/>
+    <result column="taskname" jdbcType="VARCHAR" property="taskname"/>
+    <result column="timetype" jdbcType="VARCHAR" property="timetype"/>
+    <result column="plan" jdbcType="VARCHAR" property="plan"/>
+    <result column="type" jdbcType="VARCHAR" property="type"/>
+    <result column="last_result" jdbcType="VARCHAR" property="lastResult"/>
+    <result column="after_time" jdbcType="TIMESTAMP" property="afterTime"/>
+    <result column="last_time" jdbcType="TIMESTAMP" property="lastTime"/>
+
+    <result column="month" jdbcType="VARCHAR" property="month"/>
+    <result column="week" jdbcType="VARCHAR" property="week"/>
+    <result column="day" jdbcType="VARCHAR" property="day"/>
+    <result column="hms" jdbcType="VARCHAR" property="hms"/>
+    <result column="time_custom" jdbcType="INTEGER" property="timeCustom"/>
+
+    <result column="class_name" jdbcType="VARCHAR" property="className"/>
+    <result column="method" jdbcType="VARCHAR" property="method"/>
+    <result column="cron" jdbcType="VARCHAR" property="cron"/>
+    <result column="status" jdbcType="INTEGER" property="status"/>
+    <result column="timing" jdbcType="VARCHAR" property="timing"/>
+    <result column="select_url" jdbcType="VARCHAR" property="selectUrl"/>
+    <result column="select_id" jdbcType="VARCHAR" property="selectId"/>
+
+    <result column="creator" jdbcType="VARCHAR" property="creator"/>
+    <result column="create_date" jdbcType="TIMESTAMP" property="createDate"/>
+    <result column="modifier" jdbcType="VARCHAR" property="modifier"/>
+    <result column="modification_date" jdbcType="TIMESTAMP" property="modificationDate"/>
+
+  </resultMap>
+
+
+  <resultMap id="timeTaskTree" type="cn.mw.monitor.timetask.entity.TimetaskModel">
+  </resultMap>
+
+
+  <select id="findTreeAction" resultType="cn.mw.monitor.timetask.entity.TimetaskActrion">
+   SELECT a."id",b."action_name",b."action_name" as "treeName",b."model_id",b."id" as "action_id"  FROM ${TBSNAME}."mw_ncm_timetask_tree" a LEFT JOIN ${TBSNAME}."mw_ncm_timetask_action" b on a."action_id" = b."id"  WHERE  a."model_id" = #{id]} ORDER BY "id"
+  </select>
+
+
+  <select id="getTree" resultMap="timeTaskTree">
+   SELECT a.*,"model_name" as "treeName","id" as "modelId" FROM ${TBSNAME}."mw_ncm_timetask_model" a  WHERE "id" in (SELECT "model_id" FROM ${TBSNAME}."mw_ncm_timetask_tree" ) AND "model_type" = #{type} ORDER BY "id"
+  </select>
+
+
+  <select id="selectConfig1" parameterType="java.lang.Integer" resultType="cn.mw.monitor.timetask.entity.MwTimeTaskConfigMapper">
+    select
+    "name"  "name",
+    "assets_id"  "assetsId",
+    "time_id"  "timeId",
+    "id"  "id"
+    from ${TBSNAME}."mw_ncm_timetask_config_mapper" t1
+    where t1."time_id" = #{id,jdbcType=VARCHAR}
+  </select>
+
+  <select id="selectOne" resultMap="BaseMap" parameterType="cn.mw.monitor.timetask.entity.AddTimeTaskParam">
+    select
+    <include refid="Base_Column_List"></include>
+    from
+    ${TBSNAME}."mw_ncm_timetask_table" a1
+    where
+    <if test="id !=null">
+      a1."id" = #{id,jdbcType=INTEGER}
+    </if>
+  </select>
+
+  <sql id="Base_Column_List">
+    "id","creator","create_date","modifier","modification_date","taskname","plan","timetype","type",
+    "last_result","timing","select_url","select_id","month",week,"day","hms","time_custom",
+    "after_time","last_time","class_name","method","cron","status","config_type","cmds"
+  </sql>
+
+  <select id="selectList" resultMap="BaseMap">
+    select
+    <include refid="Base_Column_List"></include>
+    from
+    ${TBSNAME}."mw_ncm_timetask_table" t1
+    where 1=1
+    <if test="taskname !=null and taskname != ''">
+      and "taskname" like CONCAT ('%',#{taskname,jdbcType=VARCHAR},'%')
+    </if>
+    <if test="plan != null and plan != ''">
+      and "plan" =#{plan,jdbcType=VARCHAR}
+    </if>
+    <if test="type != null and type != ''">
+      and "type" like CONCAT ('%',#{type,jdbcType=VARCHAR},'%')
+    </if>
+    <if test="lastResult != null and lastResult != ''">
+      and "last_result" like CONCAT ('%',#{lastResult,jdbcType=VARCHAR},'%')
+    </if>
+    <if test="status != null ">
+      and "status" =#{status,jdbcType=INTEGER}
+    </if>
+    <if test="creator != null and creator != ''">
+      and "creator" like CONCAT ('%',#{creator,jdbcType=VARCHAR},'%')
+    </if>
+    <if test="creationDateStart != null">
+      and <![CDATA[#{creationDateStart,jdbcType=TIMESTAMP} <= t1."create_date" ]]>
+    </if>
+    <if test="creationDateEnd != null">
+      and <![CDATA[#{creationDateEnd,jdbcType=TIMESTAMP} >= t1."create_date" ]]>
+    </if>
+
+    <if test="lastTimeStart != null">
+      and <![CDATA[#{lastTimeStart,jdbcType=TIMESTAMP} <= t1."last_time" ]]>
+    </if>
+    <if test="lastTimeEnd != null">
+      and <![CDATA[#{lastTimeEnd,jdbcType=TIMESTAMP} >= t1."last_time" ]]>
+    </if>
+
+    <if test="afterTimeStart != null">
+      and <![CDATA[#{afterTimeStart,jdbcType=TIMESTAMP} <= t1."after_time" ]]>
+    </if>
+    <if test="afterTimeEnd != null">
+      and <![CDATA[#{afterTimeEnd,jdbcType=TIMESTAMP} >= t1."after_time" ]]>
+    </if>
+
+    <if test="modifier != null and modifier != ''">
+      and  "modifier" like CONCAT ('%',#{modifier,jdbcType=VARCHAR},'%')
+    </if>
+    <if test="modificationDateStart != null">
+      and  <![CDATA[#{modificationDateStart,jdbcType=TIMESTAMP} <= t1."modification_date" ]]>
+    </if>
+    <if test="modificationDateEnd != null">
+      and  <![CDATA[#{modificationDateEnd,jdbcType=TIMESTAMP} >= t1."modification_date" ]]>
+    </if>
+    and "task_type" = #{taskType}
+    order BY "create_date"
+  </select>
+
+  <select id="selectListHis" resultType="cn.mw.monitor.timetask.entity.MwTimeTaskDownloadHis">
+    select
+    "id","downtime","downresult","path","name","time_id" "timeId"
+    from
+    ${TBSNAME}."mw_ncm_timetask_download_history" t1
+    where "time_id" = #{id,jdbcType=INTEGER}
+    order by "downtime" desc
+  </select>
+
+  <select id="selectAllList" resultMap="BaseMap">
+    select
+    <include refid="Base_Column_List"></include>
+    from
+    ${TBSNAME}."mw_ncm_timetask_table"
+    where "status" = true
+  </select>
+
+  <delete id="deleteBatch" parameterType="java.util.List">
+    delete from
+        ${TBSNAME}."mw_ncm_timetask_table"
+    where "id" in (
+    <foreach collection="list" item="deleteList" separator=",">
+      #{deleteList.id,jdbcType=INTEGER}
+    </foreach>
+    )
+  </delete>
+
+  <update id="update" parameterType="cn.mw.monitor.timetask.entity.AddTimeTaskParam">
+    update ${TBSNAME}."mw_ncm_timetask_table"
+    <set>
+      <if test="cmds != null and cmds != ''">
+        "cmds" = #{cmds,jdbcType=VARCHAR},
+      </if>
+      <if test="configType != null and configType != ''">
+        "config_type" = #{configType,jdbcType=VARCHAR},
+      </if>
+      <if test="taskname != null and taskname != ''">
+        "taskname" = #{taskname,jdbcType=VARCHAR},
+      </if>
+      <if test="timetype != null and timetype != ''">
+        "timetype" = #{timetype,jdbcType=VARCHAR},
+      </if>
+      <if test="plan != null and plan != ''">
+        "plan" = #{plan,jdbcType=VARCHAR},
+      </if>
+      <if test="type != null and type != ''">
+        "type" = #{type,jdbcType=VARCHAR},
+      </if>
+      <if test="lastResult != null and lastResult != ''">
+        "last_result" = #{lastResult,jdbcType=VARCHAR},
+      </if>
+      <if test="lastTime != null">
+        "last_time" = #{lastTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="afterTime != null">
+        "after_time" = #{afterTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="className != null and plan != ''">
+        "class_name" = #{className,jdbcType=VARCHAR},
+      </if>
+      <if test="method != null and method != ''">
+        "method" = #{method,jdbcType=VARCHAR},
+      </if>
+      <if test="cron != null and cron != ''">
+        "cron" = #{cron,jdbcType=VARCHAR},
+      </if>
+      <if test="timing != null and timing != ''">
+        "timing" = #{timing,jdbcType=VARCHAR},
+      </if>
+      <if test="selectUrl != null and selectUrl != ''">
+        "select_url" = #{selectUrl,jdbcType=VARCHAR},
+      </if>
+      <if test="selectId != null and selectId != ''">
+        "select_id" = #{selectId,jdbcType=VARCHAR},
+      </if>
+      <if test="month != null and month != ''">
+        "month" = #{month,jdbcType=VARCHAR},
+      </if>
+      <if test="week != null and week != ''">
+        "week" = #{week,jdbcType=VARCHAR},
+      </if>
+      <if test="day != null and day != ''">
+        "day" = #{day,jdbcType=VARCHAR},
+      </if>
+      <if test="hms != null and hms != ''">
+        "hms" = #{hms,jdbcType=VARCHAR},
+      </if>
+      <if test="timeCustom != null">
+        "time_custom" = #{timeCustom,jdbcType=INTEGER},
+      </if>
+      <if test="status != null">
+        "status" = #{status,jdbcType=INTEGER},
+      </if>
+      <if test="modifier != null">
+        "modifier" = #{modifier,jdbcType=VARCHAR},
+      </if>
+      "modification_date" = sysdate
+    </set>
+    where "id" = #{id,jdbcType=INTEGER}
+  </update>
+
+  <update id="updateSomeThree" parameterType="cn.mw.monitor.timetask.entity.MwTimeTaskTable">
+    update ${TBSNAME}."mw_ncm_timetask_table"
+    <set>
+      <if test="lastResult != null and lastResult != ''">
+        "last_result" = #{lastResult,jdbcType=VARCHAR},
+      </if>
+      <if test="lastTime != null">
+        "last_time" = #{lastTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="afterTime != null">
+        "after_time" = #{afterTime,jdbcType=TIMESTAMP},
+      </if>
+    </set>
+    where "id" = #{id,jdbcType=INTEGER}
+  </update>
+
+  <insert id="insert" parameterType="cn.mw.monitor.timetask.entity.AddTimeTaskParam" useGeneratedKeys="true" keyProperty="id">
+    insert into ${TBSNAME}."mw_ncm_timetask_table"
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+      <if test="cmds != null and cmds != ''">"cmds",</if>
+      <if test="configType != null and configType != ''">"config_type",</if>
+      <if test="taskname != null and taskname != ''">"taskname",</if>
+      <if test="timetype != null and timetype != ''">"timetype",</if>
+      <if test="plan != null and plan != ''">"plan",</if>
+      <if test="type != null and type != ''">"type",</if>
+      <if test="lastResult != null and lastResult != ''">"last_result",</if>
+      <if test="afterTime != null ">"after_time",</if>
+      <if test="month != null and month != ''">"month",</if>
+      <if test="week != null and week != ''">"week",</if>
+      <if test="day != null and day != ''">"day",</if>
+      <if test="hms != null and hms != ''">"hms",</if>
+      <if test="timeCustom != null">"time_custom",</if>
+
+
+      <if test="className != null and className != ''">"class_name",</if>
+      <if test="method != null and method != ''">"method",</if>
+      <if test="cron != null and cron != ''">"cron",</if>
+      <if test="status != null ">"status",</if>
+      <if test="timing != null and timing != ''">"timing",</if>
+      <if test="selectUrl != null and selectUrl != ''">"select_url",</if>
+      <if test="selectId != null and selectId != ''">"select_id",</if>
+
+      <if test="creator != null">"creator",</if>
+      <if test="createDate != null">"create_date",</if>
+      <if test="modifier != null">"modifier",</if>
+      <if test="modificationDate != null">"modification_date",</if>
+      <if test="taskType != null and taskType != ''">"task_type"</if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+      <if test="cmds != null and cmds != ''">#{cmds,jdbcType=VARCHAR},</if>
+      <if test="configType != null and configType != ''">#{configType,jdbcType=VARCHAR},</if>
+      <if test="taskname != null and taskname != ''">#{taskname,jdbcType=VARCHAR},</if>
+      <if test="timetype != null and timetype != ''">#{timetype,jdbcType=VARCHAR},</if>
+      <if test="plan != null and plan != ''">#{plan,jdbcType=VARCHAR},</if>
+      <if test="type != null and type != ''">#{type,jdbcType=VARCHAR},</if>
+      <if test="lastResult != null and lastResult != ''">#{lastResult,jdbcType=VARCHAR},</if>
+      <if test="afterTime != null ">#{afterTime,jdbcType=TIMESTAMP},</if>
+      <if test="month != null and month != ''">#{month,jdbcType=VARCHAR},</if>
+      <if test="week != null and week != ''">#{week,jdbcType=VARCHAR},</if>
+      <if test="day != null and day != ''">#{day,jdbcType=VARCHAR},</if>
+      <if test="hms != null and hms != ''">#{hms,jdbcType=VARCHAR},</if>
+      <if test="timeCustom != null">#{timeCustom,jdbcType=INTEGER},</if>
+
+      <if test="className != null and className != ''">#{className,jdbcType=VARCHAR},</if>
+      <if test="method != null and method != ''">#{method,jdbcType=VARCHAR},</if>
+      <if test="cron != null and cron != ''">#{cron,jdbcType=VARCHAR},</if>
+      <if test="status != null ">#{status,jdbcType=INTEGER},</if>
+      <if test="timing != null and timing != ''">#{timing,jdbcType=VARCHAR},</if>
+      <if test="selectUrl != null and selectUrl != ''">#{selectUrl,jdbcType=VARCHAR},</if>
+      <if test="selectId != null and selectId != ''">#{selectId,jdbcType=VARCHAR},</if>
+
+      <if test="creator != null">#{creator,jdbcType=VARCHAR},</if>
+      <if test="createDate != null"> #{createDate,jdbcType=TIMESTAMP},</if>
+      <if test="modifier != null">#{modifier,jdbcType=VARCHAR},</if>
+      <if test="modificationDate != null"> #{modificationDate,jdbcType=TIMESTAMP},</if>
+      <if test="taskType != null and taskType != ''"> #{taskType,jdbcType=INTEGER}</if>
+    </trim>
+  </insert>
+
+  <insert id="insertConfig">
+    INSERT INTO ${TBSNAME}."mw_ncm_timetask_config_mapper"
+    ("time_id","assets_id","name")
+    VALUES
+    <foreach collection="list" item="item" separator=",">
+      (#{timeId,jdbcType=INTEGER},#{item.assetsId,jdbcType=INTEGER},#{item.name,jdbcType=VARCHAR})
+    </foreach>
+  </insert>
+
+  <delete id="deleteHisList" parameterType="java.lang.Integer">
+    delete from
+    ${TBSNAME}."mw_ncm_timetask_download_history"
+    where "time_id" = #{timeId,jdbcType=INTEGER}
+  </delete>
+
+  <delete id="deleteConfig" parameterType="java.lang.Integer">
+    delete from
+    ${TBSNAME}."mw_ncm_timetask_config_mapper"
+    where "time_id" = #{timeId,jdbcType=INTEGER}
+  </delete>
+
+  <select id="selectTypeList" resultType="cn.mw.monitor.timetask.entity.MwTimeTaskTypeMapper">
+    SELECT
+        "id",
+        "typename",
+        "typemethod",
+        "typeclass",
+        "selecturl",
+        "configname",
+        "configid"
+    FROM
+	    ${TBSNAME}."mw_ncm_timetask_type_mapper" where "type" = #{type}
+  </select>
+
+  <delete id="deleteDownloadHis" parameterType="java.util.List">
+    DELETE FROM ${TBSNAME}."mw_ncm_timetask_download_history"
+    WHERE "id" in (
+    <foreach collection="list" item="item" separator=",">
+      #{item.id,jdbcType=INTEGER}
+    </foreach>
+    )
+  </delete>
+  <select id="selectActionIdsBymodelId" resultType="java.lang.Integer">
+        select "action_id" from  ${TBSNAME}."mw_ncm_timetask_tree" where "model_id" = #{modelId}
+  </select>
+
+
+
+</mapper>

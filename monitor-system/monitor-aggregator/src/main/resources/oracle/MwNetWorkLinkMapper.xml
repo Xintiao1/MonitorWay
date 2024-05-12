@@ -1,0 +1,692 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.mw.monitor.link.dao.MWNetWorkLinkDao">
+    <resultMap id="linkListMap" type="cn.mw.monitor.link.dto.NetWorkLinkDto">
+        <id column="link_id" property="linkId"></id>
+        <result column="link_name" property="linkName"></result>
+        <result column="link_desc" property="linkDesc"></result>
+        <result column="scan_type" property="scanType"></result>
+        <result column="value_port" property="valuePort"></result>
+        <result column="enable" property="enable"></result>
+        <result column="creator" property="creator"></result>
+        <result column="create_date" property="createDate"></result>
+        <result column="modifier" property="modifier"></result>
+        <result column="modification_date" property="modificationDate"></result>
+        <result column="root_assets_name" property="rootAssetsName"></result>
+        <result column="target_assets_name" property="targetAssetsName"></result>
+        <result column="root_ip_address" property="rootIpAddress"></result>
+        <result column="root_port" property="rootPort"></result>
+        <result column="target_ip_address" property="targetIpAddress"></result>
+        <result column="target_port" property="targetPort"></result>
+        <result column="up_link_bandwidth" property="upLinkBandwidth"></result>
+        <result column="down_link_bandwidth" property="downLinkBandwidth"></result>
+        <result column="band_unit" property="bandUnit"></result>
+        <result column="link_target_ip" property="linkTargetIp"></result>
+        <result column="scan_type" property="scanType"></result>
+        <association property="rootAssetsParam" javaType="cn.mw.monitor.service.link.param.AssetsParam">
+            <result column="root_assets_Id" property="assetsId" jdbcType="VARCHAR"></result>
+            <result column="root_assets_name" property="assetsName" jdbcType="VARCHAR"></result>
+            <result column="root_server_id" property="monitorServerId" jdbcType="INTEGER"></result>
+        </association>
+        <association property="targetAssetsParam" javaType="cn.mw.monitor.service.link.param.AssetsParam">
+            <result column="target_assets_id" property="assetsId" jdbcType="VARCHAR"></result>
+            <result column="target_assets_name" property="assetsName" jdbcType="VARCHAR"></result>
+            <result column="target_server_id" property="monitorServerId" jdbcType="INTEGER"></result>
+        </association>
+    </resultMap>
+
+    <resultMap id="linkMap" type="cn.mw.monitor.service.link.param.AddAndUpdateParam">
+        <id column="link_id" property="linkId"></id>
+        <result column="link_name" property="linkName"></result>
+        <result column="link_desc" property="linkDesc"></result>
+        <result column="scan_type" property="scanType"></result>
+        <result column="value_port" property="valuePort"></result>
+        <result column="enable" property="enable"></result>
+        <result column="creator" property="creator"></result>
+        <result column="create_date" property="createDate"></result>
+        <result column="modifier" property="modifier"></result>
+        <result column="modification_date" property="modificationDate"></result>
+        <result column="root_assets_name" property="rootAssetsName"></result>
+        <result column="target_assets_name" property="targetAssetsName"></result>
+        <result column="root_ip_address" property="rootIpAddress"></result>
+        <result column="root_port" property="rootPort"></result>
+        <result column="target_ip_address" property="targetIpAddress"></result>
+        <result column="target_port" property="targetPort"></result>
+        <result column="up_link_bandwidth" property="upLinkBandwidth"></result>
+        <result column="down_link_bandwidth" property="downLinkBandwidth"></result>
+        <result column="band_unit" property="bandUnit"></result>
+        <result column="link_target_ip" property="linkTargetIp"></result>
+        <result column="scan_type" property="scanType"></result>
+        <association property="rootAssetsParam" javaType="cn.mw.monitor.service.link.param.AssetsParam">
+            <result column="root_assets_Id" property="assetsId" jdbcType="VARCHAR"></result>
+            <result column="root_assets_name" property="assetsName" jdbcType="VARCHAR"></result>
+            <result column="root_server_id" property="monitorServerId" jdbcType="INTEGER"></result>
+        </association>
+        <association property="targetAssetsParam" javaType="cn.mw.monitor.service.link.param.AssetsParam">
+            <result column="target_assets_id" property="assetsId" jdbcType="VARCHAR"></result>
+            <result column="target_assets_name" property="assetsName" jdbcType="VARCHAR"></result>
+            <result column="target_server_id" property="monitorServerId" jdbcType="INTEGER"></result>
+        </association>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        "link_id","link_name","link_desc",
+        "root_assets_id",
+        <if test="targetAssetsParam.assetsId != null and targetAssetsParam.assetsId != ''">"target_assets_id",</if>
+        "root_assets_name",
+        <if test="targetAssetsParam.assetsName != null and targetAssetsParam.assetsName != ''">"target_assets_name",</if>
+        "root_ip_address",
+        <if test="targetIpAddress != null and targetIpAddress!=''">"target_ip_address",</if>
+        "root_port",
+        <if test="targetPort != null and targetPort != ''">"target_port",</if>
+        "value_port",
+        "enable",
+        "up_link_bandwidth",
+        "down_link_bandwidth",
+        "root_server_id",
+        <if test="targetAssetsParam.monitorServerId != null and targetAssetsParam.monitorServerId !=''">"target_server_id",</if>
+        "band_unit",
+        <if test="linkTargetIp != null">"link_target_ip",</if>
+        <if test="scanType != null">"scan_type",</if>
+        "creator", "create_date", "modifier", "modification_date"
+    </sql>
+    <sql id="Base_Column_List1">
+    "link_id","link_name","link_desc",
+    "root_assets_id","root_assets_name",
+    "target_assets_id","target_assets_name",
+    "root_ip_address","target_ip_address",
+    "root_port","target_port","scan_type",
+    "value_port", "enable", "up_link_bandwidth","down_link_bandwidth",
+    "root_server_id", "target_server_id","band_unit",
+    "link_target_ip",
+    "creator", "create_date", "modifier", "modification_date"
+    </sql>
+    <insert id="insert" parameterType="cn.mw.monitor.service.link.param.AddAndUpdateParam">
+        insert into ${TBSNAME}."mw_network_link"(<include refid="Base_Column_List"></include>) values(
+        #{linkId,jdbcType=VARCHAR},
+        #{linkName,jdbcType=VARCHAR},
+        #{linkDesc,jdbcType=VARCHAR},
+        #{rootAssetsParam.assetsId,jdbcType=VARCHAR},
+        <if test="targetAssetsParam.assetsId != null and targetAssetsParam.assetsId != ''">#{targetAssetsParam.assetsId,jdbcType=VARCHAR},</if>
+        #{rootAssetsParam.assetsName,jdbcType=VARCHAR},
+        <if test="targetAssetsParam.assetsName != null and targetAssetsParam.assetsName != ''">#{targetAssetsParam.assetsName,jdbcType=VARCHAR},</if>
+        #{rootIpAddress,jdbcType=VARCHAR},
+        <if test="targetIpAddress != null and targetIpAddress != ''">#{targetIpAddress,jdbcType=VARCHAR},</if>
+        #{rootPort,jdbcType=VARCHAR},
+        <if test="targetPort != null and targetPort != ''">#{targetPort,jdbcType=VARCHAR},</if>
+        #{valuePort,jdbcType=VARCHAR},
+        #{enable,jdbcType=VARCHAR},
+        #{upLinkBandwidth,jdbcType=VARCHAR},
+        #{downLinkBandwidth,jdbcType=VARCHAR},
+        #{rootAssetsParam.monitorServerId,jdbcType=INTEGER},
+        <if test="targetAssetsParam.monitorServerId != null and targetAssetsParam.monitorServerId != ''">#{targetAssetsParam.monitorServerId,jdbcType=INTEGER},</if>
+        #{bandUnit,jdbcType=VARCHAR},
+        <if test="linkTargetIp != null">#{linkTargetIp,jdbcType=VARCHAR},</if>
+        <if test="scanType != null">#{scanType,jdbcType=VARCHAR},</if>
+        #{creator,jdbcType=VARCHAR},
+        SYSDATE,
+        #{modifier,jdbcType=VARCHAR},
+        SYSDATE
+        )
+    </insert>
+
+    <update id="update" parameterType="cn.mw.monitor.service.link.param.AddAndUpdateParam">
+        update ${TBSNAME}."mw_network_link" set
+        "link_name"=#{linkName,jdbcType=VARCHAR},
+        "link_desc"=#{linkDesc,jdbcType=VARCHAR},
+        <if test="rootAssetsParam == null">
+            "root_assets_id"= null,
+            "root_assets_name"= null,
+            "root_server_id"= 0,
+        </if>
+        <if test="targetAssetsParam == null">
+            "target_assets_id"= null,
+            "target_assets_name"= null,
+            "target_server_id"= 0,
+        </if>
+        <if test="rootAssetsParam != null">"root_assets_id"=#{rootAssetsParam.assetsId,jdbcType=VARCHAR},</if>
+        <if test="targetAssetsParam != null">"target_assets_id"=#{targetAssetsParam.assetsId,jdbcType=VARCHAR},</if>
+        <if test="rootAssetsParam != null">"root_assets_name"=#{rootAssetsParam.assetsName,jdbcType=VARCHAR},</if>
+        <if test="targetAssetsParam != null">"target_assets_name"=#{targetAssetsParam.assetsName,jdbcType=VARCHAR},</if>
+        "root_ip_address"=#{rootIpAddress,jdbcType=VARCHAR},
+        "target_ip_address"=#{targetIpAddress,jdbcType=VARCHAR},
+        "root_port"=#{rootPort,jdbcType=VARCHAR},
+        "target_port"=#{targetPort,jdbcType=VARCHAR},
+        "up_link_bandwidth"=#{upLinkBandwidth,jdbcType=VARCHAR},
+        "down_link_bandwidth"=#{downLinkBandwidth,jdbcType=VARCHAR},
+        <if test="rootAssetsParam != null">"root_server_id"=#{rootAssetsParam.monitorServerId,jdbcType=INTEGER},</if>
+        <if test="targetAssetsParam != null">"target_server_id"=#{targetAssetsParam.monitorServerId,jdbcType=INTEGER},</if>
+        "band_unit"=#{bandUnit,jdbcType=VARCHAR},
+        <if test="scanType != null">"scan_type"=#{scanType,jdbcType=VARCHAR},</if>
+        <if test="linkTargetIp != null">"link_target_ip"=#{linkTargetIp,jdbcType=VARCHAR},</if>
+        "value_port"=#{valuePort,jdbcType=VARCHAR},
+        "enable"=#{enable,jdbcType=VARCHAR},
+        "modifier"=#{modifier,jdbcType=VARCHAR},
+        "modification_date"=SYSDATE
+        where "link_id"=#{linkId,jdbcType=VARCHAR}
+    </update>
+    <update id="delete">
+        update "mw_network_link" set "delete_flag"=1 where "link_id" in
+        <foreach collection="list" item="deleteList" separator="," open="(" close=")">
+            #{deleteList}
+        </foreach>
+    </update>
+    <select id="getLinkList" resultMap="linkListMap">
+        select
+        <include refid="Base_Column_List1"></include>
+        from ${TBSNAME}."mw_network_link"
+        where "delete_flag"=0 and "enable"='ACTIVE'
+    </select>
+    <select id="getPubLinkList" resultMap="linkListMap">
+        select
+        <include refid="Base_Column_List1"></include>
+        from (select "delete_flag", <include refid="Base_Column_List1"></include>
+        from ${TBSNAME}."mw_network_link"
+        <if test="fuzzyQuery!= null and fuzzyQuery !='' ">
+            where (
+            NVL( "link_name", '' ) ||
+            NVL( "root_ip_address", '' ) ||
+            NVL( "root_port", '' ) ||
+            NVL( "target_ip_address", '' ) ||
+            NVL( "target_port", '' ) ||
+            NVL( "link_target_ip", '' ) ||
+            NVL( "root_assets_name", '' ) ||
+            NVL( "target_assets_name", '' ) ||
+            NVL( "creator", '' ) ||
+            NVL( "modifier", '' )
+            ) LIKE ('%'||#{fuzzyQuery,jdbcType=VARCHAR}||'%')
+            ORDER BY
+            ( CASE WHEN INSTR( "link_name", #{fuzzyQuery}) > 0 THEN 0 ELSE 1 END ),
+            ( CASE WHEN INSTR( "root_ip_address", #{fuzzyQuery}) > 0 THEN 0 ELSE 1 END ),
+            ( CASE WHEN INSTR( "root_port", #{fuzzyQuery}) > 0 THEN 0 ELSE 1 END ),
+            ( CASE WHEN INSTR( "target_ip_address", #{fuzzyQuery}) > 0 THEN 0 ELSE 1 END ),
+            ( CASE WHEN INSTR( "target_port", #{fuzzyQuery}) > 0 THEN 0 ELSE 1 END ),
+            ( CASE WHEN INSTR( "link_target_ip", #{fuzzyQuery}) > 0 THEN 0 ELSE 1 END ),
+            ( CASE WHEN INSTR( "root_assets_name", #{fuzzyQuery}) > 0 THEN 0 ELSE 1 END ),
+            ( CASE WHEN INSTR( "target_assets_name", #{fuzzyQuery}) > 0 THEN 0 ELSE 1 END ),
+            ( CASE WHEN INSTR( "creator", #{fuzzyQuery}) > 0 THEN 0 ELSE 1 END ),
+            ( CASE WHEN INSTR( "modifier", #{fuzzyQuery}) > 0 THEN 0 ELSE 1 END )
+        </if>)
+         t1
+        <choose>
+            <when test="isAdmin==false">
+                LEFT JOIN (SELECT "type_id","org_id" FROM "mw_org_mapper" where type='LINK') t2 ON t1."link_id" = t2."type_id"
+                where "org_id" IN
+                <foreach collection="orgIds" item="item" index="index" open="(" separator="," close=")">
+                    #{item.value,jdbcType=INTEGER}
+                </foreach>
+                and t1."delete_flag"=0
+                <include refid="criteria"></include>
+                <include refid="union_group"></include>
+            </when>
+            <otherwise>
+                WHERE t1."delete_flag" = 0
+                <include refid="criteria"></include>
+            </otherwise>
+        </choose>
+        order by "create_date"
+    </select>
+
+    <select id="getAllLinkList" resultMap="linkListMap">
+        select "delete_flag",
+        <include refid="Base_Column_List1"></include>
+        from ${TBSNAME}."mw_network_link"
+        where "delete_flag" = 0
+        <if test="fuzzyQuery!= null and fuzzyQuery !='' ">
+            where (
+            NVL( "link_name", '' ) ||
+            NVL( "root_ip_address", '' ) ||
+            NVL( "root_port", '' ) ||
+            NVL( "target_ip_address", '' ) ||
+            NVL( "target_port", '' ) ||
+            NVL( "link_target_ip", '' ) ||
+            NVL( "root_assets_name", '' ) ||
+            NVL( "target_assets_name", '' ) ||
+            NVL( "creator", '' ) ||
+            NVL( "modifier", '' )
+            ) LIKE ('%'||#{fuzzyQuery,jdbcType=VARCHAR}||'%')
+            ORDER BY
+            ( CASE WHEN INSTR( "link_name", #{fuzzyQuery}) > 0 THEN 0 ELSE 1 END ),
+            ( CASE WHEN INSTR( "root_ip_address", #{fuzzyQuery}) > 0 THEN 0 ELSE 1 END ),
+            ( CASE WHEN INSTR( "root_port", #{fuzzyQuery}) > 0 THEN 0 ELSE 1 END ),
+            ( CASE WHEN INSTR( "target_ip_address", #{fuzzyQuery}) > 0 THEN 0 ELSE 1 END ),
+            ( CASE WHEN INSTR( "target_port", #{fuzzyQuery}) > 0 THEN 0 ELSE 1 END ),
+            ( CASE WHEN INSTR( "link_target_ip", #{fuzzyQuery}) > 0 THEN 0 ELSE 1 END ),
+            ( CASE WHEN INSTR( "root_assets_name", #{fuzzyQuery}) > 0 THEN 0 ELSE 1 END ),
+            ( CASE WHEN INSTR( "target_assets_name", #{fuzzyQuery}) > 0 THEN 0 ELSE 1 END ),
+            ( CASE WHEN INSTR( "creator", #{fuzzyQuery}) > 0 THEN 0 ELSE 1 END ),
+            ( CASE WHEN INSTR( "modifier", #{fuzzyQuery}) > 0 THEN 0 ELSE 1 END )
+        </if>
+        <if test="isSystem == false">
+            and INSTR(#{listSet},"link_id") > 0)
+        </if>
+        <include refid="criteria"></include>
+        order by "create_date"
+    </select>
+
+    <select id="selectHostIdCount" resultType="java.lang.Integer">
+        select count(0) from ${TBSNAME}."mw_network_link" where "scan_type"=#{scanType,jdbcType=VARCHAR}
+        and ("root_assets_id"=#{hostId,jdbcType=VARCHAR}
+        or "target_assets_id"=#{hostId,jdbcType=VARCHAR})
+    </select>
+    <select id="selectNetWorkLinkDto" resultType="cn.mw.monitor.link.dto.NetWorkLinkDto">
+        select "root_assets_id","target_assets_id","value_port","root_server_id","target_server_id","link_target_ip","scan_type" from ${TBSNAME}."mw_network_link" where "link_id"=#{linkId,jdbcType=VARCHAR}
+    </select>
+    <select id="selectById" resultType="cn.mw.monitor.link.dto.NetWorkLinkDto" resultMap="linkListMap">
+        select <include refid="Base_Column_List1"></include> from ${TBSNAME}."mw_network_link" where
+        "link_id"=#{linkId,jdbcType=VARCHAR}
+    </select>
+    <select id="selectAssetsLink" resultType="java.lang.String">
+        select distinct "link_id" from ${TBSNAME}."mw_network_link"
+        where "delete_flag"=0 and
+        <foreach collection="list" item="item" index="index" open="(" separator="or" close=")">
+            ("root_assets_id" = #{item.assetsId} AND "root_server_id"=#{item.monitorServerId})
+            or
+            ("target_assets_id" = #{item.assetsId} AND "target_server_id"=#{item.monitorServerId})
+        </foreach>
+    </select>
+    <select id="getLinkListIds" resultType="java.util.Map">
+        select "link_id" as "interfaceid","link_name" as "caption" from ${TBSNAME}."mw_network_link"
+        where "delete_flag"=0
+    </select>
+
+    <sql id="union_group">
+        <if test="groupIds!=null">
+            UNION
+            SELECT
+            <include refid="Base_Column_List1"></include>
+            FROM (select "delete_flag",<include refid="Base_Column_List1"></include>
+            from ${TBSNAME}."mw_network_link"
+            <if test="fuzzyQuery!= null and fuzzyQuery !='' ">
+                where (
+                NVL( "link_name", '' ) ||
+                NVL( "root_ip_address", '' ) ||
+                NVL( "root_port", '' ) ||
+                NVL( "target_ip_address", '' ) ||
+                NVL( "target_port", '' ) ||
+                NVL( "link_target_ip", '' ) ||
+                NVL( "root_assets_name", '' ) ||
+                NVL( "target_assets_name", '' ) ||
+                NVL( "creator", '' ) ||
+                NVL( "modifier", '' )
+                ) LIKE ('%'||#{fuzzyQuery,jdbcType=VARCHAR}||'%')
+                ORDER BY
+                ( CASE WHEN INSTR( "link_name", #{fuzzyQuery}) > 0 THEN 0 ELSE 1 END ),
+                ( CASE WHEN INSTR( "root_ip_address", #{fuzzyQuery}) > 0 THEN 0 ELSE 1 END ),
+                ( CASE WHEN INSTR( "root_port", #{fuzzyQuery}) > 0 THEN 0 ELSE 1 END ),
+                ( CASE WHEN INSTR( "target_ip_address", #{fuzzyQuery}) > 0 THEN 0 ELSE 1 END ),
+                ( CASE WHEN INSTR( "target_port", #{fuzzyQuery}) > 0 THEN 0 ELSE 1 END ),
+                ( CASE WHEN INSTR( "link_target_ip", #{fuzzyQuery}) > 0 THEN 0 ELSE 1 END ),
+                ( CASE WHEN INSTR( "root_assets_name", #{fuzzyQuery}) > 0 THEN 0 ELSE 1 END ),
+                ( CASE WHEN INSTR( "target_assets_name", #{fuzzyQuery}) > 0 THEN 0 ELSE 1 END ),
+                ( CASE WHEN INSTR( "creator", #{fuzzyQuery}) > 0 THEN 0 ELSE 1 END ),
+                ( CASE WHEN INSTR( "modifier", #{fuzzyQuery}) > 0 THEN 0 ELSE 1 END )
+            </if>)
+            t1
+            LEFT JOIN
+            (
+            SELECT a."type_id",a."group_id" FROM ${TBSNAME}."mw_group_mapper" a LEFT JOIN ${TBSNAME}."mw_datapermission" b ON a."type_id" = b."type_id"
+            WHERE b."type" = 'LINK' and b."is_group" = 1) t2 ON t1."link_id" = t2."type_id"
+            where t1."delete_flag"=0 and "group_id" IN
+            <foreach collection="groupIds" item="item" index="index" open="(" separator="," close=")">
+                #{item.value,jdbcType=INTEGER}
+            </foreach>
+            <include refid="criteria"></include>
+        </if>
+    </sql>
+
+    <sql id="criteria">
+        <if test="linkId !=null and linkId !=''">
+            and "link_id"=#{linkId,jdbcType=VARCHAR}
+        </if>
+        <if test="linkIds !=null  and linkIds.size > 0">
+            and "link_id" in
+            <foreach collection="linkIds" item="item" index="index" open="(" close=")" separator=",">
+                #{item}
+            </foreach>
+        </if>
+        <if test="linkName !=null and linkName !=''">
+            and "link_name" LIKE ('%'||#{linkName,jdbcType=VARCHAR}||'%')
+        </if>
+        <if test="linkDesc !=null and linkDesc !=''">
+            and "link_desc" LIKE ('%'||#{linkDesc,jdbcType=VARCHAR}||'%')
+        </if>
+        <if test="rootAssetsName !=null and rootAssetsName !=''">
+            and "root_assets_name" LIKE ('%'||#{rootAssetsName,jdbcType=VARCHAR}||'%')
+        </if>
+        <if test="targetAssetsName !=null and targetAssetsName !=''">
+            and "target_assets_name" LIKE ('%'||#{targetAssetsName,jdbcType=VARCHAR}||'%')
+        </if>
+        <if test="rootIpAddress !=null and rootIpAddress !=''">
+            and "root_ip_address" LIKE ('%'||#{rootIpAddress,jdbcType=VARCHAR}||'%')
+        </if>
+        <if test="targetIpAddress !=null and targetIpAddress !=''">
+            and "target_ip_address" LIKE ('%'||#{targetIpAddress,jdbcType=VARCHAR}||'%')
+        </if>
+        <if test="rootPort !=null and rootPort !=''">
+            and "root_port" LIKE ('%'||#{rootPort,jdbcType=VARCHAR}||'%')
+        </if>
+        <if test="targetPort !=null and targetPort !=''">
+            and "target_port" LIKE ('%'||#{targetPort,jdbcType=VARCHAR}||'%')
+        </if>
+        <if test="scanType !=null and scanType !=''">
+            and "scan_type"=#{scanType,jdbcType=VARCHAR}
+        </if>
+        <if test="valuePort !=null and valuePort !=''">
+            and "value_port"=#{valuePort,jdbcType=VARCHAR}
+        </if>
+        <if test="enable !=null and enable !=''">
+            and "enable"=#{enable,jdbcType=VARCHAR}
+        </if>
+        <if test="linkTargetIp !=null and linkTargetIp !=''">
+            and "link_target_ip"=#{linkTargetIp,jdbcType=VARCHAR}
+        </if>
+        <if test="creator != null and creator != ''">
+            and "creator" = #{creator,jdbcType=VARCHAR}
+        </if>
+        <if test="createDateStart != null">
+            and <![CDATA[#{createDateStart,jdbcType=TIMESTAMP} <= "create_date" ]]>
+        </if>
+        <if test="createDateEnd != null">
+            and <![CDATA[#{createDateEnd,jdbcType=TIMESTAMP} >= "create_date" ]]>
+        </if>
+        <if test="modifier != null and modifier != ''">
+            and "modifier" = #{modifier,jdbcType=VARCHAR}
+        </if>
+        <if test="modificationDateStart != null">
+            and  <![CDATA[#{modificationDateStart,jdbcType=TIMESTAMP} <= "modification_date" ]]>
+        </if>
+        <if test="modificationDateEnd != null">
+            and  <![CDATA[#{modificationDateEnd,jdbcType=TIMESTAMP} >= "modification_date" ]]>
+        </if>
+    </sql>
+
+    <update id="enableActive">
+        update ${TBSNAME}."mw_network_link" set "enable"=#{enable,jdbcType=VARCHAR} where "link_id"=#{linkId,jdbcType=VARCHAR}
+    </update>
+
+    <select id="fuzzSearchAllFiled" resultType="java.util.Map">
+        SELECT
+        "link_name",
+         "root_ip_address",
+         "root_port",
+         "target_ip_address",
+         "target_port",
+         "link_target_ip",
+         "root_assets_name",
+         "target_assets_name",
+         "creator",
+         "modifier"
+        FROM
+        ${TBSNAME}."mw_network_link"
+        WHERE "delete_flag" = 0
+        and (
+            NVL( "link_name", '' ) ||
+            NVL( "root_ip_address", '' ) ||
+            NVL( "root_port", '' ) ||
+            NVL( "target_ip_address", '' ) ||
+            NVL( "target_port", '' ) ||
+            NVL( "link_target_ip", '' ) ||
+            NVL( "root_assets_name", '' ) ||
+            NVL( "target_assets_name", '' ) ||
+            NVL( "creator", '' ) ||
+            NVL( "modifier", '' )
+            ) LIKE ('%'||#{value,jdbcType=VARCHAR}||'%')
+            ORDER BY
+            ( CASE WHEN INSTR( "link_name", #{value}) > 0 THEN 0 ELSE 1 END ),
+            ( CASE WHEN INSTR( "root_ip_address", #{value}) > 0 THEN 0 ELSE 1 END ),
+            ( CASE WHEN INSTR( "root_port", #{value}) > 0 THEN 0 ELSE 1 END ),
+            ( CASE WHEN INSTR( "target_ip_address", #{value}) > 0 THEN 0 ELSE 1 END ),
+            ( CASE WHEN INSTR( "target_port", #{value}) > 0 THEN 0 ELSE 1 END ),
+            ( CASE WHEN INSTR( "link_target_ip", #{value}) > 0 THEN 0 ELSE 1 END ),
+            ( CASE WHEN INSTR( "root_assets_name", #{value}) > 0 THEN 0 ELSE 1 END ),
+            ( CASE WHEN INSTR( "target_assets_name", #{value}) > 0 THEN 0 ELSE 1 END ),
+            ( CASE WHEN INSTR( "creator", #{value}) > 0 THEN 0 ELSE 1 END ),
+            ( CASE WHEN INSTR( "modifier", #{value}) > 0 THEN 0 ELSE 1 END )
+    </select>
+
+
+    <select id="getAllLink" resultMap="linkListMap">
+        SELECT
+        "link_id",
+        "link_name",
+        "link_desc",
+        "root_assets_id",
+        "root_assets_name",
+        "target_assets_Id",
+        "target_assets_name",
+        "root_ip_address",
+        "target_ip_address",
+        "root_port",
+        "target_port",
+        "scan_type",
+        "value_port",
+        "ENABLE",
+        "up_link_bandwidth",
+        "down_link_bandwidth",
+        "root_server_id",
+        "target_server_id",
+        "band_unit",
+        "link_target_ip",
+        "creator",
+        "create_date",
+        "modifier",
+        "modification_date"
+        FROM
+        (
+        SELECT
+        "delete_flag",
+        "link_id",
+        "link_name",
+        "link_desc",
+        "root_assets_id",
+        "root_assets_name",
+        "target_assets_Id",
+        "target_assets_name",
+        "root_ip_address",
+        "target_ip_address",
+        "root_port",
+        "target_port",
+        "scan_type",
+        "value_port",
+        "enable",
+        "up_link_bandwidth",
+        "down_link_bandwidth",
+        "root_server_id",
+        "target_server_id",
+        "band_unit",
+        "link_target_ip",
+        "creator",
+        "create_date",
+        "modifier",
+        "modification_date"
+        FROM
+         ${TBSNAME}."mw_network_link"
+        ) t1
+        WHERE
+        t1."delete_flag" = 0
+        ORDER BY
+        "create_date"
+    </select>
+    <select id="selectLinkTree" resultType="cn.mw.monitor.link.dto.MwLinkTreeDto">
+        select "id","prent_id" "parentId","contents_name" "contentsName","sort","org_id" "orgIdStr","user_group_id" "userGroupIdStr","user_id" "userIdStr","describe","link_id" "linkId" from  ${TBSNAME}."mw_link_tree"
+        <if test="isSystem == false">
+            where instr(#{listSet},"id")
+        </if>
+        order by "prent_id"
+    </select>
+    <select id="selectLinkIdAndTreeId" resultType="java.util.Map">
+        select "link_id" "linkId","tree_id" "treeId" from  ${TBSNAME}."mw_linkid_treeid"
+    </select>
+    <insert id="insertLinkTree" parameterType="cn.mw.monitor.link.dto.MwLinkTreeDto"
+            useGeneratedKeys="true" keyProperty="id">
+        <selectKey keyProperty="id" order="BEFORE" resultType="java.lang.Integer">
+            select ${TBSNAME}.SEQ_MW_LINK_TREE.NEXTVAL as "id" from DUAL
+        </selectKey>
+        INSERT INTO ${TBSNAME}."mw_link_tree"("id","prent_id", "contents_name", "sort","org_id","user_group_id","user_id","describe","link_id") VALUES (
+        #{id},
+        #{parentId,jdbcType=INTEGER},
+        #{contentsName,jdbcType=VARCHAR},
+        #{sort,jdbcType=INTEGER},
+        #{orgIdStr,jdbcType=VARCHAR},
+        #{userGroupIdStr,jdbcType=VARCHAR},
+        #{userIdStr,jdbcType=VARCHAR},
+        #{describe,jdbcType=VARCHAR},
+        #{linkId,jdbcType=VARCHAR}
+        )
+    </insert>
+    <insert id="insertLinkIdAndTreeId">
+        INSERT INTO ${TBSNAME}."mw_linkid_treeid"("link_id","tree_id") VALUES
+        <foreach collection="linkIds" item="linkId" separator=",">
+            (
+            #{linkId,jdbcType=VARCHAR},
+            #{treeId,jdbcType=INTEGER}
+            )
+        </foreach>
+    </insert>
+    <update id="updateLinkTree">
+        UPDATE ${TBSNAME}."mw_link_tree" SET
+        "prent_id" = #{parentId,jdbcType=INTEGER},
+        "contents_name" = #{contentsName,jdbcType=VARCHAR},
+        "sort" =  #{sort,jdbcType=INTEGER},
+        "org_id" = #{orgIdStr,jdbcType=INTEGER},
+        "user_group_id" = #{userGroupIdStr,jdbcType=INTEGER},
+        "user_id" = #{userIdStr,jdbcType=INTEGER},
+        "describe" =  #{describe,jdbcType=VARCHAR}
+        WHERE "id" = #{id,jdbcType=INTEGER}
+    </update>
+    <update id="updateLinkTreeParentId">
+        update ${TBSNAME}."mw_link_tree" set "prent_id" = #{targetId,jdbcType=INTEGER} where "id" =  #{originId,jdbcType=INTEGER}
+    </update>
+    <delete id="deleteLinkIdAndTreeId">
+        delete from ${TBSNAME}."mw_linkid_treeid" where "tree_id" = #{treeId}
+    </delete>
+    <delete id="deleteLinkTree">
+        delete from ${TBSNAME}."mw_link_tree" where "id" = #{id} or "prent_id" = #{id}
+    </delete>
+    <delete id="deleteLinkId">
+        delete from ${TBSNAME}."mw_linkid_treeid" where "link_id" = #{linkId}
+    </delete>
+    <select id="selectLinkIdAndName" resultType="java.util.Map">
+        select "link_id" "linkId","link_name" "linkName" from ${TBSNAME}."mw_network_link" where "delete_flag" = 0
+    </select>
+    <select id="selectLinkTreeId" resultType="java.lang.Integer">
+        select "id" from ${TBSNAME}."mw_link_tree" where "prent_id" = #{parentId}
+    </select>
+    <delete id="deleteLinkTreeIds">
+        delete from ${TBSNAME}."mw_linkid_treeid" where "tree_id" in
+        <foreach collection="ids" item="item" index="index" open="(" close=")" separator=",">
+            #{item}
+        </foreach>
+    </delete>
+    <select id="selectLinkTreeDropDown" resultType="java.util.Map">
+        select "id","contents_name" "name" from ${TBSNAME}."mw_link_tree"
+        <if test="ids != null and ids.size > 0">
+            where "id" in
+            <foreach collection="ids" item="item" index="index" open="(" close=")" separator=",">
+                #{item}
+            </foreach>
+        </if>
+    </select>
+    <select id="selectTreeId" resultType="java.lang.Integer">
+        select "tree_id" from ${TBSNAME}."mw_linkid_treeid" where "link_id" = #{linkId}
+    </select>
+    <delete id="deleteTreeLinkIds">
+        delete from "mw_linkid_treeid" where "link_id" in
+        <foreach collection="ids" item="item" index="index" open="(" close=")" separator=",">
+            #{item}
+        </foreach>
+    </delete>
+
+    <select id="selectIcmpAssets" resultType="java.util.Map">
+        SELECT
+            a."assets_id" "assetsId",
+            a."monitor_server_id" "serverId"
+        FROM
+            ${TBSNAME}."mw_tangibleassets_table" a
+            LEFT JOIN ${TBSNAME}."mw_assetssubtype_table" b ON a."assets_type_id" = b."id"
+        WHERE
+            a."in_band_ip" =  #{ip}
+            AND b."type_name" = 'ICMP'
+            AND a."delete_flag" = 0
+    </select>
+    <select id="getLinkListByAssetsIdAndIp" resultMap="linkMap">
+        SELECT
+        <include refid="Base_Column_List1"></include>
+        FROM
+        ${TBSNAME}."mw_network_link"
+        WHERE
+        "delete_flag" = 0
+        AND "link_target_ip" =  #{linkTargetIp}
+        and "link_name" in
+        <foreach collection="linkNames" item="item" index="index" open="(" close=")" separator=",">
+            #{item}
+        </foreach>
+    </select>
+    <select id="linkFuzzSearchAllFiled" resultMap="linkListMap">
+        SELECT
+         "link_name",
+         "root_ip_address",
+         "root_port",
+         "target_ip_address",
+         "target_port",
+         "link_target_ip",
+         "root_assets_name",
+         "target_assets_name",
+         "creator",
+         "modifier"
+        FROM
+        ${TBSNAME}."mw_network_link"
+        WHERE "delete_flag" = 0
+        and (
+            NVL( "link_name", '' ) ||
+            NVL( "root_ip_address", '' ) ||
+            NVL( "root_port", '' ) ||
+            NVL( "target_ip_address", '' ) ||
+            NVL( "target_port", '' ) ||
+            NVL( "link_target_ip", '' ) ||
+            NVL( "root_assets_name", '' ) ||
+            NVL( "target_assets_name", '' ) ||
+            NVL( "creator", '' ) ||
+            NVL( "modifier", '' )
+            ) LIKE ('%'||#{value,jdbcType=VARCHAR}||'%')
+            ORDER BY
+            ( CASE WHEN INSTR( "link_name", #{value}) > 0 THEN 0 ELSE 1 END ),
+            ( CASE WHEN INSTR( "root_ip_address", #{value}) > 0 THEN 0 ELSE 1 END ),
+            ( CASE WHEN INSTR( "root_port", #{value}) > 0 THEN 0 ELSE 1 END ),
+            ( CASE WHEN INSTR( "target_ip_address", #{value}) > 0 THEN 0 ELSE 1 END ),
+            ( CASE WHEN INSTR( "target_port", #{value}) > 0 THEN 0 ELSE 1 END ),
+            ( CASE WHEN INSTR( "link_target_ip", #{value}) > 0 THEN 0 ELSE 1 END ),
+            ( CASE WHEN INSTR( "root_assets_name", #{value}) > 0 THEN 0 ELSE 1 END ),
+            ( CASE WHEN INSTR( "target_assets_name", #{value}) > 0 THEN 0 ELSE 1 END ),
+            ( CASE WHEN INSTR( "creator", #{value}) > 0 THEN 0 ELSE 1 END ),
+            ( CASE WHEN INSTR( "modifier", #{value}) > 0 THEN 0 ELSE 1 END )
+    </select>
+
+    <select id="selectLinkDropDown" resultType="cn.mw.monitor.link.dto.MwLinkDropDowmDto">
+        SELECT
+            "drop_id" as "id",
+            "drop_key" as "dropKey",
+            "drop_value" as "dropValue"
+        FROM
+            ${TBSNAME}."mw_dropdown_table"
+        WHERE
+            "drop_code" = 'link_status';
+    </select>
+    <select id="selectLinkDirectoryByLinkId" resultType="cn.mw.monitor.link.dto.LinkDirectoryDetailDto">
+        SELECT
+        t2."contents_name" AS "contentsName",
+        t2."id" AS "treeId",
+        t1."link_id" AS "linkId"
+        FROM
+        ${TBSNAME}.mw_linkid_treeid t1
+        LEFT JOIN ${TBSNAME}.mw_link_tree t2 ON t1."tree_id" = t2."id"
+        WHERE
+        <if test="linkIds != null and linkIds.size > 0">
+            t1."link_id" IN
+            <foreach collection="linkIds" item="item" index="index" open="(" close=")" separator=",">
+                #{item}
+            </foreach>
+        </if>
+    </select>
+</mapper>

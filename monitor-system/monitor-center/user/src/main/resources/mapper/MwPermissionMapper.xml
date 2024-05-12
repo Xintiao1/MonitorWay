@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.mw.monitor.user.dao.MwPermissionDao">
+
+    <!-- 查询权限信息列表 -->
+    <select id="selectList" resultType="cn.mw.monitor.user.model.MwPermission">
+        SELECT
+            id,
+            perm_name permName,
+            perm_desc permDesc,
+            version
+        FROM mw_permission
+    </select>
+
+</mapper>

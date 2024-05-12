@@ -1,0 +1,309 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.mw.monitor.screen.dao.MWNewScreenManageDao">
+    <select id="selectNewScreenAssets" resultType="java.lang.String">
+        select "type_icon" from ${TBSNAME}."mw_assetssubtype_table" where "id" = #{typeId}
+    </select>
+
+    <select id="selectAssetsDateRegionData" resultType="java.util.Map">
+        select "assets_amount" as "assetsAmount","census_date" as "censusDate" from ${TBSNAME}."mw_assetsamount_time" where "census_date" BETWEEN #{startTime} AND #{endTime}
+    </select>
+
+    <select id="selectOneDayAssetsCount" resultType="java.lang.Integer">
+        select "assets_amount"  from ${TBSNAME}."mw_assetsamount_time" where "census_date" = #{time}
+    </select>
+
+    <select id="selectNewScreenInitModule" resultType="cn.mw.monitor.screen.dto.MWNewScreenModuleDto">
+        select "bulk_id" as "bulkId","bulk_name" as "bulkName","module_url" as "moduleUrl","display_time","display_time" as "displayTime" from ${TBSNAME}."mw_newhomepage_init" where "delete_flag" = 0
+        <if test="type != null and type == 1">
+            and "init_type" = 1
+        </if>
+    </select>
+
+    <select id="selectUserNewScreenModule" resultType="cn.mw.monitor.screen.dto.MWNewScreenModuleDto">
+        select
+            "model_data_id" as "modelDataId",
+            "bulk_id" as "bulkId",
+            "bulk_name" as "bulkName",
+            "user_id" as "userId",
+            "create_date" as "createDate",
+            "count",
+            "date_type" as "dateType",
+            "start_time" as "startTime",
+            "end_time" as "endTime"
+        from ${TBSNAME}."mw_newindex_bulk" where "user_id"=#{userId} and "delete_flag"=0
+    </select>
+
+    <select id="selectNewScreenAssetsFilterData"
+            resultType="cn.mw.monitor.screen.dto.MWNewScreenAssetsFilterDto">
+            SELECT
+                "id",
+                "model_data_id" as "modelDataId",
+                "model_id" as "modelId",
+                "user_id" as "userId",
+                "assets_name" as "assetsName",
+                "in_band_ip" as "inBandIp",
+                "assets_type_id" as "assetsTypeId",
+                "assets_type_sub_id" as "assetsTypeSubId",
+                "monitor_mode" as "monitorMode",
+                "polling_engine" as "pollingEngine",
+                "manufacturer",
+                "specifications",
+                "time_lag" as "timeLag",
+                "filter_label_id" as "filterLabelId",
+                "filter_org_id" as "filterOrgId",
+                "name" as "bulkName"
+            FROM
+                ${TBSNAME}."mw_newscreen_filter_assets"
+            WHERE
+                "model_id" = #{modelId}
+                AND "model_data_id" = #{modelDataId}
+                AND "user_id" = #{userId}
+    </select>
+
+    <insert id="insertNewScreenUserModule">
+        INSERT INTO ${TBSNAME}."mw_newindex_bulk"("model_data_id","bulk_id","bulk_name","user_id","create_date","count")
+        select t.* from (
+        <foreach collection="items" item="item" separator="union all">
+            (select #{item.modelDataId,jdbcType=VARCHAR} as "model_data_id",#{item.bulkId,jdbcType=INTEGER} as "bulk_id",#{item.bulkName,jdbcType=VARCHAR} as "bulk_name",#{item.userId,jdbcType=INTEGER} as "user_id",SYSDATE as "create_date",#{item.count,jdbcType=INTEGER} as "count" from dual)
+        </foreach>
+        ) t
+    </insert>
+
+    <insert id="insertNewScreenAssetsFilter">
+        <selectKey keyProperty="id" order="BEFORE" resultType="java.lang.Integer">
+            select ${TBSNAME}.SEQ_MW_NEWSCREEN_FILTER_ASSETS.NEXTVAL as "id" from DUAL
+        </selectKey>
+        insert into ${TBSNAME}."mw_newscreen_filter_assets"(
+            "id",
+            "model_data_id",
+            "model_id",
+            "user_id",
+            "assets_name",
+            "in_band_ip",
+            "assets_type_id",
+            "assets_type_sub_id",
+            "monitor_mode",
+            "polling_engine",
+            "manufacturer",
+            "specifications",
+            "time_lag",
+            "filter_label_id",
+            "filter_org_id","name")
+        values(
+            #{id},
+            #{modelDataId,jdbcType=VARCHAR},
+            #{modelId,jdbcType=INTEGER},
+            #{userId,jdbcType=INTEGER},
+            #{assetsName,jdbcType=VARCHAR},
+            #{inBandIp,jdbcType=VARCHAR},
+            #{assetsTypeId,jdbcType=INTEGER},
+            #{assetsTypeSubId,jdbcType=INTEGER},
+            #{monitorMode,jdbcType=VARCHAR},
+            #{pollingEngine,jdbcType=VARCHAR},
+            #{manufacturer,jdbcType=VARCHAR},
+            #{specifications,jdbcType=VARCHAR},
+            #{timeLag,jdbcType=INTEGER},
+            #{filterLabelId,jdbcType=VARCHAR},
+            #{filterOrgId,jdbcType=VARCHAR},
+            #{bulkName,jdbcType=VARCHAR}
+        )
+    </insert>
+
+    <update id="updateNewScreenAssetsFilter">
+        update ${TBSNAME}."mw_newscreen_filter_assets" set
+             "assets_name"=#{assetsName,jdbcType=VARCHAR},
+             "in_band_ip"=#{inBandIp,jdbcType=VARCHAR},
+             "assets_type_id"=#{assetsTypeId,jdbcType=INTEGER},
+             "assets_type_sub_id"=#{assetsTypeSubId,jdbcType=INTEGER},
+             "monitor_mode"=#{monitorMode,jdbcType=VARCHAR},
+             "polling_engine"=#{pollingEngine,jdbcType=VARCHAR},
+             "manufacturer"=#{manufacturer,jdbcType=VARCHAR},
+             "specifications"=#{specifications,jdbcType=VARCHAR},
+             "time_lag"=#{timeLag,jdbcType=VARCHAR},
+             "filter_label_id"=#{filterLabelId,jdbcType=VARCHAR},
+             "filter_org_id"=#{filterOrgId,jdbcType=VARCHAR},
+             "name"=#{bulkName,jdbcType=VARCHAR}
+        where "model_data_id"=#{modelDataId,jdbcType=VARCHAR}
+        and "user_id"=#{userId,jdbcType=INTEGER}
+    </update>
+
+    <update id="updateNewScreenModuleName">
+        update ${TBSNAME}."mw_newindex_bulk" set "bulk_name" = #{name} where "delete_flag" = false and "model_data_id" = #{modelDataId} and "user_id" = #{userId}
+    </update>
+    <update id="updateNewScreenCreateDate">
+        update ${TBSNAME}."mw_newindex_bulk" set "create_date" = #{createDate} where "model_data_id" = #{modelDataId} and "bulk_id" = #{bulkId} and "user_id" = #{userId}
+    </update>
+
+    <delete id="deleteNewScreenUserModule">
+        delete from ${TBSNAME}."mw_newindex_bulk" where "model_data_id" = #{modelDataId} and "bulk_id" = #{bulkId} and "user_id" = #{userId}
+    </delete>
+
+    <select id="getNewScreenFilterAssets" resultType="cn.mw.monitor.service.assets.model.MwCommonAssetsDto">
+        select
+        "user_id" as "userId",
+        "assets_name" as "assetsName",
+        "in_band_ip" as "inBandIp",
+        "assets_type_id" as "assetsTypeId",
+        "assets_type_sub_id" as "assetsTypeSubId",
+        "monitor_mode" as "monitorMode",
+        "polling_engine" as "pollingEngine",
+        "manufacturer" ,
+        "specifications",
+        "time_lag" as "timeLag",
+        "model_data_id" as "modelDataId",
+        "model_id" as "modelId",
+        "filter_label_id",
+        "filter_org_id"
+        from ${TBSNAME}."mw_newscreen_filter_assets" where "user_id"=#{userId,jdbcType=INTEGER} and "model_id"=#{modelId,jdbcType=INTEGER}
+        and "model_data_id"=#{modelDataId,jdbcType=VARCHAR}
+    </select>
+    <select id="selectAssetsCount" resultType="java.lang.Integer">
+         select count(1) from ${TBSNAME}."mw_tangibleassets_table" where "delete_flag" = 0
+    </select>
+    <insert id="saveAssetsAmountCensusData">
+        INSERT INTO
+            ${TBSNAME}."mw_assetsamount_time"
+            ( "id",""assets_amount", "census_date", "update_date" )
+        VALUES
+	        ( ${TBSNAME}.SEQ_MW_ASSETSAMOUNT_TIME.nextval,#{count}, #{censusDate}, SYSDATE );
+    </insert>
+
+    <delete id="deleteMwAlertRuleSelect">
+         delete from ${TBSNAME}."mw_alert_rule_select" where "uuid" = #{uuid}
+    </delete>
+
+    <select id="selectAsssetsData" resultType="cn.mw.monitor.screen.dto.MWTangibleassetsDto">
+        SELECT
+        "id",
+        "assets_id" as "assetsId",
+        "assets_name" as "assetsName",
+        "monitor_server_id" as "monitorServerId"
+        FROM
+        ${TBSNAME}."mw_tangibleassets_table"
+        WHERE
+        "delete_flag" = 0
+        <if test="assetsTypeId != null">
+            and "assets_type_id" = #{assetsTypeId}
+        </if>
+        <if test="assetsTypeSubId != null">
+            and "assets_type_sub_id" = #{assetsTypeSubId}
+        </if>
+    </select>
+
+    <insert id="insertMwAlertRuleSelect" parameterType="java.util.List">
+        insert into ${TBSNAME}."mw_alert_rule_select"("id","deep","condition_unit","name","relation","value","parent_id","uuid")
+        select t.* from (
+        <foreach collection="list" item="item" index="index" separator="union all">
+             (select
+             #{item.key} as "id",
+             #{item.deep} as "deep",
+             #{item.condition} as "condition_unit",
+             #{item.name} as "name",
+             #{item.relation} as "relation",
+             #{item.value} as "value",
+             #{item.parentKey} as "parent_id",
+             #{item.uuid} as "uuid"
+             FROM DUAL)
+        </foreach>
+        ) t
+    </insert>
+
+    <select id="selectMwAlertRuleSelect"  resultType="cn.mw.monitor.weixinapi.MwRuleSelectParam">
+        select
+        "id" as "key",
+        "deep",
+        "condition_unit" as "condition",
+        "name",
+        "relation",
+        "value",
+        "parent_id" as "parentKey"
+        from ${TBSNAME}."mw_alert_rule_select"
+        <if test="uuid != null and uuid != ''">
+            where "uuid" = #{uuid}
+        </if>
+    </select>
+    <select id="selectLabelValue" resultType="java.lang.String">
+        select "drop_value" from ${TBSNAME}."mw_dropdown_table" where "delete_flag" = 0 and "drop_code" = #{dropCode}
+    </select>
+    <select id="selectNewScreenInitModuleById" resultType="cn.mw.monitor.screen.dto.MWNewScreenModuleDto">
+        select "bulk_id" as "bulkId","bulk_name" as "bulkName","module_url" as "moduleUrl","display_time" as displayTime from ${TBSNAME}."mw_newhomepage_init" where "bulk_id" = #{bulkId}
+    </select>
+
+    <update id="updateNewHomeModule" parameterType="cn.mw.monitor.screen.dto.MWNewScreenModuleDto">
+        update ${TBSNAME}."mw_newindex_bulk" set "count" = #{count,jdbcType=INTEGER},"date_type" =  #{dateType,jdbcType=INTEGER},"start_time" =  #{startTime,jdbcType=VARCHAR},"end_time" =  #{endTime,jdbcType=VARCHAR} where "model_data_id" = #{modelDataId,jdbcType=VARCHAR} and "user_id" = #{userId,jdbcType=INTEGER} and "delete_flag" = 0
+    </update>
+
+    <select id="getAssetsIdAndServerId" resultType="java.util.Map">
+        select "assets_id" as "assetsId","monitor_server_id" as "serverId" from ${TBSNAME}."mw_tangibleassets_table" where "delete_flag" = 0
+    </select>
+
+    <select id="selectNewScreenAssetsFilterByUserId"
+            resultType="cn.mw.monitor.screen.dto.MWNewScreenAssetsFilterDto">
+            SELECT
+                "id",
+                "model_data_id" as "modelDataId",
+                "model_id" as "modelId",
+                "user_id" as "userId",
+                "assets_name" as "assetsName",
+                "in_band_ip" as "inBandIp",
+                "assets_type_id" as "assetsTypeId",
+                "assets_type_sub_id" as "assetsTypeSubId",
+                "monitor_mode" as "monitorMode",
+                "polling_engine" as "pollingEngine",
+                "manufacturer",
+                "specifications",
+                "time_lag" as "timeLag",
+                "filter_label_id" as "filterLabelId",
+                "filter_org_id" as "filterOrgId",
+                "name" as "bulkName"
+            FROM
+                ${TBSNAME}."mw_newscreen_filter_assets"
+            WHERE "user_id" = #{userId}
+    </select>
+    <delete id="deleteModuleInfo">
+        delete from ${TBSNAME}."mw_newindex_bulk" where "user_id" != #{userId}
+    </delete>
+    <delete id="deleteScreenFilterInfo">
+        delete from  ${TBSNAME}."mw_newscreen_filter_assets" where "user_id" != #{userId}
+    </delete>
+    <insert id="batchInsertNewScreenAssetsFilter">
+    insert into ${TBSNAME}."mw_newscreen_filter_assets"(
+        "id",
+        "model_data_id",
+        "model_id",
+        "user_id",
+        "assets_name",
+        "in_band_ip",
+        "assets_type_id",
+        "assets_type_sub_id",
+        "monitor_mode",
+        "polling_engine",
+        "manufacturer",
+        "specifications",
+        "time_lag",
+        "filter_label_id",
+        "filter_org_id","name")
+    select ${TBSNAME}.SEQ_MW_NEWSCREEN_FILTER_ASSETS.NEXTVAL as id,t.* from (
+    <foreach collection="list" item="li" separator="union all">
+        (select
+            #{li.modelDataId,jdbcType=VARCHAR} as "model_data_id",
+            #{li.modelId,jdbcType=INTEGER} as "model_id",
+            #{li.userId,jdbcType=INTEGER} as "user_id",
+            #{li.assetsName,jdbcType=VARCHAR} as "assets_name",
+            #{li.inBandIp,jdbcType=VARCHAR} as "in_band_ip",
+            #{li.assetsTypeId,jdbcType=INTEGER} as "assets_type_id",
+            #{li.assetsTypeSubId,jdbcType=INTEGER} as "assets_type_sub_id",
+            #{li.monitorMode,jdbcType=VARCHAR} as "monitor_mode",
+            #{li.pollingEngine,jdbcType=VARCHAR} as "polling_engine",
+            #{li.manufacturer,jdbcType=VARCHAR} as "manufacturer",
+            #{li.specifications,jdbcType=VARCHAR} as "specifications",
+            #{li.timeLag,jdbcType=INTEGER} as "time_lag",
+            #{li.filterLabelId,jdbcType=VARCHAR} as "filter_label_id",
+            #{li.filterOrgId,jdbcType=VARCHAR} as "filter_org_id",
+            #{li.bulkName,jdbcType=VARCHAR} as "name"
+         from dual)
+    </foreach>
+    ) t
+    </insert>
+</mapper>

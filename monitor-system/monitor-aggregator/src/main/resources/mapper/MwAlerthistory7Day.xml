@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.mw.monitor.accountmanage.dao.MwAlerthistory7daysTableDao">
+
+  <resultMap id="BaseMap" type="cn.mw.monitor.accountmanage.entity.MwAlerthistory7daysTable">
+    <id column="id" property="id"/>
+    <result column="assetsId"  property="assetsId"/>
+    <result column="monitorServerName"  property="monitorServerName"/>
+    <result column="eventid"  property="eventid"/>
+    <result column="alertid"  property="alertid"/>
+    <result column="objectid"  property="objectid"/>
+    <result column="r_eventid"  property="r_eventid"/>
+    <result column="name"  property="name"/>
+    <result column="severity"  property="severity"/>
+    <result column="objectName"  property="objectName"/>
+    <result column="alertType"  property="alertType"/>
+    <result column="ip"  property="ip"/>
+    <result column="clock"  property="clock"/>
+    <result column="rclock"  property="rclock"/>
+    <result column="longTime"  property="longTime"/>
+    <result column="acknowledged"  property="acknowledged"/>
+    <result column="hostid"  property="hostid"/>
+    <result column="subject"  property="subject"/>
+    <result column="message"  property="message"/>
+    <result column="recoverTime"  property="recoverTime"/>
+    <result column="monitorServerId"  property="monitorServerId"/>
+  </resultMap>
+
+  <insert id="insert" parameterType="java.util.List" useGeneratedKeys="true" keyProperty="id">
+    insert into mw_alerthistory_7days
+      (assetsId,monitorServerName,eventid,alertid,objectid,r_eventid,name,severity,objectName,alertType,ip,
+          clock,rclock,longTime,acknowledged,hostid,subject,message,recoverTime,monitorServerId,userId)
+          values
+      <foreach collection="list" item="item" index="index" separator=",">
+        (#{item.assetsId,jdbcType=VARCHAR},#{item.monitorServerName,jdbcType=VARCHAR},#{item.eventid,jdbcType=VARCHAR},#{item.alertid,jdbcType=VARCHAR},#{item.objectid,jdbcType=VARCHAR},#{item.r_eventid,jdbcType=VARCHAR},#{item.name,jdbcType=VARCHAR},#{item.severity,jdbcType=VARCHAR},#{item.objectName,jdbcType=VARCHAR},#{item.alertType,jdbcType=VARCHAR},#{item.ip,jdbcType=VARCHAR},#{item.clock,jdbcType=VARCHAR},#{item.rclock,jdbcType=VARCHAR},
+              #{item.longTime,jdbcType=VARCHAR},#{item.acknowledged,jdbcType=VARCHAR},#{item.hostid,jdbcType=VARCHAR},#{item.subject,jdbcType=VARCHAR},#{item.message,jdbcType=VARCHAR},#{item.recoverTime,jdbcType=VARCHAR},#{item.monitorServerId},#{item.userId})
+      </foreach>
+  </insert>
+
+    <select id="getAlertHistory" resultType="cn.mw.monitor.accountmanage.entity.MwAlerthistory7daysParam">
+        select
+        id,
+        assetsId,
+        monitorServerName,
+        eventid,
+        alertid,
+        objectid,
+        r_eventid,
+        name,
+        severity,
+        objectName,
+        alertType,
+        ip,
+        clock,
+        rclock,
+        longTime,
+        acknowledged,
+        hostid,
+        subject,
+        message,
+        recoverTime,
+        monitorServerId
+        from mw_alerthistory_7days
+        where userId = #{userId}
+    </select>
+    <update id="truncateTable">
+        truncate table mw_alerthistory_7days
+    </update>
+
+
+</mapper>

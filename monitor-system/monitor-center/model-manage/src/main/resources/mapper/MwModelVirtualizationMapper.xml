@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.mw.monitor.model.dao.MwModelVirtualizationDao">
+
+
+    <select id="getModelInfoByModelIndex" resultType="cn.mw.monitor.service.model.param.AddModelInstancePropertiesParam">
+        SELECT
+            a.model_id As "modelId",
+            a.model_index AS "modelIndex",
+            a.model_name AS "modelName",
+            a.model_desc AS "modelDesc",
+            b.id AS "propertiesId",
+	        b.prop AS "propertiesIndexId",
+	        b.label AS "propertiesName",
+	        b.type AS "propertiesType"
+        FROM
+            mw_cmdbmd_manage a
+            LEFT JOIN mw_cmdbmd_pagefield_table b ON a.model_id = b.model_id
+        WHERE
+            b.model_id IN (SELECT a.model_id FROM
+                mw_cmdbmd_manage a
+            WHERE
+                a.model_group_id IN ( SELECT model_group_id FROM mw_cmdbmd_manage WHERE model_index = #{modelIndex})
+            AND a.model_index != #{modelIndex})
+    </select>
+
+
+    <select id="queryVirualInstanceInfoByModelIndex" resultType="cn.mw.monitor.service.model.param.MwModelInstanceParam">
+        SELECT
+            a.model_index AS "modelIndex",
+            b.instance_id AS "instanceId"
+        FROM
+            mw_cmdbmd_manage a
+             join mw_cmdbmd_instance b on a.model_id = b.model_id
+        WHERE
+            a.model_group_id IN ( SELECT model_group_id FROM mw_cmdbmd_manage WHERE model_index = #{modelIndex})
+            AND a.model_index != #{modelIndex}
+            <if test="relationInstanceId!=null">
+                and b.relation_instance_id  = #{relationInstanceId}
+            </if>
+            and b.instance_id is not null
+    </select>
+
+    <select id="getPidsByModelIds" resultType="java.lang.String">
+        SELECT
+            pids
+        FROM
+            mw_cmdbmd_manage
+        WHERE
+            model_id in
+        <foreach collection="modelIdList" item="item" index="index" open="(" close=")" separator=",">
+            #{item}
+        </foreach>
+    </select>
+
+    <select id="getAllVCenterInfo" resultType="java.lang.String">
+        SELECT
+            model_index
+        FROM
+            mw_cmdbmd_manage
+        WHERE
+            model_id = #{modelId}
+    </select>
+
+    <select id="selectServerNameById"  resultType="java.lang.String">
+       select monitoring_server_name AS "monitorServerName"
+        from mw_thirdparty_server_table
+        where id = #{monitorServeId}
+    </select>
+
+    <select id="getAllVirtualDeviceInfo" resultType="java.util.Map">
+        select id, name, pId,type,UUID,host_id AS "hostId",host_name AS "hostName",ip,zabbix_server_id AS "zabbixServerId",zabbix_server_name AS "zabbixServerName"
+        from mw_virtualization_device
+    </select>
+
+    <insert id="saveVCenterInfo">
+        INSERT INTO mw_virtualization_device(id, name, pId,type,UUID,host_id,host_name,ip,zabbix_server_id,zabbix_server_name) VALUES
+        <foreach collection="list" index="index" item="item" separator=",">
+            (
+            #{item.id},
+            #{item.instanceName},
+            #{item.PId},
+            #{item.type},
+            #{item.UUID},
+            #{item.hostId},
+            #{item.hostName},
+            #{item.ip},
+            #{item.monitorServerId},
+            #{item.monitorServerName}
+            )
+        </foreach>
+    </insert>
+
+    <delete id="deleteVCenterInfo" parameterType="java.util.List">
+        delete from mw_virtualization_device
+        where id in(
+        <foreach collection="list" item="item" separator=",">
+            #{item.id,jdbcType=VARCHAR}
+        </foreach>
+        )
+    </delete>
+
+    <select id="getAllModelIndexByBaseDevice" resultType="java.lang.String">
+        SELECT
+            model_index
+        FROM
+            mw_cmdbmd_manage
+        WHERE
+            INSTR( group_nodes, ',0,' ) > 0
+            AND is_show = TRUE
+            AND delete_flag = FALSE
+    </select>
+
+    <select id="getModelInfoByModelId" resultType="cn.mw.monitor.service.model.param.AddModelInstancePropertiesParam">
+        SELECT
+            a.model_id As "modelId",
+            a.model_index AS "modelIndex",
+            a.model_name AS "modelName",
+            a.model_desc AS "modelDesc",
+            b.id AS "propertiesId",
+	        b.prop AS "propertiesIndexId",
+	        b.label AS "propertiesName",
+	        b.type AS "propertiesType"
+        FROM
+            mw_cmdbmd_manage a
+            LEFT JOIN mw_cmdbmd_pagefield_table b ON a.model_id = b.model_id
+        WHERE
+            b.model_id IN (SELECT a.model_id FROM
+                mw_cmdbmd_manage a
+            WHERE
+                a.model_group_id IN ( SELECT model_group_id FROM mw_cmdbmd_manage WHERE model_id = #{modelId})
+            AND a.model_id != #{modelId})
+    </select>
+
+</mapper>

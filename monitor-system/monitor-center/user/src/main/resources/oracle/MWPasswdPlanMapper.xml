@@ -1,0 +1,533 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.mw.monitor.user.dao.MWPasswdDAO">
+
+    <resultMap id="userMap" type="cn.mw.monitor.service.user.dto.MwSubUserDTO" >
+        <id column="user_id" jdbcType="INTEGER" property="userId"/>
+        <result column="login_name" jdbcType="VARCHAR" property="loginName"/>
+        <result column="user_name" jdbcType="VARCHAR" property="userName"/>
+        <result column="user_state" jdbcType="VARCHAR" property="userState"/>
+    </resultMap>
+
+    <resultMap id="BaseResultMap" type="cn.mw.monitor.user.dto.MwPasswdPlanDTO">
+        <id column="passwd_id" jdbcType="INTEGER" property="passwdId" />
+        <result column="passwd_name" jdbcType="VARCHAR" property="passwdName" />
+        <result column="passwd_min_len" jdbcType="INTEGER" property="passwdMinLen" />
+        <result column="passwd_complex_id" jdbcType="INTEGER" property="passwdComplexId" />
+        <result column="his_check_enable" jdbcType="BIT" property="hisCheckEnable" />
+        <result column="his_num" jdbcType="INTEGER" property="hisNum" />
+        <result column="passwd_update_date" jdbcType="INTEGER" property="passwdUpdateDate" />
+        <result column="expire_alert_day" jdbcType="INTEGER" property="expireAlertDay" />
+        <result column="after_reset_day" jdbcType="INTEGER" property="afterResetDay" />
+        <result column="lock_enable" jdbcType="BIT" property="lockEnable" />
+        <result column="after_lock_day" jdbcType="INTEGER" property="afterLockDay" />
+        <result column="first_passwd_enable" jdbcType="BIT" property="firstPasswdEnable" />
+        <result column="change_passwd_enable" jdbcType="BIT" property="changePasswdEnable" />
+        <result column="reset_enable" jdbcType="BIT" property="resetEnable" />
+        <result column="is_refuse_acc" jdbcType="BIT" property="isRefuseAcc" />
+        <result column="retry_num" jdbcType="INTEGER" property="retryNum" />
+        <result column="retry_sec" jdbcType="INTEGER" property="retrySec" />
+        <result column="salt" jdbcType="VARCHAR" property="salt" />
+        <result column="hash_type_id" jdbcType="VARCHAR" property="hashTypeId" />
+        <result column="version" jdbcType="INTEGER" property="version" />
+        <result column="passwd_state" jdbcType="VARCHAR" property="passwdState" />
+        <result column="creator" jdbcType="VARCHAR" property="creator" />
+        <result column="modifier" jdbcType="VARCHAR" property="modifier" />
+        <result column="create_date" jdbcType="TIMESTAMP" property="createDate" />
+        <result column="modification_date" jdbcType="TIMESTAMP" property="modificationDate" />
+    </resultMap>
+
+    <!--新增密码策略信息 -->
+    <insert id="insert" parameterType="cn.mw.monitor.service.user.model.MWPasswdPlan">
+        <selectKey keyProperty="passwdId" order="BEFORE" resultType="java.lang.Integer">
+            select ${TBSNAME}.SEQ_PASSWORD_PLAN.NEXTVAL from dual
+        </selectKey>
+        INSERT INTO ${TBSNAME}."mw_passwd_plan" (
+        "passwd_id",
+        <if test="passwdName != null and passwdName != ''">
+            "passwd_name",
+        </if>
+        <if test="passwdMinLen != null">
+            "passwd_min_len",
+        </if>
+        <if test="passwdComplexId != null">
+            "passwd_complex_id",
+        </if>
+        <if test="hisCheckEnable != null">
+            "his_check_enable",
+        </if>
+        <if test="hisNum != null">
+            "his_num",
+        </if>
+        "passwd_update_date",
+        <if test="expireAlertDay != null">
+            "expire_alert_day",
+        </if>
+        <if test="afterResetDay != null">
+            "after_reset_day",
+        </if>
+        <if test="lockEnable != null">
+            "lock_enable",
+        </if>
+        <if test="afterLockDay != null">
+            "after_lock_day",
+        </if>
+        <if test="firstPasswdEnable != null">
+            "first_passwd_enable",
+        </if>
+        <if test="changePasswdEnable != null">
+            "change_passwd_enable",
+        </if>
+        <if test="resetEnable != null">
+            "reset_enable",
+        </if>
+        <if test="isRefuseAcc != null">
+            "is_refuse_acc",
+        </if>
+        <if test="retryNum != null">
+            "retry_num",
+        </if>
+        <if test="retrySec != null">
+            "retry_sec",
+        </if>
+        <if test="salt != null ">
+            "salt",
+        </if>
+        <if test="hashTypeId != null">
+            "hash_type_id",
+        </if>
+        "version",
+        "passwd_state",
+        "creator",
+        "modifier",
+        "create_date",
+        "modification_date",
+        "delete_flag"
+        ) VALUES (
+        #{passwdId},
+        <if test="passwdName != null and passwdName != ''">
+            #{passwdName},
+        </if>
+        <if test="passwdMinLen != null">
+            #{passwdMinLen},
+        </if>
+        <if test="passwdComplexId != null">
+            #{passwdComplexId},
+        </if>
+        <if test="hisCheckEnable != null">
+            #{hisCheckEnable},
+        </if>
+        <if test="hisNum != null">
+            #{hisNum},
+        </if>
+        #{passwdUpdateDate},
+        <if test="expireAlertDay != null">
+            #{expireAlertDay},
+        </if>
+        <if test="afterResetDay != null">
+            #{afterResetDay},
+        </if>
+        <if test="lockEnable != null">
+            #{lockEnable},
+        </if>
+        <if test="afterLockDay != null">
+            #{afterLockDay},
+        </if>
+        <if test="firstPasswdEnable != null">
+            #{firstPasswdEnable},
+        </if>
+        <if test="changePasswdEnable != null">
+            #{changePasswdEnable},
+        </if>
+        <if test="resetEnable != null">
+            #{resetEnable},
+        </if>
+        <if test="isRefuseAcc != null">
+            #{isRefuseAcc},
+        </if>
+        <if test="retryNum != null">
+            #{retryNum},
+        </if>
+        <if test="retrySec != null">
+            #{retrySec},
+        </if>
+        <if test="salt != null">
+            #{salt},
+        </if>
+        <if test="hashTypeId != null">
+            #{hashTypeId},
+        </if>
+        #{version},
+        #{passwdState},
+        #{creator},
+        #{modifier},
+        sysdate,
+        sysdate,
+        #{deleteFlag}
+        )
+    </insert>
+
+    <!-- 根据密码策略id查询密码策略名称 -->
+    <select id="selectPasswdNameById" resultType="java.lang.String">
+        SELECT
+            "passwd_name"
+        FROM ${TBSNAME}."mw_passwd_plan"
+        WHERE "delete_flag" = 0
+        AND "passwd_id" = #{passwdId}
+    </select>
+
+    <!-- 根据密码策略id查询关联的用户数量 -->
+    <select id="countUserById" resultType="java.lang.Integer">
+        SELECT
+            COUNT(1)
+        FROM ${TBSNAME}."mw_sys_user"
+        WHERE "active_passwd_plan" = #{passwdId}
+        AND "delete_flag"  = 0
+    </select>
+
+    <!--删除密码策略 -->
+    <update id="delete">
+        UPDATE ${TBSNAME}."mw_passwd_plan"
+        SET "delete_flag" = 1,
+        "modification_date" = sysdate,
+        "modifier" = #{modifier}
+        WHERE "delete_flag" = 0
+        AND "passwd_id" in (
+        <foreach  collection="idList" item="list"  separator=",">
+            #{list}
+        </foreach>
+        )
+    </update>
+
+    <!--修改密码策略状态 -->
+    <update id="updatePasswdState" parameterType="cn.mw.monitor.api.param.passwdPlan.UpdatePasswdPlanStateParam">
+        UPDATE ${TBSNAME}."mw_passwd_plan"
+        SET "passwd_state" = #{passwdState},
+            "modification_date" = sysdate,
+            "modifier" = #{modifier}
+        WHERE "delete_flag" = 0
+        AND "passwd_id" = #{passwdId}
+    </update>
+
+
+
+    <!-- ID查找密码策略 -->
+    <select id="selectById" resultType="cn.mw.monitor.service.user.model.MWPasswdPlan">
+        SELECT
+            "passwd_id" "passwdId",
+            "passwd_name" "passwdName",
+            "passwd_min_len" "passwdMinLen",
+            "passwd_complex_id" "passwdComplexId",
+            "his_check_enable" "hisCheckEnable",
+            "his_num" "hisNum",
+            "passwd_update_date" "passwdUpdateDate",
+            "expire_alert_day" "expireAlertDay",
+            "after_reset_day" "afterResetDay",
+            "lock_enable" "lockEnable",
+            "after_lock_day" "afterLockDay",
+            "first_passwd_enable" "firstPasswdEnable",
+            "change_passwd_enable" "changePasswdEnable",
+            "reset_enable" "resetEnable",
+            "is_refuse_acc" "isRefuseAcc",
+            "retry_num" "retryNum",
+            "retry_sec" "retrySec",
+            "salt",
+            "hash_type_id" "hashTypeId",
+            "version",
+            "passwd_state" "passwdState",
+            "creator",
+            "create_date" "createDate",
+            "modifier",
+            "modification_date" "modificationDate"
+        FROM ${TBSNAME}."mw_passwd_plan"
+        WHERE "delete_flag" = 0
+        AND "passwd_id" = #{passwdId}
+    </select>
+
+    <!--更新密码策略 -->
+    <update id="update" parameterType="cn.mw.monitor.service.user.model.MWPasswdPlan">
+        UPDATE ${TBSNAME}."mw_passwd_plan"
+        SET "version" = "version" + 1,
+        <if test="passwdMinLen != null">
+            "passwd_min_len" = #{passwdMinLen},
+        </if>
+        <if test="passwdComplexId != null">
+            "passwd_complex_id" = #{passwdComplexId},
+        </if>
+        <if test="hisCheckEnable != null">
+            "his_check_enable" = #{hisCheckEnable},
+        </if>
+        <if test="hisNum != null">
+            "his_num" = #{hisNum},
+        </if>
+        <choose>
+            <when test="passwdUpdateDate == null">
+                "passwd_update_date" = null,
+            </when>
+            <otherwise>
+                "passwd_update_date" = #{passwdUpdateDate},
+            </otherwise>
+        </choose>
+        <if test="expireAlertDay != null">
+            "expire_alert_day" = #{expireAlertDay},
+        </if>
+        <if test="afterResetDay != null">
+            "after_reset_day" = #{afterResetDay},
+        </if>
+        <if test="lockEnable != null">
+            "lock_enable" = #{lockEnable},
+        </if>
+        <if test="afterLockDay != null">
+            "after_lock_day" = #{afterLockDay},
+        </if>
+        <if test="firstPasswdEnable != null">
+            "first_passwd_enable" = #{firstPasswdEnable},
+        </if>
+        <if test="changePasswdEnable != null">
+            "change_passwd_enable" = #{changePasswdEnable},
+        </if>
+        <if test="resetEnable != null">
+            "reset_enable" = #{resetEnable},
+        </if>
+        <if test="isRefuseAcc != null">
+            "is_refuse_acc" = #{isRefuseAcc},
+        </if>
+        <if test="retryNum != null">
+            "retry_num" = #{retryNum},
+        </if>
+        <if test="retrySec != null">
+            "retry_sec" = #{retrySec},
+        </if>
+        <if test="salt != null">
+            "salt" = #{salt},
+        </if>
+        <if test="hashTypeId != null">
+            "hash_type_id" = #{hashTypeId},
+        </if>
+        "modifier" = #{modifier},
+        "modification_date" = sysdate
+        WHERE "passwd_id" = #{passwdId}
+    </update>
+
+    <!-- 密码策略分页查询 -->
+    <select id="selectList" parameterType="java.util.Map" resultMap="BaseResultMap">
+        SELECT
+            "passwd_id",
+            "passwd_name",
+            "passwd_min_len",
+            "passwd_complex_id",
+            "his_check_enable",
+            "his_num",
+            "passwd_update_date",
+            "expire_alert_day",
+            "after_reset_day",
+            "lock_enable",
+            "after_lock_day",
+            "first_passwd_enable",
+            "change_passwd_enable",
+            "reset_enable",
+            "is_refuse_acc",
+            "retry_num",
+            "retry_sec",
+            "salt",
+            "hash_type_id" ,
+            "version",
+            "passwd_state",
+            "creator",
+            "create_date",
+            "modifier",
+            "modification_date"
+        FROM ${TBSNAME}."mw_passwd_plan"
+        WHERE "delete_flag" = 0
+        <if test="passwdName != null">
+            AND "passwd_name" LIKE ('%'||#{passwdName}||'%')
+        </if>
+        <if test="passwdState != null and passwdState != ''">
+            AND "passwd_state" = #{passwdState}
+        </if>
+        <if test="creator != null and creator != ''">
+            AND "creator" LIKE ('%'|| #{creator}||'%')
+        </if>
+        <if test="modifier != null and modifier != ''">
+            AND "modifier" LIKE ('%'||#{modifier}||'%')
+        </if>
+        <if test="createTimeStart != null">
+            AND <![CDATA[ "create_date" >= #{createTimeStart,jdbcType=TIMESTAMP} ]]>
+        </if>
+        <if test="createTimeEnd != null">
+            AND <![CDATA[ "create_date" <= #{createTimeEnd,jdbcType=TIMESTAMP} ]]>
+        </if>
+        <if test="updateTimeStart != null">
+            AND <![CDATA[ "modification_date" >= #{updateTimeStart,jdbcType=TIMESTAMP} ]]>
+        </if>
+        <if test="updateTimeEnd != null">
+            AND <![CDATA[ "modification_date" <= #{updateTimeEnd,jdbcType=TIMESTAMP} ]]>
+        </if>
+        <if test="passwdId != null">
+            AND "passwd_id" = #{passwdId}
+        </if>
+    </select>
+
+    <select id="selectOrg" parameterType="java.lang.Integer" resultType="cn.mw.monitor.service.user.dto.OrgDTO">
+        SELECT
+            t2."org_id" "orgId",
+            t2."org_name" "orgName",
+            t2."nodes"
+        FROM ${TBSNAME}."mw_org_passwdplan_mapper" t1
+        LEFT JOIN ${TBSNAME}."mw_sys_org" t2 ON t1."org_id" = t2."org_id"
+        WHERE t1."delete_flag" = 0
+        AND t2."delete_flag" = 0
+        AND t1."passwd_id" = #{passwdId}
+    </select>
+
+    <select id="selectUser" parameterType="java.lang.Integer" resultMap="userMap">
+        SELECT
+            "user_id",
+            "login_name",
+            "user_name",
+            "user_state"
+        FROM ${TBSNAME}."mw_sys_user"
+        WHERE "delete_flag" = 0
+        AND "active_passwd_plan" = #{passwdId}
+    </select>
+
+    <select id="selectUserOrg"  parameterType="java.lang.Integer" resultType="cn.mw.monitor.service.user.dto.OrgDTO">
+        SELECT
+            t1.org_id orgId,
+            t1.org_name orgName
+        FROM mw_sys_org t1
+        LEFT JOIN mw_user_org_mapper t2 ON t1.org_id = t2.org_id
+        WHERE t1.delete_flag = 0
+        AND t2.delete_flag = 0
+        AND t2.user_id = #{userId}
+    </select>
+
+    <!-- 弹窗数据查询 -->
+    <select id="selectPopupById" resultMap="BaseResultMap">
+        SELECT
+            "passwd_id",
+            "passwd_name",
+            "passwd_min_len",
+            "passwd_complex_id",
+            "his_check_enable",
+            "his_num",
+            "passwd_update_date",
+            "expire_alert_day",
+            "after_reset_day",
+            "lock_enable",
+            "after_lock_day",
+            "first_passwd_enable",
+            "change_passwd_enable",
+            "reset_enable",
+            "is_refuse_acc",
+            "retry_num",
+            "retry_sec",
+            "salt",
+            "hash_type_id"
+        FROM ${TBSNAME}."mw_passwd_plan"
+        WHERE "delete_flag" = 0
+        AND "passwd_id" = #{passwdId}
+    </select>
+
+    <!-- 密码策略下拉框查询 -->
+    <select id="selectDropdownList" resultType="cn.mw.monitor.service.user.model.MWPasswdPlan">
+        SELECT
+            "passwd_id" "passwdId",
+            "passwd_name" "passwdName"
+        FROM ${TBSNAME}."mw_passwd_plan"
+        WHERE "passwd_state" = 'ACTIVE'
+        AND "delete_flag" = 0
+    </select>
+
+    <!-- 登录名查找生效密码策略 -->
+    <select id="selectActiveByLoginName" resultType="cn.mw.monitor.service.user.model.MWPasswdPlan">
+        SELECT
+            a."passwd_id" "passwdId",
+            a."passwd_name" "passwdName",
+            a."passwd_min_len" "passwdMinLen",
+            a."passwd_complex_id" "passwdComplexId",
+            a."his_check_enable" "hisCheckEnable",
+            a."his_num" "hisNum",
+            a."passwd_update_date" "passwdUpdateDate",
+            a."expire_alert_day" "expireAlertDay",
+            a."after_reset_day" "afterResetDay",
+            a."lock_enable" "lockEnable",
+            a."after_lock_day" "afterLockDay",
+            a."first_passwd_enable" "firstPasswdEnable",
+            a."change_passwd_enable" "changePasswdEnable",
+            a."reset_enable" "resetEnable",
+            a."is_refuse_acc" "isRefuseAcc",
+            a."retry_num" "retryNum",
+            a."retry_sec" "retrySec",
+            a."salt" "salt",
+            a."hash_type_id" "hashTypeId",
+            a."version",
+            a."passwd_state" "passwdState",
+            a."creator",
+            a."create_date" "createDate",
+            a."modifier",
+            a."modification_date" "modificationDate"
+        FROM ${TBSNAME}."mw_passwd_plan" a
+        LEFT JOIN ${TBSNAME}."mw_sys_user" b ON a."passwd_id" = b."active_passwd_plan"
+        WHERE b."delete_flag" = 0
+        AND b."login_name" = #{loginName}
+
+    </select>
+
+    <select id="selectActiveByUserId" parameterType="int" resultType="cn.mw.monitor.service.user.model.MWPasswdPlan">
+        SELECT
+            a."passwd_id" "passwdId",
+            a."passwd_update_date" "passwdUpdateDate",
+            a."passwd_name" "passwdName",
+            a."reset_enable" "resetEnable",
+            a."after_lock_day" "afterLockDay",
+            a."expire_alert_day" "expireAlertDay",
+            a."after_reset_day" "afterResetDay",
+            a."lock_enable" "lockEnable",
+            a."is_refuse_acc" "isRefuseAcc",
+            a."retry_num" "retryNum",
+            a."retry_sec" "retrySec",
+            a."his_check_enable" "hisCheckEnable",
+            a."his_num" "hisNum",
+            a."passwd_min_len" "passwdMinLen",
+            a."hash_type_id" "hashTypeId",
+            a."salt",
+            a."passwd_complex_id" "passwdComplexId",
+            a."change_passwd_enable" "changePasswdEnable",
+            a."first_passwd_enable" "firstPasswdEnable",
+            a."version",
+            a."passwd_state" "passwdState",
+            a."creator",
+            a."create_date" "createDate",
+            a."modifier",
+            a."modification_date" "modificationDate"
+        FROM ${TBSNAME}."mw_passwd_plan" a, ${TBSNAME}."mw_sys_user" b
+        WHERE
+            b."user_id" = #{userId}
+            AND
+            (
+                (
+                    b."active_passwd_plan" = 0
+                    AND b."default_passwd_plan" = a."passwd_id"
+                ) OR (
+                    b."active_passwd_plan" = a."passwd_id"
+                )
+            )
+    </select>
+
+    <!-- 查询密码策略是否存在 -->
+    <select id="queryPasswdPlanCount" parameterType="int" resultType="java.lang.Integer">
+        SELECT
+            count(1)
+        FROM ${TBSNAME}."mw_passwd_plan"
+        WHERE "passwd_id" = #{id}
+    </select>
+
+    <select id="selectByPasswdName" resultType="java.lang.Integer">
+        SELECT
+            count(1)
+        FROM ${TBSNAME}."mw_passwd_plan"
+        WHERE "passwd_name" = #{passwdName}
+        AND "delete_flag" = 0
+    </select>
+</mapper>

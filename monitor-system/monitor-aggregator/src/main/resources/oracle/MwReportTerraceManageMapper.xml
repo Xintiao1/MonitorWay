@@ -1,0 +1,1411 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.mw.monitor.report.dao.MwReportTerraceManageDao">
+
+    <sql id="date_time">
+        <if test="startTime!=null and startTime !=''and endTime != null and endTime !=''">
+            and "date_time" between #{startTime,jdbcType=VARCHAR} and
+            #{endTime,jdbcType=VARCHAR}
+        </if>
+    </sql>
+
+
+
+    <select id="getAssetsOrgData" resultType="java.util.Map">
+        select
+        t2."org_name" "orgName",t1."type_id" "typeId"
+        from ${TBSNAME}."mw_org_mapper" t1
+        left join ${TBSNAME}."mw_sys_org" t2 on t1."org_id" = t2."org_id"
+        where t1."type"=#{type} and t1."type_id" in
+        <foreach collection="assetsIds" item="assetsId" separator="," open="(" close=")">
+            #{assetsId}
+        </foreach>
+    </select>
+    <select id="getDiskNews" resultType="cn.mw.monitor.report.dto.DiskDto">
+        select
+        "assets_ip" as "ipAddress",
+        "assets_name" as "assetsName",
+        "disk_name" as "typeName",
+        "disk_total" as "diskTotal",
+        "disk_free" AS "diskFree"
+        from ${TBSNAME}."mw_report_disk_allday"
+        where "assets_id" in
+        <foreach collection="assetsIds" index="index" item="item" open="(" separator="," close=")">
+            #{item}
+        </foreach>
+        <include refid="date_time"></include>
+    </select>
+    <select id="getLabelData" resultType="java.lang.Integer">
+        select "label_id" from ${TBSNAME}."mw_label_date_mapper" where "module_type" = 'LINK' and "type_id" = #{id}
+        union all
+        select "label_id" from ${TBSNAME}."mw_label_mapper" where "module_type" = 'LINK' and "type_id" = #{id}
+        union all
+        select "label_id" from ${TBSNAME}."mw_label_drop_mapper" where "module_type" = 'LINK' and "type_id" = #{id}
+    </select>
+
+    <insert id="saveLinkFlowCacheData">
+        insert into  ${TBSNAME}."mw_linkflow_census_report"
+            ("id","time","assets_name","interface_name","acceptFlow_max","acceptFlow_avg","sendingFlow_max",
+            "sendingFlow_avg","assetsId","type","modification_date","save_time","acceptFlow_min","acceptFlow_total","sendingFlow_min","sendingFlow_total","send_max_value_time","send_min_value_time","accept_max_value_time","accept_min_value_time")
+        select ${TBSNAME}.SEQ_MW_LINKFLOW_CENSUS_REPORT.NEXTVAL as id,t.* from (
+        <foreach collection="params" item="list" separator="union all">
+            (select
+            #{list.time,jdbcType=VARCHAR} as "time",
+            #{list.assetsName,jdbcType=VARCHAR} as "assets_name",
+            #{list.interfaceName,jdbcType=VARCHAR} as "interface_name",
+            #{list.acceptFlowMax,jdbcType=VARCHAR} as "acceptFlow_max",
+            #{list.acceptFlowAvg,jdbcType=VARCHAR} as "acceptFlow_avg",
+            #{list.sendingFlowMax,jdbcType=VARCHAR} as "sendingFlow_max",
+            #{list.sendingFlowAvg,jdbcType=VARCHAR} as "sendingFlow_avg",
+            #{list.assetsId,jdbcType=VARCHAR} as "assetsId",
+            #{list.type,jdbcType=INTEGER} as "type",
+            SYSDATE as "modification_date",
+            #{list.saveTime,jdbcType=DATE} as "save_time",
+            #{list.acceptFlowMin} as "acceptFlow_min",
+            #{list.acceptTotalFlow} as "acceptFlow_total",
+            #{list.sendingFlowMin} as "sendingFlow_min",
+            #{list.sendTotalFlow} as "sendingFlow_total",
+            #{list.sendMaxValueTime} as "send_max_value_time",
+            #{list.sendMinValueTime} as "send_min_value_time",
+            #{list.acceptMaxValueTime} as "accept_max_value_time",
+            #{list.acceptMinValueTime} as "accept_min_value_time"
+            from dual
+            )
+        </foreach>
+        ) t
+    </insert>
+    <insert id="saveDiskUseCacheData">
+        INSERT INTO ${TBSNAME}."mw_diskuse_condition_report"(
+        "id",
+        "assets_name"
+        ,"ip_address"
+        ,"type_name"
+        ,"disk_total"
+        ,"disk_free"
+        ,"disk_max_value"
+        ,"disk_min_value"
+        ,"disk_avg_value"
+        ,"disk_use"
+        ,"disk_usable"
+        ,"assetsId"
+        ,"type"
+        ,"update_time"
+        ,"update_success"
+        )
+        select ${TBSNAME}.SEQ_MW_INDEX_BASE.NEXTVAL as id,t.* from (
+        <foreach collection="params" item="list" separator="union all">
+            (select
+            #{list.assetsName,jdbcType=VARCHAR} as "assets_name",
+            #{list.ipAddress,jdbcType=VARCHAR} as "ip_address",
+            #{list.typeName,jdbcType=VARCHAR} as "type_name",
+            #{list.diskTotal,jdbcType=VARCHAR} as "disk_total",
+            #{list.diskFree,jdbcType=VARCHAR} as "disk_free",
+            #{list.diskMaxValue,jdbcType=VARCHAR} as "disk_max_value",
+            #{list.diskMinValue,jdbcType=VARCHAR} as "disk_min_value",
+            #{list.diskAvgValue,jdbcType=VARCHAR} as "disk_avg_value",
+            #{list.diskUse,jdbcType=VARCHAR} as "disk_use",
+            #{list.diskUsable,jdbcType=VARCHAR} as "disk_usable",
+            #{list.assetsId,jdbcType=VARCHAR} as "assetsId",
+            #{list.type,jdbcType=INTEGER} as "type",
+            SYSDATE as "update_time",
+            #{list.updateSuccess,jdbcType=BOOLEAN} as "update_success"
+            from dual
+            )
+        </foreach>
+        ) t
+    </insert>
+    <insert id="saveCpuAndMemoryData">
+        INSERT INTO ${TBSNAME}."mw_cpuandmemory_report"("id","assets_name", "ip", "max_value", "min_value", "avg_value", "disk_total", "disk_uesr", "disk_user_rate", "assetsId", "type","save_time")
+        select ${TBSNAME}.SEQ_MW_CPUANDMEMORY_REPORT.NEXTVAL as id,t.* from (
+        <foreach collection="params" item="list" separator="union all">
+            (select
+            #{list.assetName,jdbcType=VARCHAR} as "assets_name",
+            #{list.ip,jdbcType=VARCHAR} as "ip",
+            #{list.maxValue,jdbcType=VARCHAR} as "max_value",
+            #{list.minValue,jdbcType=VARCHAR} as "min_value",
+            #{list.avgValue,jdbcType=VARCHAR} as "avg_value",
+            #{list.diskTotal,jdbcType=VARCHAR} as "disk_total",
+            #{list.diskUser,jdbcType=VARCHAR} as "disk_uesr",
+            #{list.diskUserRate,jdbcType=VARCHAR} as "disk_user_rate",
+            #{list.assetsId,jdbcType=VARCHAR} as "assetsId",
+            #{list.type,jdbcType=INTEGER} as "type",
+            #{list.saveTime,jdbcType=DATE} as "save_time"
+            from dual
+            )
+        </foreach>
+        ) t
+    </insert>
+    <insert id="saveAssetsUsabilityData">
+        INSERT INTO  ${TBSNAME}."mw_assetsusability_report"("id","assets_name", "ip", "assets_usability", "assetsId", "type","belong_time")
+        select ${TBSNAME}.SEQ_MW_ASSETSUSABILITY_REPORT.NEXTVAL as id,t.* from (
+        <foreach collection="params" item="list" separator="union all">
+            (select
+            #{list.assetsName,jdbcType=VARCHAR} as "assets_name",
+            #{list.ip,jdbcType=VARCHAR} as "ip",
+            #{list.assetsUsability,jdbcType=VARCHAR} as "assets_usability",
+            #{list.assetsId,jdbcType=VARCHAR} as "assetsId",
+            #{list.type,jdbcType=INTEGER} as "type",
+            #{date} as "belong_time"
+            from dual
+            )
+        </foreach>
+        }
+    </insert>
+
+
+    <delete id="deleteLinkFlowCacheData">
+        delete from "mw_linkflow_census_report"
+        <if test="dateType != null and dateType == 2">
+            where "type" = #{dateType}
+        </if>
+    </delete>
+    <delete id="deleteDiskUseCacheData" parameterType="java.util.Map">
+        delete from "mw_diskuse_condition_report" where "type" = #{type,jdbcType=INTEGER}
+    </delete>
+    <delete id="deleteCpuAndMemoryData">
+        delete from "mw_cpuandmemory_report"
+    </delete>
+    <delete id="deleteAssetsUsabilityData">
+         delete from "mw_assetsusability_report"
+    </delete>
+
+    <select id="selectCpuAndMemoryData" resultType="cn.mw.monitor.report.dto.assetsdto.RunTimeItemValue">
+        select "assets_name" "assetName", "ip", "max_value" "maxValue", "min_value" "minValue", "avg_value" "avgValue", "disk_total" "diskTotal", "disk_uesr" "diskUser", "disk_user_rate" "diskUserRate", "assetsId" "assetsId" from  ${TBSNAME}."mw_cpuandmemory_report"
+        where "type" = #{dateType}
+        <if test="ids != null and ids.size > 0">
+            and "assetsId" in (
+            <foreach collection="ids" item="id" separator=",">
+                #{id}
+            </foreach>
+            )
+        </if>
+    </select>
+    <select id="selectLinkFlowData" resultType="cn.mw.monitor.report.param.LineFlowReportParam">
+        select "time" "time",
+            "assets_name" "assetsName",
+            "interface_name" "interfaceName",
+            "acceptFlow_max" "acceptFlowMax",
+            "acceptFlow_avg" "acceptFlowAvg",
+            "sendingFlow_max" "sendingFlowMax",
+            "sendingFlow_avg" "sendingFlowAvg",
+            "assetsId" "assetsId",
+            "modification_date" "maxTime",
+            "sendingFlow_min" "sendingFlowMin",
+            "sendingFlow_total" "sendTotalFlow",
+            "acceptFlow_min" "acceptFlowMin",
+            "acceptFlow_total" "acceptTotalFlow",
+            "send_max_value_time" "sendMaxValueTime",
+            "send_min_value_time" "sendMinValueTime",
+            "accept_max_value_time" "acceptMaxValueTime",
+            "accept_min_value_time" "acceptMinValueTime"
+        from ${TBSNAME}."mw_linkflow_census_report"
+        where "type" =  #{dateType}
+        <if test="ids != null and ids.size > 0">
+            and "assetsId" in (
+            <foreach collection="ids" item="id" separator=",">
+                #{id}
+            </foreach>
+            )
+        </if>
+        order by "modification_date"
+    </select>
+    <select id="selectDiskUseData" resultType="cn.mw.monitor.report.dto.TrendDiskDto">
+        select "assets_name" "assetsName"
+        , "ip_address" "ipAddress"
+        , "type_name" "typeName"
+        , "disk_total" "diskTotal"
+        , "disk_free" "diskFree"
+        , "disk_max_value" "diskMaxValue"
+        , "disk_min_value" "diskMinValue"
+        , "disk_avg_value" "diskAvgValue"
+        , "disk_use" "diskUse"
+        , "disk_usable" "diskUsable"
+        , "assetsId" "assetsId"
+        , "update_time" "updateTime"
+        , "update_success" "updateSuccess"
+        from ${TBSNAME}."mw_diskuse_condition_report"
+        where "type" = #{dateType}
+        <if test="ids != null and ids.size > 0">
+            and "assetsId" in (
+            <foreach collection="ids" item="id" separator=",">
+                #{id}
+            </foreach>
+            )
+        </if>
+    </select>
+
+    <select id="selectAssetsUsabilityData" resultType="cn.mw.monitor.report.param.MwAssetsUsabilityParam">
+        SELECT a."assetsId",b."assetsName",b."ip",a."assetsUsability" FROM (SELECT DISTINCT "assetsId","assets_name" "assetsName","ip" FROM ${TBSNAME}."mw_assetsusability_report"
+        WHERE "belong_time" between #{start} and #{end}
+        <if test="ids != null and ids.size > 0">
+            and "assetsId" in (
+            <foreach collection="ids" item="id" separator=",">
+                #{id}
+            </foreach>
+            )
+        </if>
+        ) b
+        RIGHT  JOIN (   SELECT "assetsId" "assetsId"  , CONCAT(SUM("assets_usability")/#{i}||"%")
+        as "assetsUsability" FROM  ${TBSNAME}."mw_assetsusability_report"
+        WHERE "belong_time" between #{start} and #{end}
+        AND "assetsId" IS not NULL
+        <if test="ids != null and ids.size > 0">
+            and "assetsId" in (
+            <foreach collection="ids" item="id" separator=",">
+                #{id}
+            </foreach>
+            )
+        </if>
+        GROUP BY "assetsId") a on a."assetsId" = b."assetsId"
+    </select>
+
+    <select id="selectIPaddresshis" resultType="cn.mw.monitor.report.param.IpAddressReport">
+        SELECT k."type",k."ip_address",k."link_id" "linkId",k."status",k."updateDate"
+        from (
+        SELECT a.*,b."online" as "status" from(
+        SELECT 1  as "type","ip_address","link_id", "update_date" as "updateDate" FROM ${TBSNAME}."mw_ipaddressmanagelist_his_table" a
+        WHERE "id" in (
+        SELECT Max("id") FROM ${TBSNAME}."mw_ipaddressmanagelist_his_table"  WHERE "ip_address" in
+        <foreach collection="strings" index="index" item="item" open="(" separator="," close=")">
+            #{item}
+        </foreach>
+        AND "update_date" BETWEEN #{sd}  AND #{ed}  and ("change_ip_status" =1 OR "change_ip_status" =3)  GROUP BY "link_id"
+        )
+        ) a LEFT JOIN  ${TBSNAME}."mw_ipaddressmanagelist_table" b on b."ip_address" = a."ip_address"
+        ORDER BY SUBSTRING_INDEX(a."ip_address",'.',-1)+100 ASC
+        ) k
+        <if test="order!=null and order!=''">
+            ORDER BY
+            ${property} ${order}
+        </if>
+    </select>
+
+    <select id="getIpAddress" resultType="java.util.Map">
+        SELECT "ip_address","link_id"
+        FROM ${TBSNAME}."mw_ipaddressmanagelist_table" where "link_id" in (
+        <if test="status==0">
+            SELECT "id" AS "value" FROM ${TBSNAME}."mw_ipaddressmanage_table" a2
+            left join
+            (select "type_id","org_id" from  ${TBSNAME}."mw_org_mapper" where type='IP') t2 ON a2."id" = t2."type_id"
+            where
+            "org_id" in
+            <foreach collection="ids" index="index" item="item" open="(" separator="," close=")">
+                #{item}
+            </foreach>
+            and  "type" = "iPaddresses"
+        </if>
+        <if test="status==1">
+            <foreach collection="ids" index="index" item="item" separator=",">
+                #{item}
+            </foreach>
+        </if>
+        )
+    </select>
+
+    <select id="selectEatAssets" resultType="cn.mw.monitor.report.param.IpAddressReport">
+        select * from (
+        SELECT  b."type",b."ip_address",b."link_id" "linkId",b."updateDate",(CASE  WHEN c."id" is NULL OR c."id" = '' THEN 0 ELSE 1 end)
+        AS "status" FROM (
+        SELECT 0 as "type","ip_address","link_id",(CASE  WHEN "mac" is NULL OR "mac" = '' THEN 0 ELSE 1 end)
+        AS "ip_status", "update_date" as "updateDate" FROM  ${TBSNAME}."mw_ipaddressmanagelist_his_table" WHERE id in (
+        SELECT max("id") FROM  ${TBSNAME}."mw_ipaddressmanagelist_his_table"  WHERE "ip_address" in
+        <foreach collection="strings" index="index" item="item" open="(" separator="," close=")">
+            #{item}
+        </foreach>
+        AND  "update_date" BETWEEN #{sd}  AND #{ed} and ("change_ip_status" =2 OR "change_ip_status" =3) GROUP BY "link_id"
+        )
+        ) b  LEFT JOIN  ${TBSNAME}."mw_tangibleassets_table" c on c."in_band_ip" = b."ip_address" and c."delete_flag" = 0
+        ) k
+        <if test="order!=null and order!=''">
+            ORDER BY
+            ${property} ${order}
+        </if>
+    </select>
+
+
+    <select id="getlinkid" resultType="java.util.Map">
+        SELECT "parent_id","label" FROM  ${TBSNAME}."mw_ipaddressmanage_table" WHERE "id" = #{linkid}
+    </select>
+
+
+    <select id="selectAssetsUsabilityByDate" resultType="java.util.Date">
+       SELECT "belong_time"  FROM  ${TBSNAME}."mw_assetsusability_report" where "belong_time" between #{startTime} and #{date} GROUP BY "belong_time"
+    </select>
+
+    <select id="selectRunTimeByBelongTime" resultType="java.util.Date">
+          SELECT "belong_time"  FROM  ${TBSNAME}."mw_report_run_time_status" where "belong_time" between #{startTime} and #{date} GROUP BY "belong_time"
+    </select>
+
+    <select id="selectLineFlowCount" resultType="java.util.Date">
+        select  ${TBSNAME}."save_time" from "mw_linkflow_census_report" where type is null group by "save_time"
+    </select>
+    <select id="selectDateSectionData" resultType="cn.mw.monitor.report.param.LineFlowReportParam">
+        SELECT
+        "time" "time",
+        "assets_name" "assetsName",
+        "interface_name" "interfaceName",
+        "acceptFlow_max" "acceptFlowMax",
+        "acceptFlow_avg" "acceptFlowAvg",
+        "sendingFlow_max" "sendingFlowMax",
+        "sendingFlow_avg" "sendingFlowAvg",
+        "assetsId" "assetsId",
+        "modification_date" "maxTime"
+        FROM
+        ${TBSNAME}."mw_linkflow_census_report"
+        where "type" is null
+        <if test="ids != null and ids.size > 0">
+            and "assetsId" in (
+            <foreach collection="ids" item="id" separator=",">
+                #{id}
+            </foreach>
+            )
+        </if>
+        and "save_time" BETWEEN #{startTime} AND #{endTime}
+    </select>
+    <select id="selectCpuAndMemoryCount" resultType="java.util.Date">
+        select "save_time" from  ${TBSNAME}."mw_cpuandmemory_report" where type is null group by "save_time"
+    </select>
+    <select id="selectCpuAndMemoryDateSectionData" resultType="cn.mw.monitor.report.dto.assetsdto.RunTimeItemValue">
+        SELECT
+        "assets_name" "assetName",
+        "ip",
+        "max_value" "maxValue",
+        "min_value" "minValue",
+        "avg_value" "avgValue",
+        "disk_total" "diskTotal",
+        "disk_uesr" "diskUser",
+        "disk_user_rate" "diskUserRate",
+        "assetsId" "assetsId"
+        FROM
+        ${TBSNAME}."mw_cpuandmemory_report"
+        where type is null
+        <if test="ids != null and ids.size > 0">
+            and "assetsId" in (
+            <foreach collection="ids" item="id" separator=",">
+                #{id}
+            </foreach>
+            )
+        </if>
+        and "save_time" BETWEEN #{startTime} AND #{endTime}
+    </select>
+
+
+    <insert id="saveMplsHistoryData">
+        INSERT INTO  ${TBSNAME}."mw_mpls_history_report"("id","mpls_data", "save_time",link_name) VALUES (SEQ_MW_MPLS_HISTORY_REPORT.NEXTVAL,#{data}, #{saveTime},#{name});
+    </insert>
+    <insert id="saveMplsHistoryDataCache">
+         INSERT INTO  ${TBSNAME}."mw_mpls_history_report"(id,"send_data",accept_data, "save_time",link_name,sort_send_data,sort_accept_data) VALUES (SEQ_MW_MPLS_HISTORY_REPORT.NEXTVAL,#{sendData},#{acceptData}, #{saveTime},#{name},#{sortSendData},#{sortAcceptData});
+    </insert>
+
+
+    <select id="selectMplsHistoryTime" resultType="java.util.Date">
+        select "save_time" from  ${TBSNAME}."mw_mpls_history_report"
+    </select>
+    <select id="selectMplsLineHistoryData" resultType="java.util.Map">
+        <if test="type == 0">
+            select "sort_send_data" "sendData","sort_accept_data" "acceptData" from  ${TBSNAME}."mw_mpls_history_report" where 1 = 1
+            <if test="lineName != null and lineName != ''">
+                and "link_name" = #{lineName}
+            </if>
+            and "save_time" BETWEEN #{startTime} AND #{endTime}
+        </if>
+        <if test="type == 1">
+            select "send_data" "sendData","accept_data" "acceptData" from  ${TBSNAME}."mw_mpls_history_report" where 1 = 1
+            <if test="lineName != null and lineName != ''">
+                and "link_name" = #{lineName}
+            </if>
+            and "save_time" BETWEEN #{startTime} AND #{endTime}
+        </if>
+    </select>
+
+
+    <select id="selectAllAssetsUsabilityData" resultType="cn.mw.monitor.report.param.MwAssetsUsabilityParam">
+        SELECT "id", "assetsId","assets_name","ip","assets_usability" FROM  ${TBSNAME}."mw_assetsusability_report"
+        WHERE "belong_time" between #{start} and #{end}
+    </select>
+
+
+
+
+    <insert id="saveLinkReportDaily">
+        insert into  ${TBSNAME}."mw_linkflow_report_daily"
+            ("id","time","assets_name","interface_name","acceptFlow_max","acceptFlow_avg","sendingFlow_max","sendingFlow_avg","assetsId",
+            "modification_date","save_time","update_success","acceptFlow_min","acceptFlow_total","sendingFlow_min","sendingFlow_total","send_max_value_time","send_min_value_time","accept_max_value_time","accept_min_value_time")
+        select ${TBSNAME}.SEQ_MW_LINKFLOW_REPORT_DAILY.NEXTVAL as id,t.* from (
+        <foreach collection="params" item="list" separator="union all">
+            (
+            select
+            #{list.time,jdbcType=VARCHAR} as "time",
+            #{list.assetsName,jdbcType=VARCHAR} as "assets_name",
+            #{list.interfaceName,jdbcType=VARCHAR} as "interface_name",
+            #{list.acceptFlowMax,jdbcType=VARCHAR} as "acceptFlow_max",
+            #{list.acceptFlowAvg,jdbcType=VARCHAR} as "acceptFlow_avg",
+            #{list.sendingFlowMax,jdbcType=VARCHAR} as "sendingFlow_max",
+            #{list.sendingFlowAvg,jdbcType=VARCHAR} as "sendingFlow_avg",
+            #{list.assetsId,jdbcType=VARCHAR} as "assetsId",
+            SYSDATE as "modification_date",
+            #{list.saveTime,jdbcType=DATE} as "save_time",
+            #{list.updateSuccess} as "update_success",
+            #{list.acceptFlowMin} as "acceptFlow_min",
+            #{list.acceptTotalFlow} as "acceptFlow_total",
+            #{list.sendingFlowMin} as "sendingFlow_min",
+            #{list.sendTotalFlow} as "sendingFlow_total",
+            #{list.sendMaxValueTime} as "send_max_value_time",
+            #{list.sendMinValueTime} as "send_min_value_time",
+            #{list.acceptMaxValueTime} as "accept_max_value_time",
+            #{list.acceptMinValueTime} as "accept_min_value_time"
+            from dual
+            )
+        </foreach>
+        ) t
+    </insert>
+
+    <insert id="saveLinkReportWeekly">
+        insert into ${TBSNAME}."mw_linkflow_report_weekly"
+            ("id","time","assets_name","interface_name","acceptFlow_max","acceptFlow_avg","sendingFlow_max","sendingFlow_avg","assetsId","modification_date",
+            "save_time","week_date","update_success","acceptFlow_min","acceptFlow_total","sendingFlow_min","sendingFlow_total","send_max_value_time","send_min_value_time","accept_max_value_time","accept_min_value_time")
+        select ${TBSNAME}.SEQ_MW_LINKFLOW_REPORT_WEEKLY.NEXTVAL as id,t.* from (
+        <foreach collection="params" item="list" separator="union all">
+            (
+            select
+            #{list.time,jdbcType=VARCHAR} as "time",
+            #{list.assetsName,jdbcType=VARCHAR} as "assets_name",
+            #{list.interfaceName,jdbcType=VARCHAR} as "interface_name",
+            #{list.acceptFlowMax,jdbcType=VARCHAR} as "acceptFlow_max",
+            #{list.acceptFlowAvg,jdbcType=VARCHAR} as "acceptFlow_avg",
+            #{list.sendingFlowMax,jdbcType=VARCHAR} as "sendingFlow_max",
+            #{list.sendingFlowAvg,jdbcType=VARCHAR} as "sendingFlow_avg",
+            #{list.assetsId,jdbcType=VARCHAR} as "assetsId",
+            SYSDATE as "modification_date",
+            #{list.saveTime,jdbcType=DATE} as "save_time",
+            #{list.updateSuccess} as "update_success",
+            #{list.acceptFlowMin} as "acceptFlow_min",
+            #{list.acceptTotalFlow} as "acceptFlow_total",
+            #{list.sendingFlowMin} as "sendingFlow_min",
+            #{list.sendTotalFlow} as "sendingFlow_total",
+            #{list.sendMaxValueTime} as "send_max_value_time",
+            #{list.sendMinValueTime} as "send_min_value_time",
+            #{list.acceptMaxValueTime} as "accept_max_value_time",
+            #{list.acceptMinValueTime} as "accept_min_value_time"
+            from dual
+            )
+        </foreach>
+        ) t
+    </insert>
+
+    <insert id="saveLinkReportMonthly">
+        insert into ${TBSNAME}."mw_linkflow_report_monthly"
+            ("id","time","assets_name","interface_name","acceptFlow_max","acceptFlow_avg","sendingFlow_max","sendingFlow_avg","assetsId","modification_date",
+            "save_time","month_date","update_success","acceptFlow_min","acceptFlow_total","sendingFlow_min","sendingFlow_total","send_max_value_time","send_min_value_time","accept_max_value_time","accept_min_value_time")
+        select ${TBSNAME}.SEQ_MW_LINKFLOW_REPORT_MONTHLY.NEXTVAL as id,t.* from (
+        <foreach collection="params" item="list" separator="union all">
+            (
+            select
+            #{list.time,jdbcType=VARCHAR} as "time",
+            #{list.assetsName,jdbcType=VARCHAR} as "assets_name",
+            #{list.interfaceName,jdbcType=VARCHAR} as "interface_name",
+            #{list.acceptFlowMax,jdbcType=VARCHAR} as "acceptFlow_max",
+            #{list.acceptFlowAvg,jdbcType=VARCHAR} as "acceptFlow_avg",
+            #{list.sendingFlowMax,jdbcType=VARCHAR} as "sendingFlow_max",
+            #{list.sendingFlowAvg,jdbcType=VARCHAR} as "sendingFlow_avg",
+            #{list.assetsId,jdbcType=VARCHAR} as "assetsId",
+            SYSDATE as "modification_date",
+            #{list.saveTime,jdbcType=DATE} as "save_time",
+            #{list.updateSuccess} as "update_success",
+            #{list.acceptFlowMin} as "acceptFlow_min",
+            #{list.acceptTotalFlow} as "acceptFlow_total",
+            #{list.sendingFlowMin} as "sendingFlow_min",
+            #{list.sendTotalFlow} as "sendingFlow_total",
+            #{list.sendMaxValueTime} as "send_max_value_time",
+            #{list.sendMinValueTime} as "send_min_value_time",
+            #{list.acceptMaxValueTime} as "accept_max_value_time",
+            #{list.acceptMinValueTime} as "accept_min_value_time"
+            from dual
+            )
+        </foreach>
+        ) t
+    </insert>
+
+    <insert id="saveCpuAndMemoryReportDaily">
+        INSERT INTO ${TBSNAME}."mw_cpuandmemory_daily"
+            ("id","assets_name", "ip", "max_value", "min_value", "avg_value", "disk_total", "disk_uesr", "disk_user_rate",
+            "assetsId","save_time","update_success","icmp_response_time","memory_max_utilizationRate","memory_min_utilizationRate","cpu_max_time","cpu_min_time","memory_max_time","memory_min_time")
+        select ${TBSNAME}.SEQ_MW_CPUANDMEMORY_DAILY.NEXTVAL as id,t.* from (
+        <foreach collection="params" item="list" separator="union all">
+            (
+            select
+            #{list.assetName,jdbcType=VARCHAR} as "assets_name",
+            #{list.ip,jdbcType=VARCHAR} as "ip",
+            #{list.maxValue,jdbcType=VARCHAR} as "max_value",
+            #{list.minValue,jdbcType=VARCHAR} as "min_value",
+            #{list.avgValue,jdbcType=VARCHAR} as "avg_value",
+            #{list.diskTotal,jdbcType=VARCHAR} as "disk_total",
+            #{list.diskUser,jdbcType=VARCHAR} as "disk_uesr",
+            #{list.diskUserRate,jdbcType=VARCHAR} as "disk_user_rate",
+            #{list.assetsId,jdbcType=VARCHAR} as "assetsId",
+            #{list.saveTime,jdbcType=DATE} as "save_time",
+            #{list.updateSuccess} as "update_success",
+            #{list.icmpResponseTime} as "icmp_response_time",
+            #{list.maxMemoryUtilizationRate} as "memory_max_utilizationRate",
+            #{list.minMemoryUtilizationRate} as "memory_min_utilizationRate",
+            #{list.maxValueTime} as "cpu_max_time",
+            #{list.minValueTime} as "cpu_min_time",
+            #{list.memoryMaxValueTime} as "memory_max_time",
+            #{list.memoryMinValueTime} as "memory_min_time"
+            from dual
+            )
+        </foreach>
+        ) t
+    </insert>
+    <insert id="saveCpuAndMemoryReportWeekly">
+        INSERT INTO ${TBSNAME}."mw_cpuandmemory_weekly"
+            ("assets_name", "ip", "max_value", "min_value", "avg_value", "disk_total", "disk_uesr", "disk_user_rate",
+            "assetsId","save_time","week_date","update_success","icmp_response_time","memory_max_utilizationRate","memory_min_utilizationRate","cpu_max_time","cpu_min_time","memory_max_time","memory_min_time")
+        select ${TBSNAME}.SEQ_MW_CPUANDMEMORY_WEEKLY.NEXTVAL as id,t.* from (
+        <foreach collection="params" item="list" separator="union all">
+            (
+            select
+            #{list.assetName,jdbcType=VARCHAR} as "assets_name",
+            #{list.ip,jdbcType=VARCHAR} as "ip",
+            #{list.maxValue,jdbcType=VARCHAR} as "max_value",
+            #{list.minValue,jdbcType=VARCHAR} as "min_value",
+            #{list.avgValue,jdbcType=VARCHAR} as "avg_value",
+            #{list.diskTotal,jdbcType=VARCHAR} as "disk_total",
+            #{list.diskUser,jdbcType=VARCHAR} as "disk_uesr",
+            #{list.diskUserRate,jdbcType=VARCHAR} as "disk_user_rate",
+            #{list.assetsId,jdbcType=VARCHAR} as "assetsId",
+            #{list.saveTime,jdbcType=DATE} as "save_time",
+            #{list.updateSuccess} as "update_success",
+            #{list.icmpResponseTime} as "icmp_response_time",
+            #{list.maxMemoryUtilizationRate} as "memory_max_utilizationRate",
+            #{list.minMemoryUtilizationRate} as "memory_min_utilizationRate",
+            #{list.maxValueTime} as "cpu_max_time",
+            #{list.minValueTime} as "cpu_min_time",
+            #{list.memoryMaxValueTime} as "memory_max_time",
+            #{list.memoryMinValueTime} as "memory_min_time"
+            from dual
+            )
+        </foreach>
+        ) t
+    </insert>
+    <insert id="saveCpuAndMemoryReportMonthly">
+        INSERT INTO ${TBSNAME}."mw_cpuandmemory_monthly"
+            ("assets_name", "ip", "max_value", "min_value", "avg_value", "disk_total", "disk_uesr", "disk_user_rate",
+             "assetsId","save_time","month_date","update_success","icmp_response_time","memory_max_utilizationRate","memory_min_utilizationRate","cpu_max_time","cpu_min_time","memory_max_time","memory_min_time")
+        select ${TBSNAME}.SEQ_MW_CPUANDMEMORY_MONTHLY.NEXTVAL as id,t.* from (
+        <foreach collection="params" item="list" separator="union all">
+            (
+            select
+            #{list.assetName,jdbcType=VARCHAR} as "assets_name",
+            #{list.ip,jdbcType=VARCHAR} as "ip",
+            #{list.maxValue,jdbcType=VARCHAR} as "max_value",
+            #{list.minValue,jdbcType=VARCHAR} as "min_value",
+            #{list.avgValue,jdbcType=VARCHAR} as "avg_value",
+            #{list.diskTotal,jdbcType=VARCHAR} as "disk_total",
+            #{list.diskUser,jdbcType=VARCHAR} as "disk_uesr",
+            #{list.diskUserRate,jdbcType=VARCHAR} as "disk_user_rate",
+            #{list.assetsId,jdbcType=VARCHAR} as "assetsId",
+            #{list.saveTime,jdbcType=DATE} as "save_time",
+            #{list.updateSuccess} as "update_success",
+            #{list.icmpResponseTime} as "icmp_response_time",
+            #{list.maxMemoryUtilizationRate} as "memory_max_utilizationRate",
+            #{list.minMemoryUtilizationRate} as "memory_min_utilizationRate",
+            #{list.maxValueTime} as "cpu_max_time",
+            #{list.minValueTime} as "cpu_min_time",
+            #{list.memoryMaxValueTime} as "memory_max_time",
+            #{list.memoryMinValueTime} as "memory_min_time"
+            from dual
+            )
+        </foreach>
+        ) t
+    </insert>
+
+
+    <select id="selectLinkReportDailyData" resultType="cn.mw.monitor.report.param.LineFlowReportParam">
+        SELECT
+        "time" "time",
+        "assets_name" "assetsName",
+        "interface_name" "interfaceName",
+        "acceptFlow_max" "acceptFlowMax",
+        "acceptFlow_avg" "acceptFlowAvg",
+        "sendingFlow_max" "sendingFlowMax",
+        "sendingFlow_avg" "sendingFlowAvg",
+        "assetsId" "assetsId",
+        "modification_date" "maxTime",
+        "update_success" "updateSuccess",
+        "sendingFlow_min" "sendingFlowMin",
+        "sendingFlow_total" "sendTotalFlow",
+        "acceptFlow_min" "acceptFlowMin",
+        "acceptFlow_total" "acceptTotalFlow",
+        "send_max_value_time" "sendMaxValueTime",
+        "send_min_value_time" "sendMinValueTime",
+        "accept_max_value_time" "acceptMaxValueTime",
+        "accept_min_value_time" "acceptMinValueTime"
+        FROM
+        ${TBSNAME}."mw_linkflow_report_daily"
+        where "save_time" BETWEEN #{startTime} AND #{endTime} and "update_success" = 1
+        <if test="ids != null and ids.size > 0">
+            and "assetsId" in (
+            <foreach collection="ids" item="id" separator=",">
+                #{id}
+            </foreach>
+            )
+        </if>
+    </select>
+    <select id="selectLinkReportWeeklyData" resultType="cn.mw.monitor.report.param.LineFlowReportParam">
+        SELECT
+        "time" "time",
+        "assets_name" "assetsName",
+        "interface_name" "interfaceName",
+        "acceptFlow_max" "acceptFlowMax",
+        "acceptFlow_avg" "acceptFlowAvg",
+        "sendingFlow_max" "sendingFlowMax",
+        "sendingFlow_avg" "sendingFlowAvg",
+        "assetsId" "assetsId",
+        "modification_date" "maxTime",
+        "update_success" "updateSuccess",
+        "sendingFlow_min" "sendingFlowMin",
+        "sendingFlow_total" "sendTotalFlow",
+        "acceptFlow_min" "acceptFlowMin",
+        "acceptFlow_total" "acceptTotalFlow",
+        "send_max_value_time" "sendMaxValueTime",
+        "send_min_value_time" "sendMinValueTime",
+        "accept_max_value_time" "acceptMaxValueTime",
+        "accept_min_value_time" "acceptMinValueTime"
+        FROM
+        ${TBSNAME}."mw_linkflow_report_weekly"
+        where "week_date" = #{weekDate}  and "update_success" = 1
+        <if test="ids != null and ids.size > 0">
+            and "assetsId" in (
+            <foreach collection="ids" item="id" separator=",">
+                #{id}
+            </foreach>
+            )
+        </if>
+    </select>
+    <select id="selectLinkReportMonthlyData" resultType="cn.mw.monitor.report.param.LineFlowReportParam">
+        SELECT
+        "time" "time",
+        "assets_name" "assetsName",
+        "interface_name" "interfaceName",
+        "acceptFlow_max" "acceptFlowMax",
+        "acceptFlow_avg" acceptFlowAvg,
+        "sendingFlow_max" sendingFlowMax,
+        "sendingFlow_avg" "sendingFlowAvg",
+        "assetsId" "assetsId",
+        "modification_date" "maxTime",
+        "update_success" "updateSuccess",
+        "sendingFlow_min" "sendingFlowMin",
+        "sendingFlow_total" "sendTotalFlow",
+        "acceptFlow_min" "acceptFlowMin",
+        "acceptFlow_total" "acceptTotalFlow",
+        "send_max_value_time" "sendMaxValueTime",
+        "send_min_value_time" "sendMinValueTime",
+        "accept_max_value_time" "acceptMaxValueTime",
+        "accept_min_value_time" "acceptMinValueTime"
+        FROM
+        ${TBSNAME}."mw_linkflow_report_monthly"
+        where "month_date" = #{monthDate}  and "update_success" = 1
+        <if test="ids != null and ids.size > 0">
+            and "assetsId" in (
+            <foreach collection="ids" item="id" separator=",">
+                #{id}
+            </foreach>
+            )
+        </if>
+    </select>
+    <select id="selectCpuAndMemoryReportDailyData"
+            resultType="cn.mw.monitor.report.dto.assetsdto.RunTimeItemValue">
+        SELECT
+        "assets_name" "assetName",
+        "ip",
+        "max_value" "maxValue",
+        "min_value" "minValue",
+        "avg_value" "avgValue",
+        "disk_total" "diskTotal",
+        "disk_uesr" "diskUser",
+        "disk_user_rate" "diskUserRate",
+        "assetsId" "assetsId",
+        "update_success" "updateSuccess",
+        "icmp_response_time" "icmpResponseTime",
+        "memory_max_utilizationRate" "maxMemoryUtilizationRate",
+        "memory_min_utilizationRate" "minMemoryUtilizationRate",
+        "cpu_max_time" "maxValueTime",
+        "cpu_min_time" "minValueTime",
+        "memory_max_time" "memoryMaxValueTime",
+        "memory_min_time" "memoryMinValueTime"
+        FROM
+        ${TBSNAME}."mw_cpuandmemory_daily"
+        where "save_time" BETWEEN #{startTime} AND #{endTime}  and "update_success" = 1
+        <if test="ids != null and ids.size > 0">
+            and "assetsId" in (
+            <foreach collection="ids" item="id" separator=",">
+                #{id}
+            </foreach>
+            )
+        </if>
+    </select>
+    <select id="selectCpuAndMemoryReportWeellyData"
+            resultType="cn.mw.monitor.report.dto.assetsdto.RunTimeItemValue">
+        SELECT
+        "assets_name" "assetName",
+        "ip",
+        "max_value" "maxValue",
+        "min_value" "minValue",
+        "avg_value" "avgValue",
+        "disk_total" "diskTotal",
+        "disk_uesr" "diskUser",
+        "disk_user_rate" "diskUserRate",
+        "assetsId" "assetsId",
+        "update_success" "updateSuccess",
+        "icmp_response_time" "icmpResponseTime",
+        "memory_max_utilizationRate" "maxMemoryUtilizationRate",
+        "memory_min_utilizationRate" "minMemoryUtilizationRate",
+        "cpu_max_time" "maxValueTime",
+        "cpu_min_time" "minValueTime",
+        "memory_max_time" "memoryMaxValueTime",
+        "memory_min_time" "memoryMinValueTime"
+        FROM
+        ${TBSNAME}."mw_cpuandmemory_weekly"
+        where "week_date" = #{weekDate}  and "update_success" = 1
+        <if test="ids != null and ids.size > 0">
+            and "assetsId" in (
+            <foreach collection="ids" item="id" separator=",">
+                #{id}
+            </foreach>
+            )
+        </if>
+    </select>
+    <select id="selectCpuAndMemoryReportMonthlyData"
+            resultType="cn.mw.monitor.report.dto.assetsdto.RunTimeItemValue">
+        SELECT
+        "assets_name" "assetName",
+        "ip",
+        "max_value" "maxValue",
+        "min_value" minValue,
+        "avg_value" "avgValue",
+        "disk_total" "diskTotal",
+        "disk_uesr" "diskUser",
+        "disk_user_rate" "diskUserRate",
+        "assetsId" "assetsId",
+        "update_success" "updateSuccess",
+        "icmp_response_time" "icmpResponseTime",
+        "memory_max_utilizationRate" "maxMemoryUtilizationRate",
+        "memory_min_utilizationRate" "minMemoryUtilizationRate",
+        "cpu_max_time" "maxValueTime",
+        "cpu_min_time" "minValueTime",
+        "memory_max_time" "memoryMaxValueTime",
+        "memory_min_time" "memoryMinValueTime"
+        FROM
+        ${TBSNAME}."mw_cpuandmemory_monthly"
+        where "month_date" = #{monthDate}  and "update_success" = 1
+        <if test="ids != null and ids.size > 0">
+            and "assetsId" in (
+            <foreach collection="ids" item="id" separator=",">
+                #{id}
+            </foreach>
+            )
+        </if>
+    </select>
+    <select id="selectReportDate" resultType="java.util.Date">
+         select "save_time" from ${TBSNAME}."${tableName}" group by "save_time" order by "save_time"
+    </select>
+    <insert id="saveDiskUseReportDaily">
+        INSERT INTO ${TBSNAME}."mw_diskuse_daily"("id","assets_name", "ip_address", "type_name", "disk_total", "disk_free", "disk_max_value", "disk_min_value", "disk_avg_value", "disk_use", "disk_usable", "assetsId", "save_time","update_success")
+        select ${TBSNAME}.SEQ_MW_DISKUSE_DAILY.NEXTVAL as id,t.* from (
+        <foreach collection="params" item="list" separator="union all">
+            (
+            select
+            #{list.assetsName,jdbcType=VARCHAR} as "assets_name",
+            #{list.ipAddress,jdbcType=VARCHAR} as "ip_address",
+            #{list.typeName,jdbcType=VARCHAR} as "type_name",
+            #{list.diskTotal,jdbcType=VARCHAR} as "disk_total",
+            #{list.diskFree,jdbcType=VARCHAR} as "disk_free",
+            #{list.diskMaxValue,jdbcType=VARCHAR} as "disk_max_value",
+            #{list.diskMinValue,jdbcType=VARCHAR} as "disk_min_value",
+            #{list.diskAvgValue,jdbcType=VARCHAR} as "disk_avg_value",
+            #{list.diskUse,jdbcType=VARCHAR} as "disk_use",
+            #{list.diskUsable,jdbcType=VARCHAR} as "disk_usable",
+            #{list.assetsId,jdbcType=VARCHAR} as "assetsId",
+            #{list.saveTime,jdbcType=DATE} as "save_time",
+            #{list.updateSuccess} as "update_success"
+            from dual
+            )
+        </foreach>
+        ) t
+    </insert>
+    <insert id="saveDiskUseReportWeekly">
+        INSERT INTO ${TBSNAME}."mw_diskuse_weekly"("id","assets_name", "ip_address", "type_name", "disk_total", "disk_free", "disk_max_value", "disk_min_value", "disk_avg_value", "disk_use", "disk_usable", "assetsId", "save_time","week_date","update_success")
+        select ${TBSNAME}.SEQ_MW_DISKUSE_WEEKLY.NEXTVAL as id,t.* from (
+        <foreach collection="params" item="list" separator="union all">
+            (
+            select
+            #{list.assetsName,jdbcType=VARCHAR} as "assets_name",
+            #{list.ipAddress,jdbcType=VARCHAR} as "ip_address",
+            #{list.typeName,jdbcType=VARCHAR} as "type_name",
+            #{list.diskTotal,jdbcType=VARCHAR} as "disk_total",
+            #{list.diskFree,jdbcType=VARCHAR} as "disk_free",
+            #{list.diskMaxValue,jdbcType=VARCHAR} as "disk_max_value",
+            #{list.diskMinValue,jdbcType=VARCHAR} as "disk_min_value",
+            #{list.diskAvgValue,jdbcType=VARCHAR} as "disk_avg_value",
+            #{list.diskUse,jdbcType=VARCHAR} as "disk_use",
+            #{list.diskUsable,jdbcType=VARCHAR} as "disk_usable",
+            #{list.assetsId,jdbcType=VARCHAR} as "assetsId",
+            #{list.saveTime,jdbcType=DATE} as "save_time",
+            #{list.updateSuccess} as "update_success"
+            from dual
+            )
+        </foreach>
+        ) t
+    </insert>
+    <insert id="saveDiskUseReportMonthly">
+        INSERT INTO  ${TBSNAME}."mw_diskuse_monthly"("assets_name", "ip_address", "type_name", "disk_total", "disk_free", "disk_max_value", "disk_min_value", "disk_avg_value", "disk_use", "disk_usable", "assetsId", "save_time","month_date","update_success")
+        select ${TBSNAME}.SEQ_MW_DISKUSE_MONTHLY.NEXTVAL as id,t.* from (
+        <foreach collection="params" item="list" separator="union all">
+            (
+            select
+            #{list.assetsName,jdbcType=VARCHAR} as "assets_name",
+            #{list.ipAddress,jdbcType=VARCHAR} as "ip_address",
+            #{list.typeName,jdbcType=VARCHAR} as "type_name",
+            #{list.diskTotal,jdbcType=VARCHAR} as "disk_total",
+            #{list.diskFree,jdbcType=VARCHAR} as "disk_free",
+            #{list.diskMaxValue,jdbcType=VARCHAR} as "disk_max_value",
+            #{list.diskMinValue,jdbcType=VARCHAR} as "disk_min_value",
+            #{list.diskAvgValue,jdbcType=VARCHAR} as "disk_avg_value",
+            #{list.diskUse,jdbcType=VARCHAR} as "disk_use",
+            #{list.diskUsable,jdbcType=VARCHAR} as "disk_usable",
+            #{list.assetsId,jdbcType=VARCHAR} as "assetsId",
+            #{list.saveTime,jdbcType=DATE} as "save_time",
+            #{list.updateSuccess} as "update_success"
+            from dual
+            )
+        </foreach>
+        ) t
+    </insert>
+
+    <select id="selectDiskUseReportDailyData" resultType="cn.mw.monitor.report.dto.TrendDiskDto">
+        select "assets_name" "assetsName"
+        , "ip_address" "ipAddress"
+        , "type_name" "typeName"
+        , "disk_total" "diskTotal"
+        , "disk_free" "diskFree"
+        , "disk_max_value" "diskMaxValue"
+        , "disk_min_value" "diskMinValue"
+        , "disk_avg_value" "diskAvgValue"
+        , "disk_use" "diskUse"
+        , "disk_usable" "diskUsable"
+        , "assetsId" "assetsId"
+        , "save_time" "saveTime"
+        ,"update_success" "updateSuccess"
+        from ${TBSNAME}."mw_diskuse_daily"
+        where  "save_time" BETWEEN #{startTime} AND #{endTime}  and "update_success" = 1
+        <if test="ids != null and ids.size > 0">
+            and "assetsId" in (
+            <foreach collection="ids" item="id" separator=",">
+                #{id}
+            </foreach>
+            )
+        </if>
+        and "disk_total" is not null
+    </select>
+    <select id="selectDiskUseReportWeeklyData" resultType="cn.mw.monitor.report.dto.TrendDiskDto">
+        select "assets_name" "assetsName"
+        , "ip_address" "ipAddress"
+        , "type_name" "typeName"
+        , "disk_total" "diskTotal"
+        , "disk_free" "diskFree"
+        , "disk_max_value" "diskMaxValue"
+        , "disk_min_value" "diskMinValue"
+        , "disk_avg_value" "diskAvgValue"
+        , "disk_use" "diskUse"
+        , "disk_usable" "diskUsable"
+        , "assetsId" "assetsId"
+        , "save_time" "saveTime"
+        ,"update_success" "updateSuccess"
+        from ${TBSNAME}."mw_diskuse_weekly"
+        where "week_date" = #{weekDate}  and "update_success" = 1
+        <if test="ids != null and ids.size > 0">
+            and "assetsId" in (
+            <foreach collection="ids" item="id" separator=",">
+                #{id}
+            </foreach>
+            )
+        </if>
+    </select>
+    <select id="selectDiskUseReportMonthlyData" resultType="cn.mw.monitor.report.dto.TrendDiskDto">
+        select "assets_name" "assetsName"
+        , "ip_address" "ipAddress"
+        , "type_name" "typeName"
+        , "disk_total" "diskTotal"
+        , "disk_free" "diskFree"
+        , "disk_max_value" "diskMaxValue"
+        , "disk_min_value" "diskMinValue"
+        , "disk_avg_value" "diskAvgValue"
+        , "disk_use" "diskUse"
+        , "disk_usable" "diskUsable"
+        , "assetsId" "assetsId"
+        , "save_time" "saveTime"
+        ,"update_success" "updateSuccess"
+        from ${TBSNAME}."mw_diskuse_monthly"
+        where "month_date" = #{monthDate}  and "update_success" = 1
+        <if test="ids != null and ids.size > 0">
+            and "assetsId" in (
+            <foreach collection="ids" item="id" separator=",">
+                #{id}
+            </foreach>
+            )
+        </if>
+    </select>
+
+    <insert id="saveAssetUsabilityReportDaily">
+        INSERT INTO ${TBSNAME}."mw_assetsusability_daily"("id","assets_name", "ip", "assets_usability", "assetsId", "save_time", "update_success")
+        select ${TBSNAME}.SEQ_MW_ASSETSUSABILITY_DAILY.NEXTVAL as id,t.* from (
+        <foreach collection="params" item="list" separator="union all">
+            (
+            select
+            #{list.assetsName,jdbcType=VARCHAR} as "assets_name",
+            #{list.ip,jdbcType=VARCHAR} as "ip",
+            #{list.assetsUsability,jdbcType=VARCHAR} as "assets_usability",
+            #{list.assetsId,jdbcType=VARCHAR} as "assetsId",
+            #{list.saveTime,jdbcType=VARCHAR} as "save_time",
+            #{list.updateSuccess} as "update_success"
+            from dual
+            )
+        </foreach>
+        ) t
+    </insert>
+    <insert id="saveAssetUsabilityReportWeekly">
+        INSERT INTO  ${TBSNAME}."mw_assetsusability_weekly"("id","assets_name", "ip", "assets_usability", "assetsId", "save_time", "update_success","week_date")
+        select ${TBSNAME}.SEQ_MW_ASSETSUSABILITY_WEEKLY.NEXTVAL as id,t.* from (
+        <foreach collection="params" item="list" separator="union all">
+            (
+            select
+            #{list.assetsName,jdbcType=VARCHAR} as "assets_name",
+            #{list.ip,jdbcType=VARCHAR} as "ip",
+            #{list.assetsUsability,jdbcType=VARCHAR} as "assets_usability",
+            #{list.assetsId,jdbcType=VARCHAR} as "assetsId",
+            #{list.saveTime,jdbcType=VARCHAR} as "save_time",
+            #{list.updateSuccess} as "update_success",
+            #{weekDate,jdbcType=VARCHAR} as "week_date"
+            from dual
+            )
+        </foreach>
+        ) t
+    </insert>
+    <insert id="saveAssetUsabilityReportMonthly">
+        INSERT INTO ${TBSNAME}."mw_assetsusability_monthly"("assets_name", "ip", "assets_usability", "assetsId", "save_time", "update_success","month_date")
+        select ${TBSNAME}.SEQ_MW_ASSETSUSABILITY_MONTHLY.NEXTVAL as id,t.* from (
+        <foreach collection="params" item="list" separator=",">
+            (
+            select
+            #{list.assetsName,jdbcType=VARCHAR} as "assets_name",
+            #{list.ip,jdbcType=VARCHAR} as "ip",
+            #{list.assetsUsability,jdbcType=VARCHAR} as "assets_usability",
+            #{list.assetsId,jdbcType=VARCHAR} as "assetsId",
+            #{list.saveTime,jdbcType=VARCHAR} as "save_time",
+            #{list.updateSuccess} as "update_success",
+            #{monthDate,jdbcType=VARCHAR} as "month_date"
+            from dual
+            )
+        </foreach>
+        ) t
+    </insert>
+
+    <select id="selectAssetsUsabilityDailyData" resultType="cn.mw.monitor.report.param.MwAssetsUsabilityParam">
+        select
+        "assets_name" "assetsName",
+        "ip",
+        "assets_usability" "assetsUsability",
+        "assetsId",
+        "save_time" "saveTime",
+        "update_success" "updateSuccess"
+        from ${TBSNAME}."mw_assetsusability_daily"
+        where "save_time" BETWEEN #{startTime} AND #{endTime}  and "update_success" = 1
+        <if test="ids != null and ids.size > 0">
+            and "assetsId" in (
+            <foreach collection="ids" item="id" separator=",">
+                #{id}
+            </foreach>
+            )
+        </if>
+    </select>
+    <select id="selectAssetsUsabilityWeeklyData"
+            resultType="cn.mw.monitor.report.param.MwAssetsUsabilityParam">
+        select
+        "assets_name" "assetsName",
+        "ip",
+        "assets_usability" "assetsUsability",
+        "assetsId",
+        "save_time" "saveTime",
+        "update_success" "updateSuccess"
+        from ${TBSNAME}."mw_assetsusability_weekly"
+        where "week_date" = #{weekDate}  and "update_success" = 1
+        <if test="ids != null and ids.size > 0">
+            and "assetsId" in (
+            <foreach collection="ids" item="id" separator=",">
+                #{id}
+            </foreach>
+            )
+        </if>
+    </select>
+    <select id="selectAssetsUsabilityMonthlyData"
+            resultType="cn.mw.monitor.report.param.MwAssetsUsabilityParam">
+        select
+        "assets_name" "assetsName",
+        "ip",
+        "assets_usability" "assetsUsability",
+        "assetsId",
+        "save_time" "saveTime",
+        "update_success" "updateSuccess"
+        from ${TBSNAME}."mw_assetsusability_monthly"
+        where "month_date" = #{monthDate}  and "update_success" = 1
+        <if test="ids != null and ids.size > 0">
+            and "assetsId" in (
+            <foreach collection="ids" item="id" separator=",">
+                #{id}
+            </foreach>
+            )
+        </if>
+    </select>
+    <insert id="saveRunStateReportDaily">
+        INSERT INTO "mw_runstate_daily"("id","host_id", "asset_name", "ip", "item_name", "max_value", "min_value", "avg_value", "out_interface_avg_value", "sort_last_avg_value","interface_name","disk_name","assetsId","save_time","update_success")
+        select ${TBSNAME}.SEQ_MW_RUNSTATE_DAILY.NEXTVAL as id,t.* from (
+        <foreach collection="params" index="index" item="list" separator="union all">
+            (
+            select
+            #{list.hostId} as "host_id",
+            #{list.assetName} as "asset_name",
+            #{list.ip} as "ip",
+            #{list.itemName} as "item_name",
+            #{list.maxValue} as "max_value",
+            #{list.minValue} as "min_value",
+            #{list.avgValue} as "avg_value",
+            #{list.outInterfaceAvgValue} as "out_interface_avg_value",
+            #{list.sortLastAvgValue} as "sort_last_avg_value",
+            #{list.interfaceName} as "interface_name",
+            #{list.diskName} as "disk_name",
+            #{list.assetsId} as "assetsId",
+            #{list.saveTime} as "save_time",
+            #{list.updateSuccess} as "update_success"
+            from dual
+            )
+        </foreach>
+        ) t
+    </insert>
+    <insert id="saveRunStateReportWeekly">
+        INSERT INTO mw_runstate_weekly(host_id, asset_name, ip, item_name, max_value, min_value, avg_value, out_interface_avg_value, sort_last_avg_value,interface_name,disk_name,assetsId,save_time,update_success,week_date)
+        VALUES
+        <foreach collection="params" index="index" item="list" separator="," >
+            (
+            #{list.hostId},
+            #{list.assetName},
+            #{list.ip},
+            #{list.itemName},
+            #{list.maxValue},
+            #{list.minValue},
+            #{list.avgValue},
+            #{list.outInterfaceAvgValue},
+            #{list.sortLastAvgValue},
+            #{list.interfaceName},
+            #{list.diskName},
+            #{list.assetsId},
+            #{list.saveTime},
+            #{list.updateSuccess},
+            #{weekDate}
+            )
+        </foreach>
+    </insert>
+    <insert id="saveRunStateReportMonthly">
+        INSERT INTO mw_runstate_monthly(host_id, asset_name, ip, item_name, max_value, min_value, avg_value, out_interface_avg_value, sort_last_avg_value,interface_name,disk_name,assetsId,save_time,update_success,month_date)
+        VALUES
+        <foreach collection="params" index="index" item="list" separator="," >
+            (
+            #{list.hostId},
+            #{list.assetName},
+            #{list.ip},
+            #{list.itemName},
+            #{list.maxValue},
+            #{list.minValue},
+            #{list.avgValue},
+            #{list.outInterfaceAvgValue},
+            #{list.sortLastAvgValue},
+            #{list.interfaceName},
+            #{list.diskName},
+            #{list.assetsId},
+            #{list.saveTime},
+            #{list.updateSuccess},
+            #{monthDate}
+            )
+        </foreach>
+    </insert>
+
+    <select id="selectRunStateDailyData" resultType="cn.mw.monitor.report.dto.assetsdto.RunTimeItemValue">
+        SELECT
+            "assetsId" "assetsId",
+            "host_id" "hostId",
+            "asset_name" "assetName",
+            "ip",
+            "item_name" "itemName",
+            "max_value" "maxValue",
+            "min_value" "minValue",
+            "avg_value" "avgValue",
+            "out_interface_avg_value" "outInterfaceAvgValue",
+            "sort_last_avg_value" "sortLastAvgValue",
+            "interface_name" "interfaceName",
+            "disk_name" "diskName",
+            "save_time" "saveTime"
+        FROM
+            ${TBSNAME}."mw_runstate_daily"
+        WHERE
+            "save_time" BETWEEN #{startTime} and #{endTime}
+            AND "assetsId" IS NOT NULL
+    </select>
+    <select id="selectRunStateWeeklyData" resultType="cn.mw.monitor.report.dto.assetsdto.RunTimeItemValue">
+          SELECT
+            "assetsId" "assetsId",
+            "host_id" "hostId",
+            "asset_name" "assetName",
+            "ip",
+            "item_name" "itemName",
+            "max_value" "maxValue",
+            "min_value" "minValue",
+            "avg_value" "avgValue",
+            "out_interface_avg_value" "outInterfaceAvgValue",
+            "sort_last_avg_value" "sortLastAvgValue",
+            "interface_name" "interfaceName",
+            "disk_name" "diskName",
+            "save_time" "saveTime"
+        FROM
+            ${TBSNAME}."mw_runstate_weekly"
+        WHERE
+            "week_date" = #{weekDate}
+            AND "assetsId" IS NOT NULL
+    </select>
+    <select id="selectRunStateNameDailyData" resultType="cn.mw.monitor.report.dto.assetsdto.RunTimeItemValue">
+          SELECT
+            "assetsId" "assetsId",
+            "host_id" "hostId",
+            "asset_name" "assetName",
+            "ip",
+            "item_name" "itemName",
+            "max_value" "maxValue",
+            "min_value" "minValue",
+            "avg_value" "avgValue",
+            "out_interface_avg_value" "outInterfaceAvgValue",
+            "sort_last_avg_value" "sortLastAvgValue",
+            "interface_name" "interfaceName",
+            "disk_name" "diskName",
+            "save_time" "saveTime"
+        FROM
+            ${TBSNAME}."mw_runstate_daily"
+        WHERE
+            "save_time" BETWEEN #{startTime} and #{endTime}
+            AND "assetsId" IS NOT NULL
+            and "item_name" = #{name}
+    </select>
+    <insert id="saveMplsHistoryReportDaily">
+         INSERT INTO "mw_mplshistory_daily"("send_data",accept_data, "save_time",link_name,sort_send_data,sort_accept_data,update_success) VALUES (#{sendData},#{acceptData}, #{saveTime},#{name},#{sortSendData},#{sortAcceptData},#{updateSuccess});
+    </insert>
+    <insert id="saveMplsHistoryReportWeekly">
+        INSERT INTO mw_mplshistory_weekly (link_name, save_time, send_data, accept_data, week_date, update_success )
+        VALUES
+        <foreach collection="params" index="index" item="list" separator="," >
+            (
+            #{list.linkName},
+            #{list.saveTime},
+            #{list.send},
+            #{list.accept},
+            #{list.weekData},
+            #{list.updateSuccess}
+            )
+        </foreach>
+    </insert>
+    <insert id="saveMplsHistoryReportMonthly">
+        INSERT INTO mw_mplshistory_monthly (link_name, save_time, send_data, accept_data, month_date, update_success )
+        VALUES
+        <foreach collection="params" index="index" item="list" separator="," >
+            (
+            #{list.linkName},
+            #{list.saveTime},
+            #{list.send},
+            #{list.accept},
+            #{list.monthDate},
+            #{list.updateSuccess}
+            )
+        </foreach>
+    </insert>
+    <select id="selectMplsLineHistoryDailyData" resultType="java.util.Map">
+        select sort_send_data sendData,sort_accept_data acceptData,link_name linkName from mw_mplshistory_daily where update_success = 1  and save_time BETWEEN #{startTime} AND #{endTime}
+        <if test="linkName != null and linkName != ''">
+            and link_name = #{linkName}
+        </if>
+    </select>
+    <select id="selectMplsLineHistoryDailyDataToo" resultType="java.util.Map">
+        select send_data sendData,accept_data acceptData,link_name linkName from mw_mplshistory_daily where update_success = 1  and save_time BETWEEN #{startTime} AND #{endTime}
+        <if test="linkName != null and linkName != ''">
+            and link_name = #{linkName}
+        </if>
+    </select>
+    <select id="selectMplsLineHistoryWeeklyData" resultType="cn.mw.monitor.report.dto.MWMplsCacheDataDto">
+        select send_data send,accept_data accept from mw_mplshistory_weekly where update_success = 1 and week_date = #{weekDate}
+        <if test="linkName != null and linkName != ''">
+            and link_name = #{linkName}
+        </if>
+    </select>
+    <select id="selectMplsLineHistoryMonthlyData" resultType="cn.mw.monitor.report.dto.MWMplsCacheDataDto">
+        select send_data send,accept_data accept from mw_mplshistory_monthly where update_success = 1 and month_date = #{monthDate}
+        <if test="linkName != null and linkName != ''">
+            and link_name = #{linkName}
+        </if>
+    </select>
+
+    <delete id="deleteReportDailyData">
+        delete from ${TBSNAME}."${tableName}" where "save_time" in
+        <foreach collection="saveTimes" item="time" index="index" separator="," open="(" close=")">
+            #{time}
+        </foreach>
+    </delete>
+    <delete id="deleteReportCacheData">
+          delete from ${TBSNAME}."${tableName}"
+    </delete>
+
+    <select id="selectReportDropDown" resultType="java.util.Map">
+        select "report_id" "reportId","report_name" "reportName" from ${TBSNAME}."mw_report_down"
+    </select>
+    <select id="getIpAddressNew" resultType="cn.mw.monitor.report.param.IpAddressReport">
+        SELECT "ip_address","link_id" "linkId","ip_state" "useStatus","online" "onLineType","id"
+        FROM ${TBSNAME}."mw_ipaddressmanagelist_table" where "link_id" in (
+        <if test="status==0">
+            SELECT "id" AS "value" FROM "mw_ipaddressmanage_table" a2
+            left join
+            (select "type_id","org_id" from "mw_org_mapper" where type='IP') "t2" ON a2."id" = t2."type_id"
+            where
+            "org_id" in
+            <foreach collection="ids" index="index" item="item" open="(" separator="," close=")">
+                #{item}
+            </foreach>
+            and  "type" = "iPaddresses"
+        </if>
+        <if test="status==1">
+            <foreach collection="ids" index="index" item="item" separator=",">
+                #{item}
+            </foreach>
+        </if>
+        )
+    </select>
+    <select id="selectAssetsNanoTube" resultType="java.util.Map">
+        select "in_band_ip" "ip","create_date" "createDate" from ${TBSNAME}."mw_tangibleassets_table" where "delete_flag" = 0
+        <if test="ips != null and ips.size > 0">
+            and "in_band_ip" in
+            <foreach collection="ips" index="index" item="item" open="(" separator="," close=")">
+                #{item}
+            </foreach>
+        </if>
+    </select>
+    <select id="getAssetsBrand" resultType="java.util.Map">
+        SELECT
+            t1."id",
+            t2."vendor",
+            t2."vendor_large_icon" "icon",
+            t2."custom_flag" "urlType"
+        FROM
+        ${TBSNAME}."mw_tangibleassets_table" t1
+            LEFT JOIN ${TBSNAME}."mw_base_vendor_icon" t2 ON t1."manufacturer" = t2."vendor"
+        WHERE
+            t1."id" in
+        <foreach collection="ids" index="index" item="item" open="(" separator="," close=")">
+            #{item}
+        </foreach>
+    </select>
+    <select id="getAssetsLabelLocation" resultType="java.util.Map">
+        SELECT
+            t1."type_id" "typeId",
+            t2."drop_value" "dropValue"
+        FROM
+            "mw_label_drop_mapper" t1
+            LEFT JOIN "mw_dropdown_table" t2 ON t1."drop_tagboard" = t2."drop_id"
+        WHERE
+            "label_id" IN ( SELECT "label_id" FROM "mw_labelmanage_table" WHERE ${TBSNAME}."delete_flag" = 0 AND "label_name" = '位置' )
+            AND "module_type" = 'ASSETS'
+            AND t1."type_id" IN
+            <foreach collection="ids" index="index" item="item" open="(" separator="," close=")">
+                #{item}
+            </foreach>
+    </select>
+    <select id="getAssetsHostId" resultType="java.util.Map">
+        select "id","assets_id" "hostId","monitor_server_id" "serverId" from "mw_tangibleassets_table" where ${TBSNAME}."delete_flag" = 0 and "id" in
+        <foreach collection="ids" index="index" item="item" open="(" separator="," close=")">
+            #{item}
+        </foreach>
+    </select>
+    <select id="selectLylLinkFlowData" resultType="cn.mw.monitor.report.param.LineFlowReportParam">
+        select
+        "assets_name" "assetsName",
+        "interface_name" "interfaceName",
+        "acceptFlow_max" "acceptFlowMax",
+        "acceptFlow_avg" "acceptFlowAvg",
+        "sendingFlow_max" "sendingFlowMax",
+        "sendingFlow_avg" "sendingFlowAvg",
+        "assetsId" "assetsId",
+        "modification_date" "maxTime",
+        "sendingFlow_min" "sendingFlowMin",
+        "sendingFlow_total" "sendTotalFlow",
+        "acceptFlow_min" "acceptFlowMin",
+        "acceptFlow_total" "acceptTotalFlow",
+        "sendingFlow_min" "sendingFlowMin",
+        "sendingFlow_total" "sendTotalFlow",
+        "acceptFlow_min" "acceptFlowMin",
+        "acceptFlow_total" "acceptTotalFlow"
+        from ${TBSNAME}."mw_linkflow_census_report"
+        where "type" =  #{dateType}
+        <if test="ids != null and ids.size > 0">
+            and "assetsId" in (
+            <foreach collection="ids" item="id" separator=",">
+                #{id}
+            </foreach>
+            )
+        </if>
+        <if test="names != null and names.size > 0">
+            and "interface_name" in (
+            <foreach collection="names" item="name" separator=",">
+                #{name}
+            </foreach>
+            )
+        </if>
+        order by "modification_date"
+    </select>
+    <select id="selectLylLinkReportDailyData" resultType="cn.mw.monitor.report.param.LineFlowReportParam">
+        SELECT
+        "save_time" "time",
+        "assets_name" "assetsName",
+        "interface_name" "interfaceName",
+        "acceptFlow_max" "acceptFlowMax",
+        "acceptFlow_avg" "acceptFlowAvg",
+        "sendingFlow_max" "sendingFlowMax",
+        "sendingFlow_avg" "sendingFlowAvg",
+        "assetsId" "assetsId",
+        "modification_date" "maxTime",
+        "update_success" "updateSuccess",
+        "sendingFlow_min" "sendingFlowMin",
+        "sendingFlow_total" "sendTotalFlow",
+        "acceptFlow_min" "acceptFlowMin",
+        "acceptFlow_total" "acceptTotalFlow"
+        FROM
+        ${TBSNAME}."mw_linkflow_report_daily"
+        where "save_time" BETWEEN #{startTime} AND #{endTime} and "update_success" = 1
+        <if test="ids != null and ids.size > 0">
+            and "assetsId" in (
+            <foreach collection="ids" item="id" separator=",">
+                #{id}
+            </foreach>
+            )
+        </if>
+        <if test="names != null and names.size > 0">
+            and "interface_name" in (
+            <foreach collection="names" item="name" separator=",">
+                #{name}
+            </foreach>
+            )
+        </if>
+    </select>
+</mapper>

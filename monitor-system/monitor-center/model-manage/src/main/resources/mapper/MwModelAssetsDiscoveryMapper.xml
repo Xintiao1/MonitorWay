@@ -1,0 +1,470 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.mw.monitor.model.dao.MwModelAssetsDiscoveryDao">
+
+    <select id="getModelInfoById" resultType="cn.mw.monitor.model.param.AddAndUpdateModelParam">
+        SELECT
+            t.model_id,
+            t.model_name,
+            t.model_desc,
+            t.model_index,
+            t.model_type_id,
+            t.model_group_id,
+            t.model_group_sub_id,
+            t.model_icon,
+            t.is_show,
+            t.deep,
+            t.nodes,
+            t.group_nodes,
+            t.pid,
+            t.pids,
+            t.is_node,
+            t.model_level,
+            t.creator,
+            t.create_date,
+            t.model_view,
+            t.modifier,
+            t.modification_date
+        FROM
+            mw_cmdbmd_manage t
+        WHERE
+            t.delete_flag = FALSE
+            and model_id = #{assetsSubTypeId}
+    </select>
+
+    <select id="getInstanceByModelIndex" resultType="java.lang.Integer">
+        SELECT
+            t2.instance_id AS "instacneId"
+        FROM
+            mw_cmdbmd_manage t1
+            LEFT JOIN mw_cmdbmd_instance t2 ON t1.model_id = t2.model_id
+        WHERE
+            t2.instance_id IS NOT NULL
+            <if test="modelIndexs!=null and modelIndexs.size() > 0">
+                AND t1.model_index  in(
+                <foreach collection="modelIndexs" item="item" separator=",">
+                    #{item}
+                </foreach>
+                )
+            </if>
+    </select>
+
+
+    <select id="getModelPropertiesInfo" resultType="cn.mw.monitor.service.model.param.AddModelInstancePropertiesParam">
+        SELECT
+            a.properties_id AS "propertiesId",
+			a.index_id AS "propertiesIndexId",
+            a.properties_name AS "propertiesName",
+            a.properties_type_id AS "propertiesType"
+        FROM
+            mw_cmdbmd_properties a
+            left join mw_cmdbmd_properties_value b on a.properties_value_id = b.id
+        WHERE
+         (FIND_IN_SET( a.model_id, ( SELECT pids FROM mw_cmdbmd_manage WHERE model_id = #{modelId,jdbcType=INTEGER} ) ))
+    </select>
+
+    <select id="getTemplateByServerIdAndMonitorMode"
+            parameterType="cn.mw.monitor.model.param.AddAndUpdateModelTemplateParam"
+            resultType="cn.mw.monitor.service.model.param.MwModelTemplateDTO">
+        SELECT
+        DISTINCT(t1.id),
+        <if test="monitorServerId != null and monitorServerId != 0">
+            t4.group_id groupId,
+            t3.monitoring_server_name monitorServerName,
+            t2.template_id templateId,
+            t2.server_id monitorServerId,
+        </if>
+        t1.template_name templateName,
+        t1.brand brand,
+        t1.specification,
+        t1.description,
+        t1.assets_type_id modelGroupId,
+        t1.sub_assets_type_id modelId,
+        t1.interfaces_type interfacesType
+        FROM
+        mw_cmdbmd_template_table t1
+        <if test="monitorServerId != null and monitorServerId != 0">
+            LEFT JOIN mw_cmdbmd_template_server_mapper t2 ON t1.id = t2.assetstemplate_id
+            LEFT JOIN mw_thirdparty_server_table t3 ON t2.server_id = t3.id
+            LEFT JOIN mw_cmdbmd_modelgroup_server_mapper t4 ON t1.assets_type_id = t4.model_group_id and
+            t4.monitor_server_id =#{monitorServerId,jdbcType=INTEGER}
+        </if>
+        WHERE
+        t1.monitor_mode = #{monitorMode,jdbcType=INTEGER}
+        <if test="monitorServerId == 0 and description != null and description != ''">
+            AND t1.description = #{description,jdbcType=VARCHAR}
+        </if>
+        <if test="monitorServerId != null and monitorServerId != 0">
+            AND t2.server_id = #{monitorServerId,jdbcType=INTEGER}
+        </if>
+    </select>
+
+    <select id="getByServerIdAllTemplate" parameterType="cn.mw.monitor.model.param.AddAndUpdateModelTemplateParam"
+            resultType="cn.mw.monitor.service.model.param.MwModelTemplateDTO">
+        SELECT
+        DISTINCT(t1.id),
+        <if test="monitorServerId != null and monitorServerId != 0">
+            t4.group_id groupId,
+            t3.monitoring_server_name monitorServerName,
+            t2.template_id templateId,
+            t2.server_id monitorServerId,
+        </if>
+        t1.template_name templateName,
+        t1.brand brand,
+        t1.specification,
+        t1.description,
+        t1.assets_type_id modelGroupId,
+        t1.sub_assets_type_id modelId,
+        t1.interfaces_type interfacesType,
+        t1.monitor_mode typeId,
+        t1.monitor_mode monitorMode
+        FROM
+        mw_cmdbmd_template_table t1
+        <if test="monitorServerId != null and monitorServerId != 0">
+            LEFT JOIN mw_cmdbmd_template_server_mapper t2 ON t1.id = t2.assetstemplate_id
+            LEFT JOIN mw_thirdparty_server_table t3 ON t2.server_id = t3.id
+            LEFT JOIN mw_cmdbmd_modelgroup_server_mapper t4 ON t1.assets_type_id = t4.model_group_id and
+            t4.monitor_server_id =#{monitorServerId,jdbcType=INTEGER}
+        </if>
+        WHERE
+        1 = 1
+        <if test="monitorServerId == 0 and description != null and description != ''">
+            AND t1.description = #{description,jdbcType=VARCHAR}
+        </if>
+        <if test="monitorServerId != null and monitorServerId != 0">
+            AND t2.server_id = #{monitorServerId,jdbcType=INTEGER}
+        </if>
+    </select>
+
+    <select id="getAssetsSubTypeByMode" resultType="java.util.Map">
+        SELECT
+            model_id AS "id",
+            model_name AS "name"
+        FROM
+            mw_cmdbmd_manage
+        WHERE
+            delete_flag = 0
+    </select>
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="cn.mw.monitor.service.scan.model.ScanResultSuccess">
+        <result column="id" property="id"/>
+        <result column="scanrule_id" property="scanruleId"/>
+        <result column="scan_batch" property="scanBatch"/>
+        <result column="host_name" property="hostName"/>
+        <result column="ip_address" property="ipAddress"/>
+        <result column="template_id" property="templateId"/>
+        <result column="group_id" property="groupId"/>
+        <result column="sys_obj_id" property="sysObjId"/>
+        <result column="brand" property="brand"/>
+        <result column="description" property="description"/>
+        <result column="specifications" property="specifications"/>
+        <result column="assets_type_id" property="assetsTypeId"/>
+        <result column="assets_sub_type_id" property="assetsSubTypeId"/>
+        <result column="assets_type_name" property="assetsTypeName"/>
+        <result column="assets_sub_type_name" property="assetsSubTypeName"/>
+        <result column="model_index" property="modelIndex"/>
+        <result column="groupTypeName" property="groupTypeName"/>
+        <result column="polling_engine" property="pollingEngine"/>
+        <result column="monitor_mode" property="monitorMode"/>
+        <result column="monitor_mode_name" property="monitorModeName"/>
+        <result column="monitor_mode1" property="monitorModeVal"/>
+        <result column="scan_time" property="scanTime"/>
+        <result column="creator" property="creator"/>
+        <result column="create_date" property="createDate"/>
+        <result column="modifier" property="modifier"/>
+        <result column="modification_date" property="modificationDate"/>
+        <result column="port" property="port"/>
+        <result column="monitor_port" property="monitorPort"/>
+        <result column="community" property="community"/>
+        <result column="security_name" property="securityName"/>
+        <result column="context_name" property="contextName"/>
+        <result column="security_level" property="securityLevel"/>
+        <result column="auth_protocol" property="authProtocol"/>
+        <result column="auth_token" property="authToken"/>
+        <result column="priv_protocol" property="privProtocol"/>
+        <result column="priv_token" property="privToken"/>
+        <result column="template_match_id" property="templateMatchId"/>
+        <result column="monitor_server_id" property="monitorServerId"/>
+        <result column="monitor_server_name" property="monitorServerName"/>
+        <result column="scanSuccessIdInAssets" property="scanSuccessIdInAssets"/>
+        <result column="device_code" property="deviceCode"/>
+        <result column="snmp_version" property="snmpVersion"/>
+    </resultMap>
+
+
+    <select id="selectScanSuccessList" resultMap="BaseResultMap"  parameterType="cn.mw.monitor.service.scan.param.QueryScanResultParam">
+        SELECT DISTINCT
+        ( tb.id ) AS id,
+        tb.scanrule_id AS scanrule_id,
+        tb.template_id AS template_id,
+        tb.group_id AS group_id,
+        tb.scan_batch AS scan_batch,
+        tb.host_name AS host_name,
+        tb.ip_address AS ip_address,
+        tb.sys_obj_id AS sys_obj_id,
+        tb.brand AS brand,
+        tb.description AS description,
+        tb.specifications AS specifications,
+        tb.assets_type_id AS assets_type_id,
+        tb.assets_sub_type_id AS assets_sub_type_id,
+        a.model_index,
+        a.model_name AS "assets_sub_type_name",
+        t1.model_group_name AS "assets_type_name",
+        tb.polling_engine AS polling_engine,
+        tb.monitor_mode AS monitor_mode,
+        tb.scan_time AS scan_time,
+        tb.creator AS creator,
+        tb.create_date AS create_date,
+        tb.modifier AS modifier,
+        tb.PORT AS PORT,
+        tb.monitor_port AS monitor_port,
+        tb.community AS community,
+        tb.security_name AS security_name,
+        tb.context_name AS context_name,
+        tb.security_level AS security_level,
+        tb.auth_protocol AS auth_protocol,
+        tb.auth_token AS auth_token,
+        tb.priv_protocol AS priv_protocol,
+        tb.priv_token AS priv_token,
+        tb.template_match_id AS template_match_id,
+        tb.monitor_server_id AS monitor_server_id,
+        t2.monitoring_server_name AS "monitor_server_name",
+        tb.monitor_mode AS "monitor_mode_name",
+        CASE tb.monitor_mode
+        WHEN 'ZabbixAgent' THEN 1
+        WHEN 'SNMPv1v2' THEN 2
+        WHEN 'SNMPv3' THEN 2
+        WHEN 'Port' THEN 3
+        WHEN 'ICMP' THEN 4 ELSE 0
+        END monitor_mode1,
+        tb.snmp_version as snmp_version
+        FROM
+        mw_scanresultsuccess_table tb
+        LEFT JOIN mw_cmdbmd_manage a on tb.assets_sub_type_id = a.model_id
+        LEFT JOIN mw_cmdbmd_group t1 on tb.assets_type_id = t1.model_group_id
+        LEFT JOIN mw_thirdparty_server_table t2 on tb.monitor_server_id = t2.id
+        <where>
+            1 = 1
+            AND tb.scan_batch = ( SELECT max( scan_batch ) FROM mw_scanresultsuccess_table WHERE scanrule_id
+            =#{scanruleId,jdbcType=INTEGER} )
+            AND tb.scanrule_id = #{scanruleId,jdbcType=INTEGER}
+            AND tb.create_date >= (
+            SELECT
+            scan_start_date
+            FROM
+            mw_scanrule_table a
+            WHERE
+            a.scanrule_id = #{scanruleId,jdbcType=INTEGER})
+
+            <if test="ipAddress!=null and ipAddress!='' ">
+                AND tb.ip_address LIKE concat('%',#{ipAddress},'%')
+            </if>
+            <if test="hostName!=null and hostName!='' ">
+                AND tb.host_name LIKE concat('%',#{hostName},'%')
+            </if>
+            <if test="brand!=null and brand!='' ">
+                AND tb.brand LIKE concat('%',#{brand},'%')
+            </if>
+            <if test="description!=null and description!='' ">
+                AND tb.description LIKE concat('%', #{description},'%')
+            </if>
+            <if test="specifications!=null and specifications!='' ">
+                AND tb.specifications LIKE concat('%', #{specifications},'%')
+            </if>
+
+            <if test="afreshScanRuleIds!=null and afreshScanRuleIds.size() > 0">
+                or tb.id in(
+                <foreach collection="afreshScanRuleIds" item="item" separator=",">
+                    #{item}
+                </foreach>
+                )
+            </if>
+        </where>
+        ORDER BY
+        id
+    </select>
+
+
+    <sql id="excludeId_Column_FailList" >
+        ${alias}scan_batch as scan_batch
+        ,${alias}scanrule_id as scanrule_id
+        ,${alias}ip_address as ip_address
+        ,${alias}polling_engine as polling_engine
+        ,${alias}monitor_mode as monitor_mode
+        ,${alias}cause as cause
+        ,${alias}scan_time as scan_time
+        ,${alias}creator as creator
+        ,${alias}create_date as create_date
+        ,${alias}modifier as modifier
+        ,${alias}modification_date as modification_date
+    </sql>
+
+    <sql id="tb_fail">
+        mw_scanresultfail_table
+    </sql>
+
+    <select id="selectFailList" resultMap="BaseResultFailMap" parameterType="java.util.Map">
+            SELECT
+            tb.id as id, <include refid="excludeId_Column_FailList" ><property name="alias" value="tb."/></include>
+            FROM
+            <include refid="tb_fail"/> tb
+            WHERE 1 = 1
+            <if test="id != null and id != ''">
+                AND tb.id = #{id,jdbcType=INTEGER}
+            </if>
+            AND tb.scan_batch = (select max(scan_batch)
+            from <include refid="tb_fail"><property name="alias" value=""/></include>
+            where scanrule_id = #{scanruleId,jdbcType=INTEGER}
+            )
+            <if test="scanruleId != null and scanruleId != ''">
+                AND tb.scanrule_id = #{scanruleId,jdbcType=INTEGER}
+            </if>
+            <if test="scanBatch != null and scanBatch != ''">
+                AND tb.scan_batch = #{scanBatch,jdbcType=VARCHAR}
+            </if>
+            <if test="ipAddress != null and ipAddress != ''">
+                AND tb.ip_address LIKE CONCAT('%',#{ipAddress,jdbcType=VARCHAR},'%')
+            </if>
+            <if test="cause != null and cause != ''">
+                AND tb.cause LIKE CONCAT('%',#{cause,jdbcType=VARCHAR},'%')
+            </if>
+            <if test="monitorMode != null and monitorMode != ''">
+                AND tb.monitor_mode LIKE CONCAT('%',#{monitorMode,jdbcType=VARCHAR},'%')
+            </if>
+            <if test="fuzzyQuery!= null and fuzzyQuery !='' ">
+                and CONCAT(
+                IFNULL( tb.ip_address, '' ),
+                IFNULL( tb.cause, '' ),
+                IFNULL( tb.monitor_mode, '' )
+                ) LIKE CONCAT('%',#{fuzzyQuery,jdbcType=VARCHAR},'%')
+                ORDER BY
+                ( CASE WHEN INSTR( tb.ip_address, #{fuzzyQuery}) > 0 THEN 0 ELSE 1 END ),
+                ( CASE WHEN INSTR( tb.cause, #{fuzzyQuery}) > 0 THEN 0 ELSE 1 END ),
+                ( CASE WHEN INSTR( tb.monitor_mode, #{fuzzyQuery} ) > 0 THEN 0 ELSE 1 END )
+            </if>
+            ORDER BY length(tb.ip_address) ,tb.ip_address
+        </select>
+
+    <resultMap id="BaseResultFailMap" type="cn.mw.monitor.service.scan.model.ScanResultFail">
+        <result column="id" property="id" />
+        <result column="scan_batch" property="scanBatch" />
+        <result column="scanrule_id" property="scanruleId" />
+        <result column="ip_address" property="ipAddress" />
+        <result column="polling_engine" property="pollingEngine" />
+        <result column="monitor_mode" property="monitorMode" />
+        <result column="cause" property="cause" />
+        <result column="scan_time" property="scanTime" />
+        <result column="creator" property="creator" />
+        <result column="create_date" property="createDate" />
+        <result column="modifier" property="modifier" />
+        <result column="modification_date" property="modificationDate" />
+    </resultMap>
+
+    <select id="selectSuccessListByIds" resultMap="BaseResultMap">
+        SELECT DISTINCT
+        ( tb.id ) AS id,
+        tb.scanrule_id AS scanrule_id,
+        tb.template_id AS template_id,
+        tb.group_id AS group_id,
+        tb.scan_batch AS scan_batch,
+        tb.host_name AS host_name,
+        tb.ip_address AS ip_address,
+        tb.sys_obj_id AS sys_obj_id,
+        tb.brand AS brand,
+        tb.description AS description,
+        tb.specifications AS specifications,
+        tb.assets_type_id AS assets_type_id,
+        tb.assets_sub_type_id AS assets_sub_type_id,
+        a.model_index,
+        a.model_name AS "assets_sub_type_name",
+        t1.model_group_name AS "assets_type_name",
+        tb.monitor_mode AS monitor_mode,
+        tb.scan_time AS scan_time,
+        tb.creator AS creator,
+        tb.create_date AS create_date,
+        tb.modifier AS modifier,
+        tb.PORT AS PORT,
+        tb.monitor_port AS monitor_port,
+        tb.community AS community,
+        tb.security_name AS security_name,
+        tb.context_name AS context_name,
+        tb.security_level AS security_level,
+        tb.auth_protocol AS auth_protocol,
+        tb.auth_token AS auth_token,
+        tb.priv_protocol AS priv_protocol,
+        tb.priv_token AS priv_token,
+        tb.template_match_id AS template_match_id,
+        tb.monitor_server_id AS monitor_server_id,
+        t2.monitoring_server_name AS "monitor_server_name",
+        tb.monitor_mode AS "monitor_mode_name",
+        CASE tb.monitor_mode
+        WHEN 'ZabbixAgent' THEN 1
+        WHEN 'SNMPv1v2' THEN 2
+        WHEN 'SNMPv3' THEN 2
+        WHEN 'Port' THEN 3
+        WHEN 'ICMP' THEN 4 ELSE 0
+        END monitor_mode1,
+        tb.snmp_version as snmp_version
+        FROM
+        mw_scanresultsuccess_table tb
+        LEFT JOIN mw_cmdbmd_manage a on tb.assets_sub_type_id = a.model_id
+        LEFT JOIN mw_cmdbmd_group t1 on tb.assets_type_id = t1.model_group_id
+        LEFT JOIN mw_thirdparty_server_table t2 on tb.monitor_server_id = t2.id
+        WHERE tb.id in(
+        <foreach collection="list" item="item" separator=",">
+            #{item}
+        </foreach>
+        )
+    </select>
+    <select id="selectMacros" resultType="cn.mw.monitor.service.assets.param.MacrosDTO">
+        SELECT
+        ch_macro chMacro,
+        macro,
+        macro_encryption type
+        FROM
+        mw_macros_name_mapper
+    </select>
+
+    <update id="updateUserState">
+        update
+        mw_webmonitor_table
+        set enable = #{enable,jdbcType=VARCHAR}
+        where id = #{id,jdbcType=INTEGER}
+    </update>
+
+    <select id="selectHttpIds" resultType="cn.mw.monitor.service.webmonitor.model.HttpParam">
+        select a.id,http_test_id httpId,monitor_server_id monitorServerId from mw_webmonitor_table a left join mw_tangibleassets_table b on a.host_id=b.id  where a.host_id in
+        <foreach collection="list" index="index" item="item" separator="," open="(" close=")">
+            #{item}
+        </foreach>
+    </select>
+
+    <insert id="batchInsertDeviceInfo" parameterType="java.util.List">
+        insert into mw_device_info(asset_id, device_code)
+        values
+        <foreach collection="list" item="item" index="index" separator=",">
+            (#{item.id,jdbcType=VARCHAR},#{item.deviceCode,jdbcType=VARCHAR})
+        </foreach>
+    </insert>
+
+    <select id="getMonitorServerName" resultType="java.lang.String">
+        SELECT
+            monitoring_server_name
+        FROM
+            mw_thirdparty_server_table
+        WHERE
+            id = #{monitorServerId}
+        and delete_flag = '0'
+    </select>
+
+    <select id="getPollingEngineName" resultType="java.lang.String">
+        SELECT
+            engine_name
+        FROM
+            mw_enginemanage_table
+        WHERE
+            id = #{pollingEngine}
+        and delete_flag = '0'
+    </select>
+</mapper>

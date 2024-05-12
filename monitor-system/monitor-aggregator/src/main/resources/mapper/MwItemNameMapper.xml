@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.mw.monitor.server.dao.ItemNameDao">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="cn.mw.monitor.server.serverdto.ItemNameDto">
+        <result column="id" property="id" />
+        <result column="request_name" property="requestName" />
+        <result column="template_id" property="templateId" />
+        <result column="template_name" property="templateName" />
+        <result column="item_name" property="itemName" />
+        <result column="descr" property="descr" />
+    </resultMap>
+
+    <sql id="Base_Column_List" >
+        id,request_name,template_id,template_name,item_name,descr
+    </sql>
+
+    <sql id="tb">
+        mw_item_name_mapper
+    </sql>
+    <sql id="tbFilter">
+        mw_interfacefilter_table
+    </sql>
+
+    <select id="getItemChNames" resultMap="BaseResultMap" parameterType="java.util.List">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM
+        <include refid="tb"/>
+        WHERE binary item_name
+        IN (
+        <foreach collection="item_names" item="item_name" separator=",">
+            #{item_name,jdbcType=VARCHAR}
+        </foreach>
+        )
+    </select>
+
+    <select id="getItemChName" resultMap="BaseResultMap" parameterType="String">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM
+        <include refid="tb"/>
+        WHERE binary item_name = #{item_name,jdbcType=VARCHAR}
+    </select>
+
+    <select id="getItemChNameAllInfo" resultType="java.util.Map">
+        SELECT
+        item_name AS "name",
+        descr AS "ChName"
+        FROM
+        mw_item_name_mapper
+    </select>
+
+    <select id="getTypeFilter" resultType="cn.mw.monitor.service.server.api.dto.TypeFilterDTO">
+        SELECT
+        id,
+        tangible_assets_id tangibleAssetsId,
+        name_type nameType,
+        show_data showData
+        FROM
+        <include refid="tbFilter"/>
+        WHERE tangible_assets_id = #{assetsId,jdbcType=VARCHAR} and name_type = #{nameType,jdbcType=VARCHAR}
+    </select>
+
+    <insert id="insert" parameterType="cn.mw.monitor.service.server.api.dto.TypeFilterDTO" useGeneratedKeys="true"
+            keyProperty="id">
+        insert into
+        <include refid="tbFilter"/>
+        (tangible_assets_id,name_type,show_data)
+        values (
+         #{tangibleAssetsId,jdbcType=VARCHAR}
+        , #{nameType,jdbcType=VARCHAR}
+        , #{showData,jdbcType=VARCHAR}
+        )
+    </insert>
+
+    <update id="update" parameterType="cn.mw.monitor.service.server.api.dto.TypeFilterDTO">
+        update
+        <include refid="tbFilter"/>
+        <set>
+            <if test="showData != null">
+                show_data = #{showData,jdbcType=VARCHAR},
+            </if>
+        </set>
+        where id = #{id,jdbcType=INTEGER}
+    </update>
+
+    <select id="getParentItemName" parameterType="java.lang.String" resultType="java.lang.String">
+        select parent_item_name AS "parentItemName"
+        from mw_parent_item_relation
+        where item_name = #{itemName}
+    </select>
+
+    <update id="updateItemChName">
+        update
+        <include refid="tb"/>
+        <set>
+            <if test="descr != null">
+                descr = #{descr,jdbcType=VARCHAR},
+            </if>
+        </set>
+        where binary item_name = #{item_name,jdbcType=VARCHAR}
+    </update>
+
+    <insert id="insertItemChName" parameterType="cn.mw.monitor.server.serverdto.ItemNameDto" useGeneratedKeys="true" keyProperty="id">
+        insert into
+        <include refid="tb"/>
+        (request_name,item_name,descr)
+        values (
+        #{requestName,jdbcType=VARCHAR}
+        , #{itemName,jdbcType=VARCHAR}
+        , #{descr,jdbcType=VARCHAR}
+        )
+    </insert>
+    <select id="getHealthValue" resultType="java.util.Map">
+        select id,assets_id assetsId,item_name itemName,value from mw_baseline_health_value where assets_id = #{assetsId}
+        <if test="names != null and names.size > 0">
+            and item_name in (
+            <foreach collection="names" item="name" separator=",">
+                #{name,jdbcType=INTEGER}
+            </foreach>
+            )
+        </if>
+    </select>
+</mapper>

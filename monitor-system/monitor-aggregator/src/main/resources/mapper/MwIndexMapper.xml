@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.mw.monitor.screen.dao.MWIndexDao">
+
+    <select id="getTodayMessage" resultType="java.lang.Integer">
+        select count(0) from mw_alert_record_table where
+        to_days(date) = to_days(now())
+        <if test="hostIds != null and hostIds.size > 0">
+            and hostid in
+            <foreach collection="list" item="item" index="index" separator="," open="(" close=")">
+                #{item}
+            </foreach>
+        </if>
+    </select>
+    <select id="getTodaySuccessMessage" resultType="java.lang.Integer">
+        select count(0) from mw_alert_record_table where
+        to_days(date) = to_days(now())
+        and is_success=0
+        <if test="hostIds != null and hostIds.size > 0">
+            and hostid in
+            <foreach collection="list" item="item" index="index" separator="," open="(" close=")">
+                #{item}
+            </foreach>
+        </if>
+    </select>
+
+    <select id="getSumMessage" resultType="java.lang.Integer">
+        select count(0) from mw_alert_record_table
+        <if test="hostIds != null and hostIds.size > 0">
+            where
+            hostid in
+            <foreach collection="list" item="item" index="index" separator="," open="(" close=")">
+                #{item}
+            </foreach>
+        </if>
+    </select>
+    <select id="getSumSuccessMessage" resultType="java.lang.Integer">
+        select count(0) from mw_alert_record_table where
+        is_success=0
+        <if test="hostIds != null and hostIds.size > 0">
+            and hostid in
+            <foreach collection="list" item="item" index="index" separator="," open="(" close=")">
+                #{item}
+            </foreach>
+        </if>
+    </select>
+    <select id="getIndexBase" resultType="cn.mw.monitor.screen.model.IndexModelBase">
+        select bulk_id,bulk_name from mw_index_base where delete_flag=false ;
+    </select>
+    <insert id="insertIndexModel" parameterType="cn.mw.monitor.screen.model.IndexModelBase">
+        insert into mw_index_base (bulk_id,bulk_name) values
+        <foreach collection="list" item="li" separator=",">
+            (#{li.bulkId},#{li.bulkName})
+        </foreach>
+    </insert>
+    <insert id="insertIndexBulk" parameterType="cn.mw.monitor.screen.model.IndexBulk">
+        insert into mw_index_bulk (model_data_id,bulk_id,bulk_name,user_id) values
+        <foreach collection="list" item="li" separator=",">
+            (#{li.modelDataId},#{li.bulkId},#{li.bulkName},#{li.userId})
+        </foreach>
+    </insert>
+    <update id="deleteIndexModel">
+        update mw_index_base set delete_flag=1 where 1=1
+        <include refid="criteria"></include>
+    </update>
+    <update id="deleteIndexBulk">
+        update mw_index_bulk set delete_flag=1 where user_id=#{userId} and model_data_id=#{modelDataId}
+    </update>
+    <update id="updateBulkName">
+        update mw_index_bulk set bulk_name=#{bulKName} where model_data_id=#{modelDataId} and delete_flag=false
+    </update>
+    <update id="deleteBulkByUser" >
+        update mw_index_bulk set delete_flag =1 where user_id=#{userId}
+    </update>
+    <sql id="criteria">
+        <if test="bulkId!=null and bulkId!=''">
+            and bulk_id=#{bulkId}
+        </if>
+    </sql>
+    <select id="getPageSelectBase" resultType="cn.mw.monitor.screen.model.IndexModelBase">
+        select t1.bulk_id,t1.bulk_name from(
+        select bulk_id ,bulk_name from mw_index_base limit 0,13
+        ) t1 where t1.bulk_id not in (
+        select bulk_id from mw_index_base where delete_flag=false
+        )
+    </select>
+    <select id="selectBulkByUser" resultType="cn.mw.monitor.screen.model.IndexBulk">
+        select model_data_id,bulk_id,bulk_name,user_id from mw_index_bulk where user_id=#{userId} and delete_flag=false
+    </select>
+    <select id="selectBulkCount" resultType="java.lang.Integer">
+        select count(0) from mw_index_bulk where user_id=#{userId};
+    </select>
+    <select id="getPageSelectBase2" resultType="cn.mw.monitor.screen.model.IndexModelBase">
+        select bulk_id,bulk_name from mw_index_init_bulk
+    </select>
+
+
+</mapper>

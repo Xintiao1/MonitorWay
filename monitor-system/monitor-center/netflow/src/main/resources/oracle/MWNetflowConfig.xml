@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.mw.monitor.netflow.dao.MWNetflowDao">
+
+    <resultMap id="resultMap" type="cn.mw.monitor.netflow.dto.MWNetFlowConfigDTO">
+        <id column="id" property="id" javaType="java.lang.Integer"/>
+        <result column="name" property="name" javaType="java.lang.String"/>
+        <result column="value" property="value" javaType="java.lang.String"/>
+    </resultMap>
+
+    <sql id="table">
+        ${TBSNAME}."mw_netflow_config"
+    </sql>
+    
+    <sql id="columns">
+        "id" ,"name" ,"value"
+    </sql>
+
+    <select id="selectNetflowConigInfo" resultMap="resultMap">
+        select <include refid="columns"></include>
+        from <include refid="table"></include>
+    </select>
+
+    <update id="updateNetflowConigInfo" parameterType="cn.mw.monitor.netflow.dto.MWNetFlowConfigDTO">
+        update <include refid="table"></include>
+           set "value" = #{value,jdbcType=VARCHAR}
+         where "name" = #{name,jdbcType=VARCHAR}
+    </update>
+
+    <select id="getAssetsNameMap" resultType="java.util.Map">
+        SELECT
+            "assets_name" as "assetsName",
+            "in_band_ip" as "assetsIp"
+        FROM
+            ${TBSNAME}."mw_tangibleassets_table"
+        WHERE
+            "delete_flag" = 0
+    </select>
+
+    <insert id="saveNetlowCacheInfo">
+        INSERT INTO
+        ${TBSNAME}."mw_netflow_detail_cache_info"
+        ( "user_id", "cache_info" )
+        VALUES
+	    ( #{userId}, #{cacheInfo} )
+    </insert>
+
+    <delete id="deleteNetflowCacheInfo">
+        DELETE 
+        FROM
+            ${TBSNAME}."mw_netflow_detail_cache_info" 
+        WHERE
+            "user_Id" = #{userId}
+    </delete>
+
+    <select id="getNetflowCacheInfo" resultType="java.lang.String">
+        SELECT
+            "cache_info"
+        FROM
+            ${TBSNAME}."mw_netflow_detail_cache_info"
+        WHERE
+            "user_Id" = #{userId}
+    </select>
+</mapper>

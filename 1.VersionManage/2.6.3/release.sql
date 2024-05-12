@@ -1,0 +1,1 @@
+alter table monitor.mw_cmdbmd_manage add prop_info text null comment '模型属性信息';

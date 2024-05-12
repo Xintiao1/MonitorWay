@@ -1,0 +1,149 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.mw.xiangtai.plugin.mapper.SyslogAlertMapper">
+
+    <resultMap id="attackSourceMap" type="cn.mw.xiangtai.plugin.domain.dto.AttackSourceDTO">
+        <result column="src_ip" property="ip"/>
+        <result column="country" property="country"/>
+        <result column="value" property="value"/>
+    </resultMap>
+
+    <resultMap id="attackTypeMap" type="cn.mw.xiangtai.plugin.domain.dto.AttackTypeDTO">
+        <result column="alert_type" property="type"/>
+        <result column="value" property="value"/>
+    </resultMap>
+
+    <resultMap id="threatEventMap" type="cn.mw.xiangtai.plugin.domain.dto.ThreatEventDTO">
+        <result column="system_name" property="systemName"/>
+        <result column="log_type" property="logType"/>
+        <result column="src_ip" property="srcIp"/>
+        <result column="dst_ip" property="dstIp"/>
+        <result column="alert_type" property="alertType"/>
+        <result column="alert_name" property="alertName"/>
+        <result column="alert_level" property="alertLevel"/>
+        <result column="alert_stat" property="alertStat"/>
+        <result column="alert_devip" property="alertDevIp"/>
+        <result column="country" property="country"/>
+        <result column="timestamp" property="timestamp"/>
+        <result column="create_time" property="createTime"/>
+    </resultMap>
+
+    <select id="attackSourceTopN" resultMap="attackSourceMap" parameterType="java.lang.Integer">
+        SELECT src_ip, country, count(*) value
+        FROM SYSLOG_ALERT
+        GROUP BY src_ip, country
+        ORDER BY value DESC LIMIT #{topN}
+    </select>
+
+    <select id="attackTypeTopN" resultMap="attackTypeMap" parameterType="java.lang.Integer">
+        SELECT alert_type, count(*) value
+        FROM SYSLOG_ALERT
+        GROUP BY alert_type
+        ORDER BY value DESC LIMIT #{topN}
+    </select>
+    <select id="getAttackData" resultType="cn.mw.xiangtai.plugin.domain.dto.AttackDataDTO">
+        SELECT alert_type as name, count(*) as value
+        FROM SYSLOG_ALERT
+        GROUP BY name
+        ORDER BY value LIMIT 10
+    </select>
+    <select id="getAttackEventByWeek" resultType="cn.mw.xiangtai.plugin.domain.dto.LogPointDTO">
+        SELECT toDate(create_time) AS x, count(*) as y
+        FROM SYSLOG_ALERT
+        WHERE create_time >= today() - 6
+        GROUP BY x
+        ORDER BY x ASC
+    </select>
+    <select id="getThreatLevel" resultType="java.util.Map">
+        SELECT alert_level as alertLevel, count(*) as count
+        FROM SYSLOG_ALERT
+        GROUP BY alertLevel
+        ORDER BY alertLevel DESC
+    </select>
+    <select id="getAttackFrequency" resultType="cn.mw.xiangtai.plugin.domain.dto.AttackFrequencyDTO">
+        SELECT toStartOfHour(addHours(toStartOfDay(now()), ((toHour(create_time) DIV 2) * 2)))     as startTime,
+               toStartOfHour(addHours(toStartOfDay(now()), ((toHour(create_time) DIV 2) * 2 + 2))) as endTime,
+               count(*) as count
+        FROM SYSLOG_ALERT
+        WHERE create_time BETWEEN toStartOfDay(now()) AND addHours(toStartOfDay(now()), 24)
+        GROUP BY toHour(create_time) DIV 2
+        ORDER BY startTime
+    </select>
+    <select id="getAttackDataForTheDay" resultType="cn.mw.xiangtai.plugin.domain.dto.AttackAddressDataDTO">
+        SELECT src_ip as srcIp, dst_ip as dstIp, count(*) as count
+        FROM SYSLOG_ALERT
+        WHERE create_time BETWEEN toStartOfDay(now()) AND now()
+        GROUP BY src_ip, dst_ip
+    </select>
+
+    <select id="getThreatEventList" resultMap="threatEventMap">
+        SELECT DISTINCT
+        ON (src_ip, dst_ip)
+            system_name,
+            log_type,
+            src_ip,
+            dst_ip,
+            alert_type,
+            alert_name,
+            alert_level,
+            alert_stat,
+            hostname,
+            alert_devip,
+            create_time
+        FROM SYSLOG_ALERT
+        ORDER BY create_time desc limit 20
+    </select>
+    <select id="getThreatEventListV1" resultType="cn.mw.xiangtai.plugin.domain.entity.SyslogAlertEntity">
+        SELECT DISTINCT ON (src_ip, dst_ip) *
+        FROM SYSLOG_ALERT
+        ORDER BY create_time desc limit 20
+    </select>
+    <select id="attackEventCount" resultType="cn.mw.xiangtai.plugin.domain.dto.LogPointDTO"
+            parameterType="java.lang.Integer">
+        SELECT concat(toString(toYear(create_time)), '年') AS x, count(*) AS y
+        FROM SYSLOG_ALERT
+        WHERE isNotNull(alert_stat)
+          AND create_time >= toDateTime(toString(toYear(now()) - 5) || '-01-01 00:00:00')
+        GROUP BY x
+        ORDER BY x ASC
+    </select>
+    <select id="attackEventCountByTwelveMonths" resultType="cn.mw.xiangtai.plugin.domain.dto.LogPointDTO">
+        SELECT concat(toString(toMonth(create_time)), '月') as x , count(*) as y
+        FROM SYSLOG_ALERT
+        WHERE isNotNull(alert_stat)
+            AND create_time >= toStartOfMonth(now() - interval #{interval} month)
+        GROUP BY x
+        ORDER BY x ASC
+    </select>
+    <select id="attackEventCountByThirtyDay" resultType="cn.mw.xiangtai.plugin.domain.dto.LogPointDTO">
+        SELECT concat(substring(toString(create_time), 6, 2), '-', substring(toString(create_time), 9, 2)) as x , count(*) as y
+        FROM SYSLOG_ALERT
+        WHERE isNotNull(alert_stat)
+            AND create_time >= toStartOfMonth(now() - interval #{interval} day)
+        GROUP BY x
+        ORDER BY x ASC
+    </select>
+    <select id="logEventCount" resultType="cn.mw.xiangtai.plugin.domain.dto.LogPointDTO"
+            parameterType="java.lang.Integer">
+        SELECT concat(toString(toYear(create_time)), '年') AS x, count(*) AS y
+        FROM SYSLOG_ALERT
+        WHERE create_time >= toDateTime(toString(toYear(now()) - 5) || '-01-01 00:00:00')
+        GROUP BY x
+        ORDER BY x ASC
+    </select>
+    <select id="logEventCountByTwelveMonths" resultType="cn.mw.xiangtai.plugin.domain.dto.LogPointDTO">
+        SELECT concat(toString(toMonth(create_time)), '月') as x , count(*) as y
+        FROM SYSLOG_ALERT
+        WHERE create_time >= toStartOfMonth(now() - interval #{interval} month)
+        GROUP BY x
+        ORDER BY x ASC
+    </select>
+    <select id="logEventCountByThirtyDay" resultType="cn.mw.xiangtai.plugin.domain.dto.LogPointDTO">
+        SELECT concat(substring(toString(create_time), 6, 2), '-', substring(toString(create_time), 9, 2)) as x , count(*) as y
+        FROM SYSLOG_ALERT
+        WHERE create_time >= toStartOfMonth(now() - interval #{interval} day)
+        GROUP BY x
+        ORDER BY x ASC
+    </select>
+
+</mapper>

@@ -1,0 +1,422 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.mw.monitor.smartdisc.dao.MWNmapTaskDao">
+
+
+    <resultMap id="ListResultMap" type="cn.mw.monitor.smartdisc.model.MWNmapExplore">
+        <result column="id" property="id"/>
+        <result column="task_type" property="taskType"/>
+        <result column="task_name" property="taskName"/>
+        <result column="start_end_time" property="startEndTime"/>
+        <result column="detect_range" property="detectRange"/>
+        <result column="port_range" property="portRange"/>
+        <result column="detect_times" property="detectTimes"/>
+        <result column="detect_schedule" property="detectSchedule"/>
+        <result column="result_count" property="resultCount"/>
+    </resultMap>
+    <delete id="delete">
+        delete
+            t1,t2,t3,t4,t5
+        from
+            mw_nmap_task t1
+            left join mw_nmap_task_ip_mapper t2 on t1.id = t2.nmap_task_id
+            left join mw_nmap_ip t3 on t2.nmap_ip_id = t3.id
+            left join mw_nmap_ip_service_mapper t4 on t4.nmap_ip_id = t3.id
+            left join mw_nmap_service t5 on t4.nmap_service_id = t5.id
+        where
+            t1.id  in(
+            <foreach collection="list" item="deleteList" separator=",">
+                #{deleteList.value,jdbcType=VARCHAR}
+            </foreach>
+        )
+
+    </delete>
+    <delete id="deleteExceptTask">
+        delete
+        t2,t3,t4,t5
+        from
+        mw_nmap_task t1
+        left join mw_nmap_task_ip_mapper t2 on t1.id = t2.nmap_task_id
+        left join mw_nmap_ip t3 on t2.nmap_ip_id = t3.id
+        left join mw_nmap_ip_service_mapper t4 on t4.nmap_ip_id = t3.id
+        left join mw_nmap_service t5 on t4.nmap_service_id = t5.id
+        where
+        t1.id = #{taskId,jdbcType=INTEGER}
+    </delete>
+
+    <select id="selectCountByIpId" resultType="java.lang.Integer">
+        select service_count
+        from mw_nmap_ip
+        where id =#{id,jdbcType=INTEGER}
+    </select>
+
+    <insert id="insertNmapTask" parameterType="cn.mw.monitor.smartdisc.model.MWNmapExploreTask">
+        insert into mw_nmap_task
+         (
+            task_type,task_name,detect_target,node_group_key,detect_target_input,is_saved_node,ip_live_detect,
+            port_group_type,tcp_port_group,udp_port_group,port_group_key,is_saved_port,detect_live_node_group,
+            is_finger_scan,frail_detect,finger_detect_node_group,cycle_run_value,cycle_run_unit,run_way,
+            exception_ip,exception_ip_input,exception_ip_key,is_saved_exception_ip_group,is_add_exception_ip,
+            detect_speed,wait_time,intervals,retry_count,is_saved_non_live_data,detect_times,creator,modifier,port_range,custom_start_time,delete_flag
+        )
+        values (
+            #{taskType,jdbcType=INTEGER},
+            #{taskName,jdbcType=VARCHAR},
+            #{detectTarget,jdbcType=VARCHAR},
+            #{nodeGroupKey,jdbcType=VARCHAR},
+            #{detectTargetInput,jdbcType=VARCHAR},
+            #{isSavedNode,jdbcType=TINYINT},
+            #{ipLiveDetect,jdbcType=TINYINT},
+            #{portGroupType,jdbcType=INTEGER},
+            #{tcpPortGroup,jdbcType=VARCHAR},
+            #{udpPortGroup,jdbcType=VARCHAR},
+            #{portGroupKey,jdbcType=VARCHAR},
+            #{isSavedPort,jdbcType=TINYINT},
+            #{detectLiveNodeGroup,jdbcType=VARCHAR},
+            #{isFingerScan,jdbcType=TINYINT},
+            #{frailDetect,jdbcType=TINYINT},
+            #{fingerDetectNodeGroup,jdbcType=VARCHAR},
+            #{cycleRunValue,jdbcType=VARCHAR},
+            #{cycleRunUnit,jdbcType=VARCHAR},
+            #{runWay,jdbcType=VARCHAR},
+            #{exceptionIP,jdbcType=INTEGER},
+            #{exceptionIPInput,jdbcType=VARCHAR},
+            #{exceptionIPKey,jdbcType=VARCHAR},
+            #{isSavedExceptionIPGroup,jdbcType=TINYINT},
+            #{isAddExceptionIP,jdbcType=TINYINT},
+            #{detectSpeed,jdbcType=INTEGER},
+            #{waitTime,jdbcType=VARCHAR},
+            #{intervals,jdbcType=VARCHAR},
+            #{retryCount,jdbcType=VARCHAR},
+            #{isSavedNonLiveData,jdbcType=TINYINT},
+            #{detectTimes,jdbcType=INTEGER},
+            #{creator,jdbcType=VARCHAR},
+            #{modifier,jdbcType=VARCHAR},
+            #{portRange,jdbcType=VARCHAR},
+            #{customStartTime,jdbcType=VARCHAR},
+            false
+        )
+    </insert>
+    <insert id="insertIpService">
+        insert into mw_nmap_ip_service_mapper
+        (
+            nmap_ip_id,nmap_service_id
+        )
+        values
+        <foreach collection="ids" item="id" separator=",">
+        (
+            #{ipId,jdbcType=INTEGER},
+            #{id,jdbcType=INTEGER}
+        )
+        </foreach>
+    </insert>
+    <insert id="insertService" parameterType="cn.mw.monitor.smartdisc.model.MWNmapService">
+        insert into mw_nmap_service
+         (
+            extra_info,reason_ttl,port,service_name,
+            product,agreement,reason,state,delete_flag
+        )
+        values (
+            #{extraInfo,jdbcType=VARCHAR},
+            #{reasonTTL,jdbcType=VARCHAR},
+            #{port,jdbcType=VARCHAR},
+            #{serviceName,jdbcType=VARCHAR},
+            #{product,jdbcType=VARCHAR},
+            #{agreement,jdbcType=VARCHAR},
+            #{reason,jdbcType=VARCHAR},
+            #{state,jdbcType=VARCHAR},
+            false
+        )
+    </insert>
+    <insert id="insertIp" parameterType="cn.mw.monitor.smartdisc.model.MWNmapIp">
+         insert into mw_nmap_ip
+         (
+            id,ip,os_type,ip_type,host_name,start_time,end_time,service_count,delete_flag
+        )
+        values (
+            #{id,jdbcType=INTEGER},
+            #{ip,jdbcType=VARCHAR},
+            #{osType,jdbcType=VARCHAR},
+            #{ipType,jdbcType=VARCHAR},
+            #{hostName,jdbcType=VARCHAR},
+            #{startTime,jdbcType=VARCHAR},
+            #{endTime,jdbcType=VARCHAR},
+            #{serviceCount,jdbcType=INTEGER},
+            false
+        )
+    </insert>
+    <insert id="insertTaskIp">
+        insert into mw_nmap_task_ip_mapper
+        (
+            nmap_task_id,nmap_ip_id
+        )
+        values
+        (
+            #{taskId,jdbcType=INTEGER},
+            #{ipId,jdbcType=INTEGER}
+        )
+    </insert>
+    <insert id="insertNonLiveIP">
+        insert into
+            mw_nmap_non_survival_ip (task_id,non_survival_ip)
+        values (
+                #{taskId,jdbcType=INTEGER},
+                #{strIp,jdbcType=VARCHAR}
+        )
+
+    </insert>
+    <select id="selectMaxId" resultType="java.lang.Integer">
+        SELECT
+            max(id)
+        FROM mw_nmap_ip
+    </select>
+    <select id="selectTaskIdByName" resultType="java.lang.Integer">
+        select id
+        from mw_nmap_task
+        where task_name = #{taskName,jdbcType=VARCHAR}
+    </select>
+    <select id="selectMaxServiceId" resultType="java.lang.Integer">
+         SELECT
+            max(id)
+        FROM mw_nmap_service
+    </select>
+    <select id="selectTaskById" resultType="cn.mw.monitor.smartdisc.model.MWNmapExploreTask">
+        select
+            *
+        from mw_nmap_task
+        where id = #{taskId,jdbcType=INTEGER}
+    </select>
+    <select id="selectIpService" resultType="cn.mw.monitor.smartdisc.model.MWNmapIpService">
+        SELECT
+	        b.ip_id,
+	        a.ip,
+	        a.ip_type,
+	        b.service_name,
+            b.PORT,
+            b.state,
+            b.extra_info,
+            b.reason,
+            b.reason_ttl,
+            b.product,
+            b.agreement,
+	        a.os_type,
+            a.host_name
+        FROM
+	        (
+	            SELECT
+		            *
+	            FROM
+		            mw_nmap_ip
+	            WHERE
+	            id IN ( SELECT nmap_ip_id FROM mw_nmap_task_ip_mapper WHERE nmap_task_id = #{taskId,jdbcType=INTEGER} )) a
+	            LEFT JOIN (
+	                SELECT
+		                ip.nmap_ip_id ip_id,
+		                service.*
+	                FROM
+		                mw_nmap_service service
+		            LEFT JOIN (
+		                SELECT
+			                nmap_ip_id,
+			                nmap_service_id
+		                FROM
+			                mw_nmap_ip_service_mapper
+		    WHERE
+		        nmap_ip_id IN ( SELECT nmap_ip_id FROM mw_nmap_task_ip_mapper WHERE nmap_task_id = #{taskId,jdbcType=INTEGER} )) ip ON service.id = ip.nmap_service_id
+	            ) b ON a.id = b.ip_id
+    </select>
+      <select id="selectList" resultMap="ListResultMap" >
+          SELECT
+          task.id,
+          task.task_name,
+          task.task_type,
+          task.start_end_time,
+          task.detect_target_input detect_range,
+          task.port_range,
+          task.detect_times,
+          task.detect_schedule,
+          count.sum result_count
+          FROM
+          mw_nmap_task task
+          LEFT JOIN (
+          SELECT
+          d.id task_id,
+          SUM( service_count ) sum
+          FROM
+          mw_nmap_ip ip
+          LEFT JOIN ( SELECT a.*, b.nmap_ip_id FROM mw_nmap_task a, mw_nmap_task_ip_mapper b WHERE a.id = b.nmap_task_id ) d ON ip.id = d.nmap_ip_id
+          GROUP BY
+          task_id
+          ) count ON task.id = count.task_id
+          where task.delete_flag = FALSE
+          <if test="taskName != null">
+              AND task.task_name LIKE CONCAT('%',#{taskName,jdbcType=VARCHAR},'%')
+          </if>
+          <if test="taskType != null">
+              and task.task_type LIKE CONCAT('%',#{taskType,jdbcType=VARCHAR},'%')
+          </if>
+          <if test="startEndTime != null">
+              and task.start_end_time LIKE CONCAT('%',#{startEndTime,jdbcType=VARCHAR},'%')
+          </if>
+          <if test="detectTargetInput != null">
+              and task.detect_target_input LIKE CONCAT('%',#{detectTargetInput,jdbcType=VARCHAR},'%')
+          </if>
+          <if test="portRange != null">
+              and task.port_range LIKE CONCAT('%',#{portRange,jdbcType=VARCHAR},'%')
+          </if>
+          <if test="detectTimes != null">
+              and task.detect_times LIKE CONCAT('%',#{detectTimes,jdbcType=INTEGER},'%')
+          </if>
+          <if test="detectSchedule != null">
+              and task.detect_schedule = #{detectSchedule,jdbcType=VARCHAR}
+          </if>
+          <if test="serviceCount != null">
+              and count.service_count LIKE CONCAT('%',#{serviceCount,jdbcType=INTEGER},'%')
+          </if>
+      </select>
+    <select id="selectTaskByName" resultType="java.lang.Integer">
+        select count(0)
+        from mw_nmap_task
+        where task_name =#{taskName,jdbcType=VARCHAR};
+    </select>
+    <select id="selectNmapTaskByName" resultType="cn.mw.monitor.smartdisc.model.MWNmapExploreTask">
+        select *
+        from mw_nmap_task
+        where task_name = #{taskName,jdbcType=VARCHAR}
+    </select>
+    <select id="selectIpByTaskId" resultType="java.lang.Integer">
+        select nmap_ip_id
+        from mw_nmap_task_ip_mapper
+        where nmap_task_id = #{taskId,jdbcType=INTEGER}
+    </select>
+    <select id="selectServiceByIpId" resultType="cn.mw.monitor.smartdisc.model.MWNmapIpService">
+        SELECT
+            t2.ip,
+            t2.ip_type,
+            t2.os_type,
+            t2.host_name,
+            t1.*
+        FROM
+            mw_nmap_service t1,
+            ( SELECT * FROM mw_nmap_ip WHERE id = #{ipId,jdbcType=INTEGER} ) t2
+        WHERE
+            t1.id IN ( SELECT nmap_service_id FROM mw_nmap_ip_service_mapper WHERE nmap_ip_id = #{ipId,jdbcType=INTEGER} );
+    </select>
+    <select id="selectLiveIPByTaskId" resultType="java.lang.String">
+        SELECT
+            ip
+        FROM
+            mw_nmap_ip
+        WHERE
+            id IN ( SELECT nmap_ip_id FROM mw_nmap_task_ip_mapper WHERE nmap_task_id = #{taskId,jdbcType=INTEGER} );
+    </select>
+
+
+    <update id="updateTask" parameterType="cn.mw.monitor.smartdisc.model.MWNmapExploreTask">
+        update mw_nmap_task
+        set
+        <if test="taskName != null and taskName != ''">
+            task_name = #{taskName,jdbcType=VARCHAR},
+        </if>
+        <if test="taskType != null and taskType != ''">
+            task_type = #{taskType,jdbcType=VARCHAR},
+        </if>
+        <if test="detectTarget != null">
+            detect_target = #{detectTarget,jdbcType=VARCHAR},
+        </if>
+        <if test="nodeGroupKey != null">
+            node_group_key = #{nodeGroupKey,jdbcType=VARCHAR},
+        </if>
+        <if test="detectTargetInput != null">
+            detect_target_input = #{detectTargetInput,jdbcType=VARCHAR},
+        </if>
+        <if test="isSavedNode != null">
+            is_saved_node = #{isSavedNode,jdbcType=TINYINT},
+        </if>
+        <if test="ipLiveDetect != null">
+            ip_live_detect = #{ipLiveDetect,jdbcType=TINYINT},
+        </if>
+        <if test="portGroupType != null">
+            port_group_type = #{portGroupType,jdbcType=INTEGER},
+        </if>
+        <if test="tcpPortGroup != null">
+            tcp_port_group = #{tcpPortGroup,jdbcType=VARCHAR},
+        </if>
+        <if test="udpPortGroup != null">
+            udp_port_group = #{udpPortGroup,jdbcType=VARCHAR},
+        </if>
+        <if test="portGroupKey != null">
+            port_group_key = #{portGroupKey,jdbcType=VARCHAR},
+        </if>
+        <if test="isSavedPort != null">
+            is_saved_port = #{isSavedPort,jdbcType=TINYINT},
+        </if>
+        <if test="detectLiveNodeGroup != null">
+            detect_live_node_group = #{detectLiveNodeGroup,jdbcType=VARCHAR},
+        </if>
+        <if test="isFingerScan != null">
+            is_finger_scan = #{isFingerScan,jdbcType=TINYINT},
+        </if>
+        <if test="frailDetect != null">
+            frail_detect = #{frailDetect,jdbcType=TINYINT},
+        </if>
+        <if test="fingerDetectNodeGroup != null">
+            finger_detect_node_group = #{fingerDetectNodeGroup,jdbcType=VARCHAR},
+        </if>
+        <if test="cycleRunValue != null">
+            cycle_run_value = #{cycleRunValue,jdbcType=VARCHAR},
+        </if>
+        <if test="cycleRunUnit != null">
+            cycle_run_unit = #{cycleRunUnit,jdbcType=VARCHAR},
+        </if>
+        <if test="runWay != null">
+            run_way = #{runWay,jdbcType=VARCHAR},
+        </if>
+        <if test="exceptionIP != null">
+            exception_ip = #{exceptionIP,jdbcType=INTEGER},
+        </if>
+        <if test="exceptionIPInput != null">
+            exception_ip_input = #{exceptionIPInput,jdbcType=VARCHAR},
+        </if>
+        <if test="exceptionIPKey != null">
+            exception_ip_key = #{exceptionIPKey,jdbcType=VARCHAR},
+        </if>
+        <if test="isSavedExceptionIPGroup != null">
+            is_saved_exception_ip_group = #{isSavedExceptionIPGroup,jdbcType=TINYINT},
+        </if>
+        <if test="isAddExceptionIP != null">
+            is_add_exception_ip = #{isAddExceptionIP,jdbcType=TINYINT},
+        </if>
+        <if test="detectSpeed != null">
+            detect_speed = #{detectSpeed,jdbcType=INTEGER},
+        </if>
+        <if test="waitTime != null">
+            wait_time = #{waitTime,jdbcType=VARCHAR},
+        </if>
+        <if test="intervals != null">
+            intervals = #{intervals,jdbcType=VARCHAR},
+        </if>
+        <if test="retryCount != null">
+            retry_count = #{retryCount,jdbcType=VARCHAR},
+        </if>
+        <if test="isSavedNonLiveData != null">
+            is_saved_non_live_data = #{isSavedNonLiveData,jdbcType=TINYINT},
+        </if>
+        <if test="detectTimes != null">
+            detect_times = #{detectTimes,jdbcType=INTEGER},
+        </if>
+        <if test="startEndTime != null">
+            start_end_time = #{startEndTime,jdbcType=VARCHAR},
+        </if>
+        <if test="portRange != null">
+            port_range = #{portRange,jdbcType=VARCHAR},
+        </if>
+        <if test="customStartTime != null and customStartTime != ''">
+            custom_start_time = #{customStartTime,jdbcType=VARCHAR},
+        </if>
+        modifier = #{modifier,jdbcType=VARCHAR}
+        where id = #{id,jdbcType=INTEGER}
+
+    </update>
+
+</mapper>

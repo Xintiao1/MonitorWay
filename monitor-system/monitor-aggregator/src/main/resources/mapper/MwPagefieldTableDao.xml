@@ -1,0 +1,152 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.mw.monitor.customPage.dao.MwPagefieldTableDao">
+
+    <select id="selectByUserId" parameterType="cn.mw.monitor.customPage.api.param.QueryCustomPageParam" resultMap="BaseResultMap">
+        SELECT
+            t1.prop,
+            t1.label,
+            t1.type,
+            t1.is_tree,
+            t2.id custom_id,
+            t2.col_id,
+            t2.user_id,
+            t2.sortable,
+            t2.width,
+            t2.visible,
+            t2.order_number,
+            t2.delete_flag
+        FROM mw_pagefield_table t1
+        LEFT JOIN mw_customcol_table t2 on t1.id = t2.col_id
+        WHERE t2.user_id = #{userId,jdbcType=INTEGER}
+        AND t1.page_id = #{pageId,jdbcType=INTEGER}
+        ORDER BY t2.order_number
+    </select>
+
+    <resultMap id="BaseResultByModelMap" type="cn.mw.monitor.service.model.param.MwCustomColByModelDTO">
+        <id column="id" jdbcType="INTEGER" property="id" />
+        <result column="model_Id" jdbcType="INTEGER" property="modelId" />
+        <result column="model_properties_id" jdbcType="INTEGER" property="modelPropertiesId" />
+        <result column="prop" jdbcType="VARCHAR" property="prop" />
+        <result column="label" jdbcType="VARCHAR" property="label" />
+        <result column="is_tree" jdbcType="BOOLEAN" property="isTree" />
+        <result column="type" jdbcType="VARCHAR" property="type" />
+        <result column="visible" jdbcType="BOOLEAN" property="importance"/>
+        <result column="order_number" jdbcType="INTEGER" property="orderNum" />
+        <result column="custom_id" jdbcType="INTEGER" property="customId" />
+        <result column="col_id" jdbcType="INTEGER" property="colId" />
+        <result column="user_id" jdbcType="INTEGER" property="userId" />
+        <result column="sortable" jdbcType="BOOLEAN" property="sortable" />
+        <result column="width" jdbcType="INTEGER" property="width" />
+        <result column="visible" jdbcType="BOOLEAN" property="visible" />
+        <result column="order_number" jdbcType="INTEGER" property="orderNumber" />
+    </resultMap>
+
+    <resultMap id="BaseResultMap" type="cn.mw.monitor.customPage.dto.MwCustomColDTO">
+    <id column="id" jdbcType="INTEGER" property="id" />
+    <result column="page_Id" jdbcType="INTEGER" property="pageId" />
+    <result column="prop" jdbcType="VARCHAR" property="prop" />
+    <result column="label" jdbcType="VARCHAR" property="label" />
+    <result column="type" jdbcType="VARCHAR" property="type" />
+    <result column="visible" jdbcType="BOOLEAN" property="importance"/>
+    <result column="order_number" jdbcType="INTEGER" property="orderNum" />
+    <result column="custom_id" jdbcType="INTEGER" property="customId" />
+    <result column="col_id" jdbcType="INTEGER" property="colId" />
+    <result column="user_id" jdbcType="INTEGER" property="userId" />
+    <result column="sortable" jdbcType="BOOLEAN" property="sortable" />
+    <result column="width" jdbcType="INTEGER" property="width" />
+    <result column="visible" jdbcType="BOOLEAN" property="visible" />
+    <result column="order_number" jdbcType="INTEGER" property="orderNumber" />
+</resultMap>
+
+    <select id="selectByMutilPageId" parameterType="cn.mw.monitor.customPage.api.param.QueryCustomMultiPageParam" resultMap="GroupResultMap">
+        select
+            t1.page_id,
+            t1.prop,
+            t1.label,
+            t1.visible importance,
+            t2.id as custom_id,
+            t2.col_id,
+            t2.user_id,
+            t2.sortable,
+            t2.width,
+            t2.visible,
+            t2.order_number
+        from mw_pagefield_table t1
+        left join mw_customcol_table t2 on t1.id = t2.col_id
+        where t2.user_id = #{userId,jdbcType=INTEGER}
+        and t1.page_id in (
+        <foreach collection="pageIds" index="index" item="item" separator=",">
+            #{item}
+        </foreach>
+        )
+        order by t2.order_number
+    </select>
+
+    <resultMap id="GroupResultMap" type="cn.mw.monitor.customPage.dto.MwCustomMultiColDTO">
+        <id column="page_id" jdbcType="INTEGER" property="pageId" />
+        <collection property="pagelist" ofType="cn.mw.monitor.customPage.dto.MwCustomColDTO">
+            <result column="id" jdbcType="INTEGER" property="id" />
+            <result column="prop" jdbcType="VARCHAR" property="prop" />
+            <result column="label" jdbcType="VARCHAR" property="label" />
+            <result column="importance" jdbcType="BOOLEAN" property="importance"/>
+            <result column="custom_id" jdbcType="INTEGER" property="customId" />
+            <result column="col_id" jdbcType="INTEGER" property="colId" />
+            <result column="user_id" jdbcType="INTEGER" property="userId" />
+            <result column="sortable" jdbcType="BOOLEAN" property="sortable" />
+            <result column="width" jdbcType="INTEGER" property="width" />
+            <result column="visible" jdbcType="BOOLEAN" property="visible" />
+            <result column="order_number" jdbcType="INTEGER" property="orderNumber" />
+        </collection>
+    </resultMap>
+
+
+    <select id="seletctAll" resultMap="BaseResultMap">
+        select *
+        from mw_pagefield_table
+        order by id
+    </select>
+
+    <select id="seletctAllByModel" resultMap="BaseResultByModelMap">
+        select *
+        from mw_cmdbmd_pagefield_table
+        order by id
+    </select>
+
+    <select id="selectResetById" parameterType="cn.mw.monitor.customPage.api.param.QueryCustomPageParam" resultMap="BaseResultMap">
+        SELECT
+            t1.prop,
+            t1.label,
+            t2.id custom_id,
+            t2.col_id,
+            t2.user_id,
+            t2.sortable,
+            t2.width,
+            t1.visible,
+            t2.order_number
+        FROM mw_pagefield_table t1
+        LEFT JOIN mw_customcol_table t2 on t1.id = t2.col_id
+        WHERE t2.user_id = #{userId,jdbcType=INTEGER}
+        AND t1.page_id = #{pageId,jdbcType=INTEGER}
+        ORDER BY t2.order_number
+    </select>
+
+    <delete id="deleteByUserId" parameterType="java.util.List">
+        delete from mw_customcol_table
+        where user_id IN (
+        <foreach collection="userIds" item="list" separator=",">
+            #{list,jdbcType=INTEGER}
+        </foreach>
+        )
+    </delete>
+
+    <delete id="deleteByModelUserId" parameterType="java.util.List">
+        delete from mw_cmdbmd_customcol_table
+        where user_id IN (
+        <foreach collection="userIds" item="list" separator=",">
+            #{list,jdbcType=INTEGER}
+        </foreach>
+        )
+    </delete>
+
+</mapper>

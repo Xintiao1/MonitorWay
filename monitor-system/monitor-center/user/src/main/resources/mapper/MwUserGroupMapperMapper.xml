@@ -1,0 +1,170 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.mw.monitor.user.dao.MwUserGroupMapperDao">
+
+    <!-- 根据用户组id删除用户组和用户关联关系 -->
+    <update id="deleteBatchByGroupId">
+        UPDATE mw_user_group_mapper
+        SET delete_flag = TRUE,
+        update_time = now()
+        WHERE delete_flag = FALSE
+        AND group_id IN (
+        <foreach collection="groupIds" item="list" separator=",">
+            #{list,jdbcType=INTEGER}
+        </foreach>
+        )
+    </update>
+
+    <!-- 根据用户id删除用户组和用户关联关系 -->
+    <update id="deleteBatchByUserId">
+        UPDATE mw_user_group_mapper
+        SET delete_flag = TRUE,
+        update_time = now()
+        WHERE delete_flag = FALSE
+        AND user_id IN (
+        <foreach collection="userIds" item="list" separator=",">
+            #{list,jdbcType=INTEGER}
+        </foreach>
+        )
+    </update>
+
+    <!-- 新增用户和用户组的关联关系 -->
+    <insert id="insertBatch">
+        INSERT INTO mw_user_group_mapper (
+        group_id,
+        user_id,
+        update_time
+        ) VALUES
+        <foreach collection="list" item="list" separator=",">
+            (
+            #{list.groupId,jdbcType=INTEGER},
+            #{list.userId,jdbcType=INTEGER},
+            now()
+            )
+        </foreach>
+    </insert>
+
+    <!-- 根据用户组id查询关联用户数量 -->
+    <select id="countByGroupId" resultType="java.lang.Integer">
+        SELECT
+            COUNT(1)
+        FROM mw_user_group_mapper
+        WHERE delete_flag = FALSE
+        AND group_id = #{groupId,jdbcType=INTEGER}
+    </select>
+
+
+    <!-- 根据用户id查询用户组和用户关联关系 -->
+    <select id="selectByUserId" parameterType="int" resultType="cn.mw.monitor.user.model.MwUserGroupTable">
+        SELECT
+            group_id groupId,
+            user_id userId,
+        FROM mw_user_group_mapper
+        WHERE delete_flag = FALSE
+        AND user_id = #{userId,jdbcType=INTEGER}
+    </select>
+
+    <!-- 根据用户登录名称查询用户组id -->
+    <select id="getGroupIdByLoginName" parameterType="java.lang.String" resultType="java.lang.Integer">
+        SELECT
+            group_id
+        FROM view_user_group
+        WHERE login_name = #{loginName,jdbcType=VARCHAR}
+    </select>
+    <select id="selectGroupUserIdByUserId" resultType="java.lang.Integer">
+    SELECT DISTINCT
+	user_id
+    FROM
+	mw_user_group_mapper
+    WHERE
+	delete_flag = FALSE
+	AND group_id IN (
+	SELECT DISTINCT
+		group_id
+	FROM
+		mw_user_group_mapper
+	WHERE
+		user_id = #{userId,jdbcType=INTEGER}
+	AND delete_flag = FALSE
+	)
+    </select>
+
+
+    <!-- 根据用户登录名称查询用户组id -->
+    <select id="getUserIdIdByLoginName" parameterType="java.lang.String" resultType="java.lang.String">
+        SELECT
+            open_id
+        FROM mw_sys_user
+        WHERE login_name = #{loginName,jdbcType=VARCHAR}
+        	AND delete_flag = FALSE
+    </select>
+
+    <!-- 根据用户登录名称查询用户组id -->
+    <select id="getWxOpenId" parameterType="java.lang.String" resultType="java.lang.String">
+       SELECT
+        t2.open_id
+    FROM
+        mw_user_org_mapper t1
+        LEFT JOIN mw_sys_user t2 ON t2.user_id = t1.user_id
+    WHERE
+        t2.delete_flag = FALSE
+        AND t2.open_id IS NOT NULL
+        AND t2.open_id != ''
+        AND t1.delete_flag = FALSE
+        AND t1.org_id IN (
+        SELECT
+            org_id
+        FROM
+            `mw_user_org_mapper`
+        WHERE
+            user_id =(
+            SELECT
+                user_Id
+            FROM
+                mw_sys_user
+            WHERE
+                login_name = #{loginName,jdbcType=VARCHAR}
+                AND delete_flag = FALSE
+            )
+        AND delete_flag = FALSE)
+
+    </select>
+
+    <select id="getAllGroupList"  resultType="cn.mw.monitor.service.assets.model.GroupDTO">
+        select
+        t2.group_id groupId,t2.group_name groupName
+        from mw_group_mapper t1
+        left join mw_group_table t2 on t1.group_id = t2.group_id
+        where t1.type_id = #{typeId} and t1.type=#{dataType}
+    </select>
+
+    <select id="getGroupnamesByids"  resultType="java.lang.String">
+        select
+            group_name
+        from mw_group_table
+        where group_id in
+        <foreach collection="groupIds" item="item" index="index" open="(" separator="," close=")">
+            #{item}
+        </foreach>
+    </select>
+
+    <select id="getUserListByGroupIds" resultType="cn.mw.monitor.user.dto.UserGroupDTO">
+        select
+            t1.group_id,
+            t2.user_id,
+            t2.user_name,
+            t2.login_name,
+            t2.phone_number,
+            t2.wechat_id,
+            t2.dd_id,
+            t2.email,
+            t2.user_Expire_State
+        from mw_user_group_mapper t1
+        left join mw_sys_user t2
+        ON t1.user_id = t2.user_id
+        where t1.delete_flag=0 and t2.delete_flag=0 and t1.group_id in
+        <foreach collection="groupIds" item="item" index="index" open="(" separator="," close=")">
+            #{item}
+        </foreach>
+    </select>
+</mapper>

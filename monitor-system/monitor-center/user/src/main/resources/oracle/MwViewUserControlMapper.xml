@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.mw.monitor.user.dao.MwViewUserControlDao">
+  <resultMap id="BaseResultMap" type="cn.mw.monitor.user.model.MwViewUserControl">
+    <id column="user_id" jdbcType="INTEGER" property="userId" />
+    <result column="login_name" jdbcType="VARCHAR" property="loginName" />
+    <result column="rule" jdbcType="VARCHAR" property="rule" />
+    <result column="control_name" jdbcType="VARCHAR" property="controlName" />
+  </resultMap>
+
+  <sql id="Base_Column_List">
+    "user_id", "login_name", "rule", "control_name"
+  </sql>
+
+  <sql id="tb">
+    ${TBSNAME}."view_user_control"
+  </sql>
+
+  <select id="selectByUserId" parameterType="java.lang.Integer" resultMap="BaseResultMap">
+    select 
+    <include refid="Base_Column_List" />
+    from <include refid="tb" />
+    where "user_id" = #{userId,jdbcType=INTEGER}
+  </select>
+
+  <select id="selectList" resultType="cn.mw.monitor.user.model.MwViewUserControl" parameterType="java.util.HashMap" resultMap="BaseResultMap">
+    select <include refid="Base_Column_List"/>
+    from <include refid="tb"/>
+    order by "user_id", "login_name"
+  </select>
+
+
+</mapper>

@@ -1,0 +1,404 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.mw.monitor.assets.dao.MWTreeCustomClassifyDao">
+
+    <resultMap id="customClassifyMap" type="cn.mw.monitor.assets.param.MWTreeCustomClassifyParam">
+        <id column="id" jdbcType="INTEGER" property="id" />
+        <result column="custom_name" jdbcType="VARCHAR" property="customName" />
+        <result column="one_level_classify_id" jdbcType="INTEGER" property="oneLevelClassifyId" />
+        <result column="one_level_classify_name" jdbcType="VARCHAR" property="oneLevelClassifyName" />
+        <result column="two_level_classify_id" jdbcType="INTEGER" property="twoLevelClassifyId" />
+        <result column="two_level_classify_name" jdbcType="VARCHAR" property="twoLevelClassifyName" />
+        <result column="three_level_classify_id" jdbcType="INTEGER" property="threeLevelClassifyId" />
+        <result column="three_level_classify_name" jdbcType="VARCHAR" property="threeLevelClassifyName" />
+        <result column="classify_type" jdbcType="VARCHAR" property="classifyType" />
+        <result column="creator" jdbcType="VARCHAR" property="creator" />
+        <result column="create_date" jdbcType="TIMESTAMP" property="createDate" />
+        <result column="modifier" jdbcType="VARCHAR" property="modifier" />
+        <result column="modification_date" jdbcType="TIMESTAMP" property="modificationDate" />
+    </resultMap>
+
+    <resultMap id="BaseResultMap" type="cn.mw.monitor.assets.dto.AssetsTreeDTO">
+        <id column="typeId" jdbcType="INTEGER" property="typeId"/>
+        <result column="typeName" jdbcType="VARCHAR" property="typeName"/>
+        <result column="inputFormat" jdbcType="INTEGER" property="inputFormat"/>
+        <result column="url" jdbcType="VARCHAR" property="url"/>
+        <result column="url_type" jdbcType="INTEGER" property="url_type"/>
+        <result column="vendorCustomFlag" jdbcType="INTEGER" property="vendorCustomFlag"/>
+        <collection property="assetsList" resultMap="StringResultMap"/>
+        <collection property="children" resultMap="SecondResultMap"/>
+    </resultMap>
+    <resultMap id="StringResultMap" type="cn.mw.monitor.assets.dto.AssetsDTO">
+        <id column="assetsId" jdbcType="VARCHAR" property="id"/>
+        <result column="assetsName" jdbcType="VARCHAR" property="assetsName"/>
+        <result column="hostId" jdbcType="VARCHAR" property="assetsId"/>
+        <result column="monitorServerId" jdbcType="VARCHAR" property="monitorServerId"/>
+    </resultMap>
+    <resultMap id="SecondResultMap" type="cn.mw.monitor.assets.dto.AssetsTreeDTO">
+        <id column="s_typeName" jdbcType="VARCHAR" property="typeName"/>
+        <result column="s_typeId" jdbcType="INTEGER" property="typeId"/>
+        <result column="s_url" jdbcType="VARCHAR" property="url"/>
+        <result column="s_url_type" jdbcType="INTEGER" property="url_type"/>
+        <collection property="assetsList" resultMap="StringResultMap"/>
+    </resultMap>
+
+
+    <insert id="createTreeCustomClassify" parameterType="cn.mw.monitor.assets.param.MWTreeCustomClassifyParam">
+        INSERT INTO
+            mw_treetructure_customclassify
+            (
+                custom_name,
+                one_level_classify_id,
+                one_level_classify_name,
+                two_level_classify_id,
+                two_level_classify_name,
+                three_level_classify_id,
+                three_level_classify_name,
+                classify_type, creator,
+                create_date,
+                modifier,
+                modification_date
+            )
+        VALUES
+	        (
+	            #{customName,jdbcType=VARCHAR},
+	            #{oneLevelClassifyId,jdbcType=INTEGER},
+	            #{oneLevelClassifyName,jdbcType=VARCHAR},
+	            #{twoLevelClassifyId,jdbcType=INTEGER},
+	            #{twoLevelClassifyName,jdbcType=VARCHAR},
+	            #{threeLevelClassifyId,jdbcType=INTEGER},
+	            #{threeLevelClassifyName,jdbcType=VARCHAR},
+	            #{classifyType,jdbcType=VARCHAR},
+	            #{creator,jdbcType=VARCHAR},
+	            now(),
+	            #{modifier,jdbcType=VARCHAR},
+	            now()
+	        )
+    </insert>
+
+
+
+    <update id="updateTreeCustomClassify" parameterType="cn.mw.monitor.assets.param.MWTreeCustomClassifyParam">
+        UPDATE mw_treetructure_customclassify
+        SET
+            custom_name =  #{customName,jdbcType=VARCHAR},
+            one_level_classify_id = #{oneLevelClassifyId,jdbcType=INTEGER},
+            one_level_classify_name =  #{oneLevelClassifyName,jdbcType=VARCHAR},
+            two_level_classify_id = #{twoLevelClassifyId,jdbcType=INTEGER},
+            two_level_classify_name = #{twoLevelClassifyName,jdbcType=VARCHAR},
+            three_level_classify_id = #{threeLevelClassifyId,jdbcType=INTEGER},
+            three_level_classify_name =  #{threeLevelClassifyName,jdbcType=VARCHAR},
+            classify_type = #{classifyType,jdbcType=VARCHAR},
+            modifier = #{modifier,jdbcType=VARCHAR},
+            modification_date = now()
+        WHERE
+            id = #{id,jdbcType=INTEGER}
+    </update>
+
+
+    <delete id="deleteTreeCustomClassify">
+        DELETE FROM	mw_treetructure_customclassify WHERE id IN
+        <foreach collection="customIds" item="id" index="index" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+    <select id="selectTreeCustomClassify" resultMap="customClassifyMap">
+       SELECT
+            id,
+            custom_name,
+            one_level_classify_id,
+            one_level_classify_name,
+            two_level_classify_id,
+            two_level_classify_name,
+            three_level_classify_id,
+            three_level_classify_name,
+            classify_type,
+            creator,
+            create_date,
+            modifier,
+            modification_date
+        FROM
+            mw_treetructure_customclassify
+        WHERE 1 = 1
+        <if test="customName != null and customName != ''">
+            and custom_name like  concat ('%' ,#{customName,jdbcType=VARCHAR},'%')
+        </if>
+        <if test="oneLevelClassifyId != null and oneLevelClassifyId != ''">
+            and one_level_classify_id = #{oneLevelClassifyId,jdbcType=INTEGER}
+        </if>
+        <if test="oneLevelClassifyName != null and oneLevelClassifyName != ''">
+            and one_level_classify_name like  concat ('%' ,#{oneLevelClassifyName,jdbcType=VARCHAR},'%')
+        </if>
+        <if test="twoLevelClassifyId != null and twoLevelClassifyId != ''">
+            and two_level_classify_id = #{twoLevelClassifyId,jdbcType=INTEGER}
+        </if>
+        <if test="twoLevelClassifyName != null and twoLevelClassifyName != ''">
+            and two_level_classify_name like  concat ('%' ,#{twoLevelClassifyName,jdbcType=VARCHAR},'%')
+        </if>
+        <if test="threeLevelClassifyId != null and threeLevelClassifyId != ''">
+            and three_level_classify_id = #{threeLevelClassifyId,jdbcType=INTEGER}
+        </if>
+        <if test="threeLevelClassifyName != null and threeLevelClassifyName != ''">
+            and three_level_classify_name like  concat ('%' ,#{threeLevelClassifyName,jdbcType=VARCHAR},'%')
+        </if>
+        <if test="classifyType != null and classifyType != ''">
+            and classify_type = #{classifyType,jdbcType=VARCHAR}
+        </if>
+        order by modification_date desc
+    </select>
+
+
+    <select id="selectAssetsVendorList" resultMap="BaseResultMap">
+        SELECT
+        t1.vendorId typeId,
+        if(t1.vendor ='', 'unknown',t1.vendor) typeName,
+        t1.assetsId,
+        t1.assetsName,
+        t1.hostId,
+        t1.monitorServerId,
+        t1.url,
+        t1.url_type,
+        t1.specificationsId s_typeId,
+        t1.specifications s_typeName,
+        t1.custom_flag vendorCustomFlag
+        FROM
+        (
+        SELECT
+        a1.id assetsId,
+        a1.assets_name assetsName,
+        a1.assets_id hostId,
+        a1.monitor_server_id monitorServerId,
+        a1.manufacturer vendor,
+        a2.id vendorId,
+        a1.specifications specifications,
+        a3.id specificationsId,
+        a2.vendor_small_icon url,
+        a2.custom_flag url_type,
+        a2.custom_flag
+        FROM
+        ( SELECT
+        id,
+        assets_name,
+        manufacturer,
+        monitor_server_id,
+        assets_id,
+        specifications
+        FROM ${tableName} WHERE delete_flag = FALSE
+        <if test="settingEnable != null and settingEnable == 1">
+            and setting_flag = TRUE
+        </if>
+        ) a1
+        LEFT JOIN mw_base_vendor_icon a2 ON a2.vendor = a1.manufacturer
+        LEFT JOIN mw_ncm_vendor_table a3 ON a3.specification = a1.specifications and a3.brand = a1.manufacturer
+        ) t1
+        <if test="assetsIds != null and assetsIds.size > 0">
+            where t1.assetsId in
+            <foreach collection="assetsIds" item="id" index="index" open="(" separator="," close=")">
+                #{id}
+            </foreach>
+        </if>
+    </select>
+
+    <select id="selectAssetsTypeList" resultMap="BaseResultMap">
+        SELECT
+        t1.assetsTypeId typeId,
+        if(t1.assetsTypeName ='' or t1.assetsTypeName is null, 'unknown',t1.assetsTypeName) typeName,
+        t1.assetsId,
+        t1.assetsName,
+        t1.url,
+        1 url_type,
+        <if test="moduleType == 'ASSETS' or moduleType == 'OUTBANDASSETS'">
+            t1.hostId,
+            t1.monitorServerId,
+        </if>
+        if(t1.assetsSubTypeId is null, 0,t1.assetsSubTypeId) s_typeId,
+        if(t1.s_url ='' or t1.s_url is null, '',t1.s_url) s_url,
+        1 s_url_type,
+        if(t1.assetsSubTypeName ='' or t1.assetsSubTypeName is null, 'unknown',t1.assetsSubTypeName) s_typeName
+        FROM
+        (
+        SELECT
+        a1.id assetsId,
+        a1.assets_name assetsName,
+        a1.assets_type_id assetsTypeId,
+        <if test="moduleType == 'ASSETS' or moduleType == 'OUTBANDASSETS'">
+            a1.assets_id hostId,
+            a1.monitor_server_id monitorServerId,
+        </if>
+        a2.type_name assetsTypeName,
+        a2.type_icon url,
+        a1.assets_type_sub_id assetsSubTypeId,
+        a3.type_icon s_url,
+        a3.type_name assetsSubTypeName
+        FROM
+        ( SELECT
+        id,
+        assets_name,
+        ${assetsSubTypeId} assets_type_sub_id,
+        <if test="moduleType == 'ASSETS' or moduleType == 'OUTBANDASSETS'">
+            monitor_server_id,
+            assets_id,
+        </if>
+        assets_type_id
+        FROM ${tableName} WHERE delete_flag = FALSE
+        <if test="settingEnable != null and settingEnable == 1">
+            and setting_flag = TRUE
+        </if>
+        ) a1
+        LEFT JOIN mw_assetssubtype_table a2 ON a2.id = a1.assets_type_id
+        LEFT JOIN mw_assetssubtype_table a3 ON a3.id = a1.assets_type_sub_id
+        ) t1
+        <if test="assetsIds != null and assetsIds.size > 0">
+            where t1.assetsId in
+            <foreach collection="assetsIds" item="id" index="index" open="(" separator="," close=")">
+                #{id}
+            </foreach>
+        </if>
+    </select>
+
+    <select id="selectAssetsLabelList" resultMap="BaseResultMap">
+        SELECT
+        t1.typeId,
+        t1.typeName,
+        t1.assetsId,
+        t1.assetsName,
+        <if test="moduleType == 'ASSETS' or moduleType == 'OUTBANDASSETS'">
+            t1.hostId,
+            t1.monitorServerId,
+        </if>
+        t1.s_typeId,
+        t1.s_typeName,
+        t1.inputFormat
+        FROM
+        (
+        SELECT
+        a1.label_id typeId,
+        a2.label_name typeName,
+        a2.input_format inputFormat,
+        a1.type_id assetsId,
+        a3.assets_name assetsName,
+        <if test="moduleType == 'ASSETS' or moduleType == 'OUTBANDASSETS'">
+            a3.assets_id hostId,
+            a3.monitor_server_id monitorServerId,
+        </if>
+        a1.id s_typeId,
+        a1.tagboard s_typeName,
+        a2.delete_flag
+        FROM
+        (
+        SELECT
+        id,
+        type_id,
+        label_id,
+        tagboard
+        FROM
+        mw_label_mapper
+        WHERE
+        module_type = #{moduleType,jdbcType=VARCHAR} UNION ALL
+        SELECT
+        id,
+        type_id,
+        label_id,
+        drop_tagboard tagboard
+        FROM
+        (
+        SELECT
+        d1.id,
+        d1.type_id,
+        d1.label_id,
+        d2.drop_value drop_tagboard,
+        d2.delete_flag
+        FROM
+        ( SELECT id, type_id, label_id, module_type, drop_tagboard FROM mw_label_drop_mapper WHERE module_type = #{moduleType,jdbcType=VARCHAR}) d1
+        LEFT JOIN mw_dropdown_table d2 ON d1.drop_tagboard = d2.drop_id
+        ) drop1
+        WHERE
+        drop1.delete_flag = FALSE UNION ALL
+        SELECT
+        id,
+        type_id,
+        label_id,
+        date_tagboard tagboard
+        FROM
+        mw_label_date_mapper
+        WHERE
+        module_type = #{moduleType,jdbcType=VARCHAR}
+        ) a1
+        LEFT JOIN mw_labelmanage_table a2 ON a2.label_id = a1.label_id
+        LEFT JOIN ${tableName} a3 ON a3.id = a1.type_id
+        <if test="settingEnable != null and settingEnable == 1">
+            and setting_flag = TRUE
+        </if>
+        WHERE a3.delete_flag = FALSE
+        ) t1 where t1.delete_flag = false
+        <if test="assetsIds != null and assetsIds.size > 0">
+            and t1.assetsId in
+            <foreach collection="assetsIds" item="id" index="index" open="(" separator="," close=")">
+                #{id}
+            </foreach>
+        </if>
+    </select>
+
+    <select id="selectAllAssets" resultMap="StringResultMap">
+        SELECT
+        distinct id assetsId,
+        <if test="moduleType == 'ASSETS' or moduleType == 'OUTBANDASSETS'">
+            assets_id hostId,
+            monitor_server_id monitorServerId,
+        </if>
+        assets_name assetsName
+        FROM
+        ${tableName}
+        WHERE delete_flag = FALSE
+        <if test="tableName == 'mw_tangibleassets_table'">
+            <if test="settingEnable != null and settingEnable == 1">
+                and setting_flag = TRUE
+            </if>
+        </if>
+        <if test="assetsIds != null and assetsIds.size > 0">
+            and id in
+            <foreach collection="assetsIds" item="id" index="index" open="(" separator="," close=")">
+                #{id}
+            </foreach>
+        </if>
+    </select>
+
+    <select id="selectAssetsOrgList" resultType="cn.mw.monitor.assets.dto.AssetsDTO">
+        SELECT
+        a2.id id,
+        <if test="moduleType == 'ASSETS' or moduleType == 'OUTBANDASSETS'">
+            a2.assets_id assetsId,
+            a2.monitor_server_id monitorServerId,
+
+        </if>
+        a2.assets_name assetsName
+        FROM
+        ( SELECT type_id, org_id FROM mw_org_mapper WHERE `type` = #{moduleType,jdbcType=VARCHAR} AND org_id = #{orgId,jdbcType=INTEGER} ) a1
+        LEFT JOIN ( SELECT
+        id,
+        assets_name,
+        <if test="moduleType == 'ASSETS' or moduleType == 'OUTBANDASSETS'">
+            monitor_server_id,
+            assets_id,
+        </if>
+        creator
+        FROM ${tableName} WHERE delete_flag = FALSE
+        <if test="settingEnable != null and settingEnable == 1">
+            and setting_flag = TRUE
+        </if>
+        ) a2 ON a1.type_id = a2.id
+        <if test="assetsIds != null and assetsIds.size > 0">
+            where a2.id in
+            <foreach collection="assetsIds" item="id" index="index" open="(" separator="," close=")">
+                #{id}
+            </foreach>
+        </if>
+    </select>
+
+    <select id="getCustomNameCount" resultType="java.lang.Integer">
+        select count(1) from mw_treetructure_customclassify where custom_name = #{customName}
+        <if test="customId != null">
+            and id != #{customId}
+        </if>
+    </select>
+</mapper>

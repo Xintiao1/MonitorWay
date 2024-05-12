@@ -1,0 +1,1 @@
+INSERT INTO `monitor`.`mw_topo_line_setting` (`id`, `line_setting`) VALUES ('global', '{"lineRuleList":[{"color":"255,255,255","type":"","value":0.0}],"refreshInterval":120}');

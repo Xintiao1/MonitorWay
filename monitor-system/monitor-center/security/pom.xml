@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <parent>
+        <artifactId>monitor-center</artifactId>
+        <groupId>cn.mw</groupId>
+        <version>1.0-SNAPSHOT</version>
+    </parent>
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>cn.mw</groupId>
+    <artifactId>security</artifactId>
+
+    <dependencies>
+        <dependency>
+            <groupId>cn.mw</groupId>
+            <artifactId>commons</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>cn.mw</groupId>
+            <artifactId>user</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>io.springfox</groupId>
+            <artifactId>springfox-swagger-ui</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.github.xiaoymin</groupId>
+            <artifactId>swagger-bootstrap-ui</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-elasticsearch</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>cn.mw</groupId>
+            <artifactId>assets</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.kafka</groupId>
+            <artifactId>kafka-clients</artifactId>
+        </dependency>
+
+    </dependencies>
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>cn.mw.encrypt</groupId>
+                <artifactId>classEncrypt</artifactId>
+                <version>1.0</version>
+                <executions>
+                    <execution>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>encryptClass</goal>
+                        </goals>
+                        <configuration>
+                            <enc>${ENC}</enc>
+                            <packages>cn.mw.monitor</packages>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+    <profiles>
+        <profile>
+            <id>all</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+            <properties>
+                <profile.active></profile.active>
+            </properties>
+        </profile>
+        <profile>
+            <id>dev</id>
+            <properties>
+                <profile.active></profile.active>
+            </properties>
+        </profile>
+        <profile>
+            <id>test</id>
+            <properties>
+                <profile.active>test</profile.active>
+            </properties>
+        </profile>
+        <profile>
+            <id>5.19</id>
+            <properties>
+                <profile.active>5.19</profile.active>
+            </properties>
+        </profile>
+        <profile>
+            <id>security-5.19</id>
+            <properties>
+                <profile.active>security-5.19</profile.active>
+            </properties>
+        </profile>
+        <profile>
+            <id>cernet</id>
+            <properties>
+                <profile.active>cernet</profile.active>
+            </properties>
+        </profile>
+    </profiles>
+</project>

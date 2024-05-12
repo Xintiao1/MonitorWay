@@ -1,0 +1,186 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.mw.monitor.scan.dao.ScanResultTableDao">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultFailMap" type="cn.mw.monitor.service.scan.model.ScanResultFail">
+        <result column="id" property="id" />
+        <result column="scan_batch" property="scanBatch" />
+        <result column="scanrule_id" property="scanruleId" />
+        <result column="ip_address" property="ipAddress" />
+        <result column="polling_engine" property="pollingEngine" />
+        <result column="monitor_mode" property="monitorMode" />
+        <result column="cause" property="cause" />
+        <result column="scan_time" property="scanTime" />
+        <result column="creator" property="creator" />
+        <result column="create_date" property="createDate" />
+        <result column="modifier" property="modifier" />
+        <result column="modification_date" property="modificationDate" />
+    </resultMap>
+
+    <sql id="Base_Column_FailList" >
+        id,<include refid="excludeId_Column_FailList" ><property name="alias" value=""/></include>
+    </sql>
+
+    <sql id="excludeId_Column_FailList" >
+        ${alias}scan_batch as scan_batch
+        ,${alias}scanrule_id as scanrule_id
+        ,${alias}ip_address as ip_address
+        ,${alias}polling_engine as polling_engine
+        ,${alias}monitor_mode as monitor_mode
+        ,${alias}cause as cause
+        ,${alias}scan_time as scan_time
+        ,${alias}creator as creator
+        ,${alias}create_date as create_date
+        ,${alias}modifier as modifier
+        ,${alias}modification_date as modification_date
+    </sql>
+
+    <sql id="insert_Column_FailList" >
+        scan_batch
+        ,scanrule_id
+        ,ip_address
+        ,polling_engine
+        ,monitor_mode
+        ,cause
+        ,scan_time
+        ,creator
+        ,create_date
+        ,modifier
+        ,modification_date
+    </sql>
+
+    <sql id="tb_fail">
+        mw_scanresultfail_table
+    </sql>
+
+    <select id="selectFailList" resultMap="BaseResultFailMap" parameterType="java.util.Map">
+        SELECT
+        tb.id as id, <include refid="excludeId_Column_FailList" ><property name="alias" value="tb."/></include>
+        FROM
+        <include refid="tb_fail"/> tb
+        WHERE 1 = 1
+        <if test="id != null and id != ''">
+            AND tb.id = #{id,jdbcType=INTEGER}
+        </if>
+        AND tb.scan_batch = (select max(scan_batch)
+            from <include refid="tb_fail"><property name="alias" value=""/></include>
+            where scanrule_id = #{scanruleId,jdbcType=INTEGER}
+            )
+        <if test="scanruleId != null and scanruleId != ''">
+            AND tb.scanrule_id = #{scanruleId,jdbcType=INTEGER}
+        </if>
+        <if test="scanBatch != null and scanBatch != ''">
+            AND tb.scan_batch = #{scanBatch,jdbcType=VARCHAR}
+        </if>
+        <if test="ipAddress != null and ipAddress != ''">
+            AND tb.ip_address LIKE CONCAT('%',#{ipAddress,jdbcType=VARCHAR},'%')
+        </if>
+        <if test="cause != null and cause != ''">
+            AND tb.cause LIKE CONCAT('%',#{cause,jdbcType=VARCHAR},'%')
+        </if>
+        <if test="monitorMode != null and monitorMode != ''">
+            AND tb.monitor_mode LIKE CONCAT('%',#{monitorMode,jdbcType=VARCHAR},'%')
+        </if>
+        <if test="fuzzyQuery!= null and fuzzyQuery !='' ">
+            and CONCAT(
+            IFNULL( tb.ip_address, '' ),
+            IFNULL( tb.cause, '' ),
+            IFNULL( tb.monitor_mode, '' )
+            ) LIKE CONCAT('%',#{fuzzyQuery,jdbcType=VARCHAR},'%')
+            ORDER BY
+            ( CASE WHEN INSTR( tb.ip_address, #{fuzzyQuery}) > 0 THEN 0 ELSE 1 END ),
+            ( CASE WHEN INSTR( tb.cause, #{fuzzyQuery}) > 0 THEN 0 ELSE 1 END ),
+            ( CASE WHEN INSTR( tb.monitor_mode, #{fuzzyQuery} ) > 0 THEN 0 ELSE 1 END )
+        </if>
+        ORDER BY
+        tb.ip_address
+    </select>
+
+    <insert id="batchFailInsert">
+        INSERT INTO <include refid="tb_fail"/>
+        (<include refid="insert_Column_FailList" />)
+        VALUES
+
+        <foreach collection="list" item="item" separator=",">
+            (#{item.scanBatch}
+            ,#{item.scanruleId}
+            ,#{item.ipAddress}
+            ,#{item.pollingEngine}
+            ,#{item.monitorMode}
+            ,#{item.cause}
+            ,#{item.scanTime}
+            ,#{item.creator}
+            ,now()
+            ,#{item.modifier}
+            ,now()
+            )
+        </foreach>
+    </insert>
+
+    <insert id="insertFail" parameterType="cn.mw.monitor.service.scan.model.ScanResultFail">
+        INSERT INTO <include refid="tb_fail"/>
+        (<include refid="insert_Column_FailList" />)
+        VALUES(#{scanBatch}
+            ,#{scanruleId}
+            ,#{ipAddress}
+            ,#{pollingEngine}
+            ,#{monitorMode}
+            ,#{cause}
+            ,#{scanTime}
+            ,#{creator}
+            ,now()
+            ,#{modifier}
+            ,now()
+            )
+    </insert>
+
+    <delete id="batchDeleteFail" parameterType="java.util.List">
+        delete from <include refid="tb_fail" />
+        where scanrule_id in(
+        <foreach collection="list" item="deleteList" separator=",">
+            #{deleteList.value,jdbcType=INTEGER}
+        </foreach>
+        )
+    </delete>
+
+    <delete id="batchDeleteFailById" parameterType="java.util.HashMap">
+        delete from <include refid="tb_fail" />
+        where id in
+        <foreach collection="ids" item="outputId" open="(" separator="," close=")">
+            #{outputId}
+        </foreach>
+    </delete>
+
+    <select id="getFailMaxBatchNo" resultType="java.lang.String" parameterType="java.lang.Integer">
+        select max(scan_batch)
+        from <include refid="tb_fail"/>
+        where scanrule_id = #{scanRuleId}
+    </select>
+
+
+    <select id="fuzzSearchFailAllFiled" resultType="java.util.Map">
+        SELECT
+        tb.ip_address,
+        tb.cause,
+        tb.monitor_mode
+        FROM
+        <include refid="tb_fail"/> tb
+        WHERE 1=1
+        AND tb.scan_batch = (select max(scan_batch)
+        from <include refid="tb_fail"><property name="alias" value=""/></include>
+        where scanrule_id = #{scanruleId,jdbcType=INTEGER}
+        )
+        and tb.create_date >= (select scan_start_date from mw_scanrule_table a where a.scanrule_id = #{scanruleId,jdbcType=INTEGER})
+        and CONCAT(
+        IFNULL( tb.ip_address, '' ),
+        IFNULL( tb.cause, '' ),
+        IFNULL( tb.monitor_mode, '' )
+        ) LIKE CONCAT('%',#{value,jdbcType=VARCHAR},'%')
+        ORDER BY
+        ( CASE WHEN INSTR( tb.ip_address, #{value}) > 0 THEN 0 ELSE 1 END ),
+        ( CASE WHEN INSTR( tb.cause, #{value}) > 0 THEN 0 ELSE 1 END ),
+        ( CASE WHEN INSTR( tb.monitor_mode, #{value} ) > 0 THEN 0 ELSE 1 END )
+    </select>
+
+</mapper>

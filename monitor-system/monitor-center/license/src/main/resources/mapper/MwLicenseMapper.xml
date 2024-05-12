@@ -1,0 +1,160 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.mw.monitor.license.dao.MwCheckLicenseDao">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="cn.mw.monitor.service.license.param.QueryLicenseParam">
+        <result column="module_id" property="moduleId" />
+        <result column="module_name" property="moduleName" />
+        <result column="remain_date" property="remainDate" />
+        <result column="create_date" property="createDate" />
+    </resultMap>
+
+    <insert id="insertLicense" parameterType="cn.mw.monitor.service.license.param.QueryLicenseParam">
+        insert into
+        mw_license_expire_table
+        (
+        module_id,
+        module_name,
+        remain_date,
+        create_date
+        )
+        values (
+            #{moduleId,jdbcType=VARCHAR},
+            #{moduleName,jdbcType=VARCHAR},
+            #{remainDate,jdbcType=INTEGER},
+            #{createDate,jdbcType=TIMESTAMP}
+        )
+    </insert>
+
+    <delete id="deleteLicenseByModuleId" parameterType="java.lang.String">
+        delete from mw_license_expire_table where module_id=#{moduleId,jdbcType=VARCHAR}
+    </delete>
+
+    <select id="queryAllExpireLicense" resultMap="BaseResultMap">
+        select DISTINCT a.module_name,a.remain_date from mw_license_expire_table a where 1 &gt; (SELECT count(*) FROM mw_license_expire_table where a.module_name=module_name and remain_date &lt;a.remain_date ) ORDER BY a.module_name,a.remain_date asc
+    </select>
+
+    <update id="updateLicenseDatail" parameterType="cn.mw.monitor.service.license.param.LicenseXmlParam">
+        update mw_license_list_table
+        set
+        expire_date=#{expireDate},
+        module_type='已激活',
+        module_count=#{count},
+        module_describe=#{describe,jdbcType=VARCHAR},
+        used_count = #{usedCount}
+        where module_id=#{moduleId,jdbcType=VARCHAR}
+    </update>
+
+    <insert id="initInsertLicenseDatail" parameterType="cn.mw.monitor.service.license.param.LicenseXmlParam">
+        insert into mw_license_list_table
+        (module_id,module_name,module_type,expire_date,create_date,img_url)
+        VALUES
+        (   #{moduleId,jdbcType=VARCHAR},
+            #{moduleName,jdbcType=VARCHAR},
+            #{moduleType,jdbcType=VARCHAR},
+            date_sub(curdate(),interval 1 day),
+            now(),
+            #{imgUrl,jdbcType=VARCHAR}
+            )
+    </insert>
+
+    <delete id="initDeleteLicenseDatail">
+       delete from mw_license_list_table
+    </delete>
+
+    <select id="queryLicenseDatail" resultType="cn.mw.monitor.service.license.param.LicenseXmlParam">
+        select module_name as moduleName,module_type as moduleType,expire_date as expireDate,module_count as count,module_describe as 'describe',used_count as usedCount,module_id as moduleId,img_url as imgUrl
+        from mw_license_list_table order by 2,1
+    </select>
+
+    <select id="selectTableCount" resultType="java.lang.Integer">
+        select count(1)
+        from ${tableName}
+        where 1=1
+        <if test="deleteFlag">
+        and delete_flag = false
+        </if>
+    </select>
+
+    <select id="selectAssetsCount" resultType="java.lang.Integer">
+        select count(1)
+        from (
+        select id
+        from mw_tangibleassets_table where delete_flag = false
+        <if test="assetsTypeIds != null and assetsTypeIds.size() != 0">
+            and assets_type_id in
+            <foreach collection="assetsTypeIds" item="item" index="index" separator="," open="(" close=")">#{item}
+            </foreach>
+        </if>
+        ) a
+    </select>
+
+    <update id="updateMwModule">
+        update mw_module set delete_flag = #{deleteFlag}
+        <choose>
+            <when test="moduleIds != null and moduleIds.size() != 0">
+                where id IN (
+                <foreach collection="moduleIds" item="moduleId" separator=",">
+                    #{moduleId,jdbcType=INTEGER}
+                </foreach>
+                )
+            </when>
+            <otherwise>
+                where id not in(
+                <foreach collection="nonControlIds" item="moduleId" separator=",">
+                    #{moduleId,jdbcType=INTEGER}
+                </foreach>
+                )
+            </otherwise>
+        </choose>
+    </update>
+
+    <update id="updateRoleModulePerMapper">
+        update mw_role_module_perm_mapper set `enable` = #{enable}
+        <choose>
+            <when test="moduleIds != null and moduleIds.size() != 0">
+                where module_id IN (
+                <foreach collection="moduleIds" item="moduleId" separator=",">
+                    #{moduleId,jdbcType=INTEGER}
+                </foreach>
+                )
+            </when>
+            <otherwise>
+                where module_id not in(
+                <foreach collection="nonControlIds" item="moduleId" separator=",">
+                    #{moduleId,jdbcType=INTEGER}
+                </foreach>
+                )
+            </otherwise>
+        </choose>
+    </update>
+
+    <select id="selectMwModuleByIds" resultType="java.lang.Integer">
+        select pid from mw_module where id in (
+        <foreach collection="moduleIds" item="moduleId" separator=",">
+            #{moduleId,jdbcType=INTEGER}
+        </foreach>
+        )
+
+    </select>
+
+    <select id="selectMwModuleByPids" resultType="java.lang.Integer">
+        select id from mw_module where pid in (
+        <foreach collection="moduleIds" item="moduleId" separator=",">
+            #{moduleId,jdbcType=INTEGER}
+        </foreach>
+        )
+    </select>
+
+    <select id="selectCountMwModule" resultType="java.lang.Integer">
+        SELECT count(*)
+        FROM mw_module t1, mw_module t2
+        where t2.pid=t1.pid and t2.delete_flag=0 and t1.id = #{moduleId}
+    </select>
+
+    <select id="selectMwModuleById" resultType="java.lang.Integer">
+        select pid from mw_module where id = #{moduleId}
+    </select>
+
+</mapper>

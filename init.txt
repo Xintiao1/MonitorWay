@@ -1,0 +1,5 @@
+mkdir -p /opt/app/lucene
+mkdir -p /opt/app/file-upload
+##创建大屏缩略图软连接
+cd nginx静态页面根目录
+ln -s screenImages /data/home/upload/images

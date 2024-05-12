@@ -1,0 +1,354 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.mw.monitor.user.dao.MwCommonDao">
+
+    <insert id="insertUserMapper">
+        insert into mw_user_mapper(type_id,user_id,type)
+        values
+        <foreach collection="list" item="insertList" separator=",">
+            (#{insertList.typeId,jdbcType=VARCHAR},#{insertList.userId,jdbcType=INTEGER},#{insertList.type,jdbcType=VARCHAR})
+        </foreach>
+    </insert>
+
+    <insert id="insertSuperiorUser">
+        insert into mw_user_mapper(type_id,user_id,type)
+        select #{typeId,jdbcType=VARCHAR},#{userId,jdbcType=INTEGER},#{type,jdbcType=VARCHAR}
+        from dual
+        where not exists (select user_id from mw_user_mapper where user_id =#{userId,jdbcType=INTEGER}
+        and type_id=#{typeId,jdbcType=VARCHAR})
+    </insert>
+
+    <insert id="insertGroupMapper">
+        insert into mw_group_mapper(type_id,group_id,type)
+        values
+        <foreach collection="list" item="insertList" separator=",">
+            (#{insertList.typeId,jdbcType=VARCHAR},#{insertList.groupId,jdbcType=INTEGER},#{insertList.type,jdbcType=VARCHAR})
+        </foreach>
+    </insert>
+
+    <insert id="insertSuperiorGroup">
+        insert into mw_group_mapper(type_id,group_id,type)
+        select #{typeId,jdbcType=VARCHAR},#{groupId,jdbcType=INTEGER},#{type,jdbcType=VARCHAR}
+        from dual
+        where not exists (select group_id from mw_group_mapper where group_id =#{groupId,jdbcType=INTEGER}
+        and type_id=#{typeId,jdbcType=VARCHAR})
+    </insert>
+
+    <insert id="insertOrgMapper">
+        insert into mw_org_mapper(type_id,org_id,type)
+        values
+        <foreach collection="list" item="insertList" separator=",">
+            (#{insertList.typeId,jdbcType=VARCHAR},#{insertList.orgId,jdbcType=INTEGER},#{insertList.type,jdbcType=VARCHAR})
+        </foreach>
+    </insert>
+
+    <insert id="insertSuperiorOrg">
+        insert into mw_org_mapper(type_id,org_id,type)
+        select #{typeId,jdbcType=VARCHAR},#{orgId,jdbcType=INTEGER},#{type,jdbcType=VARCHAR}
+        from dual
+        where not exists (select org_id from mw_org_mapper where org_id =#{orgId,jdbcType=INTEGER}
+        and type_id=#{typeId,jdbcType=VARCHAR})
+    </insert>
+
+    <insert id="insertDataPermission" parameterType="cn.mw.monitor.service.user.dto.DataPermissionDto"
+            useGeneratedKeys="true"
+            keyProperty="id">
+        insert into mw_datapermission(type,type_id,is_user,is_group,description)
+        values(#{type,jdbcType=VARCHAR},#{typeId,jdbcType=VARCHAR},#{isUser,jdbcType=INTEGER},#{isGroup,jdbcType=INTEGER},#{description,jdbcType=VARCHAR})
+    </insert>
+
+    <insert id="insertPermissionMapper" parameterType="cn.mw.monitor.service.user.dto.DataPermissionDto"
+            useGeneratedKeys="true"
+            keyProperty="id">
+        insert into mw_datapermission(type,type_id,is_user,is_group,description)
+        values
+        <foreach collection="list" item="item" separator=",">
+            (#{item.type,jdbcType=VARCHAR},#{item.typeId,jdbcType=VARCHAR},#{item.isUser,jdbcType=INTEGER},#{item.isGroup,jdbcType=INTEGER},#{item.description,jdbcType=VARCHAR})
+        </foreach>
+    </insert>
+
+
+    <delete id="deleteUserMapper" parameterType="cn.mw.monitor.service.user.dto.DeleteDto">
+        delete from mw_user_mapper  where type_id=#{typeId,jdbcType=VARCHAR} and type=#{type,jdbcType=VARCHAR}
+    </delete>
+    <delete id="deleteGroupMapper">
+        delete from  mw_group_mapper  where type_id=#{typeId,jdbcType=VARCHAR} and type=#{type,jdbcType=VARCHAR}
+    </delete>
+    <delete id="deleteOrgMapper">
+        delete from mw_org_mapper where type_id=#{typeId,jdbcType=VARCHAR} and type=#{type,jdbcType=VARCHAR}
+    </delete>
+    <delete id="deleteDataPermission">
+        delete from mw_datapermission where type_id=#{typeId,jdbcType=VARCHAR} and type=#{type,jdbcType=VARCHAR}
+    </delete>
+
+    <delete id="deleteUserMappers" >
+        delete from mw_user_mapper where type=#{type,jdbcType=VARCHAR} and type_id in
+        <foreach collection="typeIds" item="item" index="index" open="(" separator="," close=")">
+           #{item}
+        </foreach>
+    </delete>
+    <delete id="deleteGroupMappers">
+        delete from  mw_group_mapper  where type=#{type,jdbcType=VARCHAR} and type_id in
+        <foreach collection="typeIds" item="item" index="index" open="(" separator="," close=")">
+            #{item}
+        </foreach>
+    </delete>
+    <delete id="deleteOrgMappers">
+        delete from mw_org_mapper where type=#{type,jdbcType=VARCHAR} and type_id in
+        <foreach collection="typeIds" item="item" index="index" open="(" separator="," close=")">
+            #{item}
+        </foreach>
+    </delete>
+    <delete id="deleteDataPermissions">
+        delete from mw_datapermission where type=#{type,jdbcType=VARCHAR} and type_id in
+        <foreach collection="typeIds" item="item" index="index" open="(" separator="," close=")">
+            #{item}
+        </foreach>
+    </delete>
+    <update id="updateDataPermission">
+        update
+        mw_datapermission
+        <set>
+            <if test="isUser != null">
+                is_user = #{isUser,jdbcType=BIT},
+            </if>
+            <if test="isUser != null">
+                is_group = #{isGroup,jdbcType=BIT},
+            </if>
+        </set>
+        where type_id=#{typeId,jdbcType=VARCHAR} and type=#{type,jdbcType=VARCHAR}
+    </update>
+    <update id="updateDataPermissions">
+        update
+            mw_datapermission
+            <set>
+                <if test="isUser != null">
+                    is_user = #{isUser,jdbcType=BIT},
+                </if>
+                <if test="isGroup != null">
+                    is_group = #{isGroup,jdbcType=BIT},
+                </if>
+            </set>
+        where type=#{type,jdbcType=VARCHAR} and type_id in
+        <foreach collection="typeIds" item="item" index="index" open="(" separator="," close=")">
+            #{item}
+        </foreach>
+    </update>
+    <select id="getOrgNameByTypeId" resultType="java.lang.String">
+        select distinct t2.org_name from mw_org_mapper t1 left join mw_sys_org t2 on t1.org_id=t2.org_id
+        where type=#{type,jdbcType=VARCHAR} and type_id=#{typeId,jdbcType=VARCHAR}
+    </select>
+
+    <select id="getAllTypeIdList" resultType="java.lang.String">
+        <if test="queryType == 0 or queryType == 1">
+            <choose>
+                <when test="dataPermission == 'PRIVATE'">
+                    SELECT
+                    DISTINCT
+                    type_id
+                    FROM
+                    mw_user_mapper
+                    WHERE
+                    user_id = #{userId}
+                    AND type = #{dataType}
+                </when>
+                <otherwise>
+                    SELECT
+                    type_id
+                    FROM
+                    mw_org_mapper
+                    WHERE
+                    type = #{dataType}
+                    AND org_id IN
+                    <foreach collection="orgIdList" open="(" close=")" separator="," item="item" index="index">
+                        #{item}
+                    </foreach>
+                </otherwise>
+            </choose>
+        </if>
+        <if test="queryType == 0 or queryType == 2">
+            <if test="userGroupIdList != null and userGroupIdList.size() > 0">
+                <if test="queryType == 0">
+                    UNION
+                </if>
+                SELECT
+                type_id
+                FROM
+                mw_group_mapper
+                WHERE
+                type = #{dataType}
+                AND group_id IN
+                <foreach collection="userGroupIdList" open="(" close=")" separator="," item="item" index="index">
+                    #{item}
+                </foreach>
+            </if>
+        </if>
+    </select>
+
+    <select id="getUserListByTypeId" resultType="java.lang.Integer">
+        SELECT
+        DISTINCT
+            user_id
+        FROM
+            mw_user_mapper
+        WHERE
+            type_id = #{typeId}
+            AND type = #{dataType}
+    </select>
+
+    <select id="getUserListByDataType" resultType="java.lang.Integer">
+        SELECT
+        DISTINCT
+            user_id
+        FROM
+            mw_user_mapper
+        WHERE
+            type = #{dataType}
+    </select>
+
+    <select id="getUserListByTypeIds" resultType="java.util.Map">
+        SELECT
+        DISTINCT
+            type_id AS typeId,
+            user_id AS userId
+        FROM
+            mw_user_mapper
+        WHERE
+            type_id in
+            <foreach collection="list" item="item" index="index" open="(" close=")" separator=",">
+                #{item}
+            </foreach>
+            AND type = #{dataType}
+    </select>
+
+    <select id="getGroupListByTypeId" resultType="java.lang.Integer">
+        SELECT
+            group_id
+        FROM
+            mw_group_mapper
+        WHERE
+            type_id = #{typeId}
+            AND type = #{dataType}
+    </select>
+
+    <select id="getGroupListByTypeIds" resultType="java.util.Map">
+        SELECT
+            type_id AS typeId,
+            group_id AS groupId
+        FROM
+            mw_group_mapper
+        WHERE
+            type_id in
+            <foreach collection="list" item="item" index="index" open="(" close=")" separator=",">
+                #{item}
+            </foreach>
+            AND type = #{dataType}
+    </select>
+
+    <select id="getOrgListByTypeId" resultType="cn.mw.monitor.service.user.dto.OrgDTO">
+        SELECT
+            t2.org_id orgId,
+            t2.org_name orgName,
+            t2.nodes
+        FROM
+            mw_org_mapper t1
+            LEFT JOIN mw_sys_org t2 ON t1.org_id = t2.org_id
+        WHERE
+            t1.type_id = #{typeId}
+            AND t1.type = #{dataType}
+            and t2.delete_flag = false
+    </select>
+
+    <select id="getOrgListByTypeIds" resultType="java.util.Map">
+        SELECT
+            t1.type_id AS typeId,
+            t2.org_id as orgId,
+            t2.org_name as orgName,
+            t2.nodes
+        FROM
+            mw_org_mapper t1
+            LEFT JOIN mw_sys_org t2 ON t1.org_id = t2.org_id
+        WHERE
+            t1.type_id in
+            <foreach collection="list" item="item" index="index" open="(" close=")" separator=",">
+                #{item}
+            </foreach>
+            AND t1.type = #{dataType}
+            and t2.delete_flag = false
+    </select>
+
+    <select id="getUserList" resultType="cn.mw.monitor.service.assets.model.UserDTO">
+         select
+         DISTINCT
+            t1.user_id userId,
+            t1.login_name loginName,
+            t1.user_name userName
+            from
+            mw_sys_user t1
+            left join  mw_user_mapper t2 on t1.user_id = t2.user_id
+            where t2.type = #{dataType} and t2.type_id = #{typeId} and t1.delete_flag = false
+    </select>
+
+    <select id="getGroupList" resultType="cn.mw.monitor.service.assets.model.GroupDTO">
+        select
+            t1.group_id  groupId,
+            t1.group_name groupName
+        from mw_group_table  t1
+            left join mw_group_mapper t2 on t1.group_id = t2.group_id
+            where t2.type = #{dataType} and t2.type_id = #{typeId} and t1.delete_flag = false
+    </select>
+
+    <select id="getGroupListByIds" resultType="java.util.Map">
+        SELECT
+            t1.group_id AS groupId,
+            t1.group_name AS groupName,
+            t2.type_id AS typeId
+        FROM
+            mw_group_mapper t2
+        LEFT JOIN mw_group_table t1 ON t1.group_id = t2.group_id
+        where t2.type = #{dataType}
+             and t2.type_id in
+            <foreach collection="list" item="item" index="index" open="(" close=")" separator=",">
+                #{item}
+            </foreach>
+             and t1.delete_flag = false
+    </select>
+
+    <select id="getUserListByIds" resultType="java.util.Map">
+        SELECT
+        DISTINCT
+            t1.user_id AS userId,
+            t1.login_name AS loginName,
+            t1.user_name AS userName,
+            t2.type_id AS typeId
+        FROM
+            mw_user_mapper t2
+            LEFT JOIN mw_sys_user t1 ON t1.user_id = t2.user_id
+            where t2.type = #{dataType}
+            and t2.type_id in
+            <foreach collection="list" item="item" index="index" open="(" close=")" separator=",">
+                #{item}
+            </foreach>
+            and t1.delete_flag = false
+    </select>
+
+    <update id="changeUserDataPermission">
+        update mw_user_mapper set
+        user_id = #{changedUserId}
+        where user_id = #{userId} and type = #{dataType}
+    </update>
+
+    <select id="countUserType" resultType="java.lang.Integer">
+        SELECT
+            count( 1 )
+        FROM
+            mw_user_mapper
+        WHERE
+            user_id = #{userId}
+            AND type in
+            <foreach collection="list" open="(" close=")" item="item" index="index" separator=",">
+                 #{item}
+            </foreach>
+
+    </select>
+</mapper>

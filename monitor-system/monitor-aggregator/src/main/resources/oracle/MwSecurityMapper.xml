@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.mw.monitor.security.dao.EslogDao">
+
+    <select id="getOrgNameByIp" resultType="java.lang.String">
+        SELECT
+			t1."org_name"
+		FROM
+			${TBSNAME}."mw_org_mapper" t
+			RIGHT JOIN "mw_sys_org" t1 ON t."org_id" = t1."org_id"
+		WHERE
+			t."type" = 'IP'
+			AND t."type_id" = ( SELECT "link_id" FROM ${TBSNAME}."mw_ipaddressmanagelist_table" WHERE "ip_address" = #{ip,jdbcType=VARCHAR} )
+    </select>
+
+	<select id="getAssetsType" resultType="java.lang.String">
+		select b."type_name" from
+		${TBSNAME}."mw_tangibleassets_table" a
+		left join ${TBSNAME}."mw_assetssubtype_table" b
+        on a."assets_type_id"=b.id
+        where a."delete_flag"=0 and a."host_name"=#{hostIp,jdbcType=VARCHAR}
+        group by "in_band_ip"
+	</select>
+	<select id="getAsstsHostName" resultType="java.lang.String">
+		select a."host_name" from
+		${TBSNAME}."mw_tangibleassets_table" a
+		left join ${TBSNAME}."mw_assetssubtype_table" b
+        on a."assets_type_id"=b."id"
+        where a."delete_flag"=0 and b."type_name" = #{typeName,jdbcType=VARCHAR}
+        group by a."host_name"
+	</select>
+</mapper>

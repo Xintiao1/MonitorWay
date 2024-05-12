@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.mw.monitor.assets.dao.MwAssetsNoDataByItemDao">
+
+    <select id="getAssetsInfoAll" resultType="java.util.Map">
+        SELECT
+            a.assets_id AS "assetsId",
+            a.assets_name AS "assetsName",
+            a.in_band_ip AS "ip",
+            a.specifications,
+            GROUP_CONCAT( c.org_name) AS "orgName",
+            a.monitor_server_id AS "monitorServerId"
+        FROM
+            `mw_tangibleassets_table` a
+            LEFT JOIN mw_org_mapper b ON a.id = b.type_id
+            LEFT JOIN mw_sys_org c ON b.org_id = c.org_id
+        WHERE
+            a.delete_flag = '0'
+            AND b.type = 'ASSETS'
+        GROUP BY
+            a.assets_name,
+            a.assets_id,
+            a.in_band_ip,
+            a.specifications,
+            a.monitor_server_id
+    </select>
+</mapper>

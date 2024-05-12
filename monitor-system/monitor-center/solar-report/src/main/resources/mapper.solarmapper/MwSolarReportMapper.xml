@@ -1,0 +1,488 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.mw.module.solarwind.dao.MWSolarReportDao">
+    <sql id="DATE">
+        <if test="startTime!=null and startTime !=''and endTime != null and endTime !=''">
+            and a.DateTime between #{startTime,jdbcType=VARCHAR} and
+            #{endTime,jdbcType=VARCHAR}
+        </if>
+    </sql>
+    <sql id="CARRIERNAME">
+        <if test="carrierName!=null and carrierName !=''">
+            and carrierName =#{carrierName,jdbcType=VARCHAR}
+        </if>
+    </sql>
+    <sql id="INTERFACE_COUNT">
+        SELECT COUNT ( 0 ) + 0.0001 FROM
+        ${tableName} a
+        WHERE interfaceID = #{interfaceID,jdbcType=INTEGER}
+        <include refid="DATE"></include>
+        <include refid="Condition"></include>
+    </sql>
+    <sql id="INTERFACE_DETAIL_COUNT">
+        SELECT COUNT
+        ( 0 )
+        FROM
+        ${tableName} a
+        WHERE
+        interfaceID = #{interfaceID,jdbcType=INTEGER}
+        <include refid="DATE"></include>
+        <include refid="Condition"></include>
+    </sql>
+    <sql id="BIND_WIDTH">
+		(SELECT InBandwidth  AS Bandwidth FROM SolarWindsOrion.dbo.Interfaces WHERE interfaceID = #{interfaceID,jdbcType=INTEGER})
+	</sql>
+
+    <sql id="DateDay">
+        <if test="startTimeDay!=null and startTimeDay !=''and endTimeDay != null and endTimeDay !=''">
+            AND CONVERT ( CHAR ( 4 ), DateTime, 14 ) BETWEEN #{startTimeDay,jdbcType=VARCHAR} and
+            #{endTimeDay,jdbcType=VARCHAR}
+        </if>
+    </sql>
+    <sql id="PeriodRadio">
+        <if test="periodRadio=='WORKDAY'">
+            and NOT EXISTS (SELECT * FROM mw_solar_day b where
+            convert(varchar(20),a.DateTime,23)=b.date)
+        </if>
+    </sql>
+    <sql id="Condition">
+        <include refid="DateDay"></include>
+        <include refid="PeriodRadio"></include>
+    </sql>
+    <sql id="Proportion">
+        SELECT CONVERT
+        (
+        DECIMAL ( 20, 2 ),
+        (
+        <include refid="INTERFACE_DETAIL_COUNT"/>
+        AND In_Averagebps &lt; (
+        <include refid="BIND_WIDTH"/>
+        * 0.1 )
+        ) / (<include refid="INTERFACE_COUNT"/>) * 100
+        ) AS inProportionTen,
+        CONVERT (
+        DECIMAL ( 20, 2 ),
+        (
+        <include refid="INTERFACE_DETAIL_COUNT"/>
+        AND In_Averagebps >= (
+        <include refid="BIND_WIDTH"/>
+        * 0.1 )
+        AND In_Averagebps &lt; (
+        <include refid="BIND_WIDTH"/>
+        * 0.5 )
+        ) / (<include refid="INTERFACE_COUNT"/>) * 100
+        ) AS inProportionFifty,
+        CONVERT (
+        DECIMAL ( 20, 2 ),
+        (
+        <include refid="INTERFACE_DETAIL_COUNT"/>
+        AND In_Averagebps > = (
+        <include refid="BIND_WIDTH"/>
+        * 0.5 )
+        AND In_Averagebps &lt; (
+        <include refid="BIND_WIDTH"/>
+        * 0.8 )
+        ) / (<include refid="INTERFACE_COUNT"/>) * 100
+        ) AS inProportionEighty,
+        CONVERT (
+        DECIMAL ( 20, 2 ),
+        (
+        <include refid="INTERFACE_DETAIL_COUNT"/>
+        AND In_Averagebps >= (
+        <include refid="BIND_WIDTH"/>
+        * 0.8 )
+        ) / (<include refid="INTERFACE_COUNT"/>) * 100
+        ) AS inProportionHundred,
+        CONVERT (
+        DECIMAL ( 20, 2 ),
+        (
+        <include refid="INTERFACE_DETAIL_COUNT"/>
+        AND Out_Averagebps &lt; (
+        <include refid="BIND_WIDTH"/>
+        * 0.1 )
+        ) / (<include refid="INTERFACE_COUNT"/>) * 100
+        ) AS outProportionTen,
+        CONVERT (
+        DECIMAL ( 20, 2 ),
+        (
+        <include refid="INTERFACE_DETAIL_COUNT"/>
+        AND Out_Averagebps >= (<include refid="BIND_WIDTH"/>* 0.1 )
+        AND Out_Averagebps &lt; (
+        <include refid="BIND_WIDTH"/>
+        * 0.5 )
+        ) / (<include refid="INTERFACE_COUNT"/>) * 100
+        ) AS outProportionFifty,
+        CONVERT (
+        DECIMAL ( 20, 2 ),
+        (
+        <include refid="INTERFACE_DETAIL_COUNT"/>
+        AND Out_Averagebps > = (
+        <include refid="BIND_WIDTH"/>
+        * 0.5 )
+        AND Out_Averagebps &lt; (
+        <include refid="BIND_WIDTH"/>
+        * 0.8 )
+        ) / (<include refid="INTERFACE_COUNT"/>) * 100
+        ) AS outProportionEighty,
+        CONVERT (
+        DECIMAL ( 20, 2 ),
+        (
+        <include refid="INTERFACE_DETAIL_COUNT"/>
+        AND Out_Averagebps >= (
+        <include refid="BIND_WIDTH"/>
+        * 0.8 )
+        ) / (<include refid="INTERFACE_COUNT"/>) * 100
+        ) AS outProportionHundred
+    </sql>
+
+    <resultMap id="solarReportMap" type="cn.mw.module.solarwind.dto.InterfaceTable">
+        <id column="interfaceID" jdbcType="INTEGER" property="interfaceID"/>
+        <result column="inBandwidth" jdbcType="FLOAT" property="inBandwidth"/>
+        <result column="caption" jdbcType="VARCHAR" property="caption"/>
+        <result column="inMinbps" jdbcType="FLOAT" property="inMinbps"/>
+        <result column="inMaxbps" jdbcType="FLOAT" property="inMaxbps"/>
+        <result column="inAveragebps" jdbcType="FLOAT" property="inAveragebps"/>
+        <result column="outMaxbps" jdbcType="FLOAT" property="outMaxbps"/>
+        <result column="outMinbps" jdbcType="FLOAT" property="outMinbps"/>
+        <result column="outAveragebps" jdbcType="FLOAT" property="outAveragebps"/>
+
+        <result column="inAvgUse" jdbcType="FLOAT" property="inAvgUse"/>
+        <result column="outAvgUse" jdbcType="FLOAT" property="outAvgUse"/>
+        <result column="inMaxUse" jdbcType="FLOAT" property="inMaxUse"/>
+        <result column="outMaxUse" jdbcType="FLOAT" property="outMaxUse"/>
+
+
+    </resultMap>
+
+    <resultMap id="solarDetailMap" type="cn.mw.module.solarwind.dto.SolarDetailDto" extends="solarReportMap">
+        <result column="dateTime" jdbcType="DATE" property="dateTime"/>
+        <result column="tableName" jdbcType="VARCHAR" property="tableName"/>
+        <result column="startTime" jdbcType="VARCHAR" property="startTime"/>
+        <result column="endTime" jdbcType="VARCHAR" property="endTime"/>
+        <result column="startTimeDay" jdbcType="VARCHAR" property="startTimeDay"/>
+        <result column="endTimeDay" jdbcType="VARCHAR" property="endTimeDay"/>
+        <association property="proportionDto" javaType="cn.mw.module.solarwind.dto.ProportionDto"
+                     select="selectProportion"
+                     column="{interfaceID=interfaceID,tableName=tableName,startTime=startTime,endTime=endTime,startTimeDay=startTimeDay,endTimeDay=endTimeDay}">
+            <result column="inProportionTen" jdbcType="FLOAT" property="inProportionTen"/>
+            <result column="inProportionFifty" jdbcType="FLOAT" property="inProportionFifty"/>
+            <result column="inProportionEighty" jdbcType="FLOAT" property="inProportionEighty"/>
+            <result column="inProportionHundred" jdbcType="FLOAT" property="inProportionHundred"/>
+            <result column="outProportionTen" jdbcType="FLOAT" property="outProportionTen"/>
+            <result column="outProportionFifty" jdbcType="FLOAT" property="outProportionFifty"/>
+            <result column="outProportionEighty" jdbcType="FLOAT" property="outProportionEighty"/>
+            <result column="outProportionHundred" jdbcType="FLOAT" property="outProportionHundred"/>
+        </association>
+    </resultMap>
+
+    <select id="selectInterface" resultType="java.lang.Integer">
+        select count(0) from  SolarWindsOrion.dbo.Interfaces
+    </select>
+    <select id="selectInterfaceDetail" resultMap="solarDetailMap"
+            parameterType="cn.mw.module.solarwind.dto.SolarReportDto">
+        SELECT DISTINCT
+        i2.interfaceID,
+        i2.carrierName,
+        i2.inBandwidth,
+        i2.caption,
+        isnull(i1.inMaxbps,0) as inMaxbps,
+        isnull(i1.inMinbps,0) as inMinbps,
+        isnull(i1.inAveragebps,0) as inAveragebps,
+        isnull(i1.outMaxbps,0) as outMaxbps,
+        isnull(i1.outMinbps,0) as outMinbps,
+        isnull(i1.outAveragebps,0) as outAveragebps,
+        #{dateTime,jdbcType=DATE} as dateTime,
+        CONVERT ( DECIMAL ( 20, 2 ), i1.inAveragebps/i2.inBandwidth*100 ) AS inAvgUse,
+        CONVERT ( DECIMAL ( 20, 2 ), i1.outAveragebps/i2.inBandwidth*100 ) AS outAvgUse,
+        CONVERT ( DECIMAL ( 20, 2 ), i1.inMaxbps/i2.inBandwidth*100 ) AS inMaxUse,
+        CONVERT ( DECIMAL ( 20, 2 ), i1.outMaxbps/i2.inBandwidth*100 ) AS outMaxUse,
+        #{tableName,jdbcType=VARCHAR} as tableName,
+        #{startTime,jdbcType=VARCHAR} as startTime,
+        #{endTime,jdbcType=VARCHAR} as endTime,
+        #{startTimeDay,jdbcType=VARCHAR} as startTimeDay,
+        #{endTimeDay,jdbcType=VARCHAR} as endTimeDay
+        FROM
+        (
+        SELECT
+        interfaceID,
+        CONVERT ( DECIMAL ( 20, 2 ),MAX( a.In_Maxbps ) )AS inMaxbps,
+        CONVERT ( DECIMAL ( 20, 2 ),MIN( a.In_Minbps ) )AS inMinbps,
+        CONVERT ( DECIMAL ( 20, 2 ), AVG( a.In_Averagebps ) ) AS inAveragebps,
+        CONVERT ( DECIMAL ( 20, 2 ),MAX( a.Out_Maxbps ) ) AS outMaxbps,
+        CONVERT ( DECIMAL ( 20, 2 ),MIN( a.Out_Minbps ) )AS outMinbps,
+        CONVERT ( DECIMAL ( 20, 2 ), AVG( a.Out_Averagebps ) ) AS outAveragebps
+        FROM
+        ${tableName} a
+        where 1=1
+        <include refid="DATE"></include>
+        GROUP BY
+        interfaceID
+        ) i1
+        RIGHT JOIN SolarWindsOrion.dbo.Interfaces i2 ON i1.interfaceID= i2.interfaceID
+        where 1 = 1
+        and i2.inBandwidth != 0
+        <if test="interfaceIDs != null and interfaceIDs.size > 0">
+            i2.interfaceID  in (
+            <foreach collection="interfaceIDs" item="interfaceId" separator=",">
+                #{interfaceId ,jdbcType=INTEGER}
+            </foreach>
+            )
+        </if>
+        <include refid="CARRIERNAME"></include>
+        ORDER BY
+        inMaxbps DESC
+    </select>
+    <select id="selectProportion" resultType="cn.mw.module.solarwind.dto.ProportionDto"
+            parameterType="java.util.Map">
+        <include refid="Proportion"></include>
+    </select>
+
+    <select id="newSelectProportion" resultType="cn.mw.module.solarwind.dto.ProportionDto"
+            parameterType="cn.mw.module.solarwind.dto.SolarReportDto">
+
+        SELECT CONVERT
+        ( DECIMAL ( 20, 2 ), AVG ( inProportionTen ) ) inProportionTen,
+        CONVERT ( DECIMAL ( 20, 2 ), AVG ( inProportionFifty ) ) inProportionFifty,
+        CONVERT ( DECIMAL ( 20, 2 ), AVG ( inProportionEighty ) ) inProportionEighty,
+        CONVERT ( DECIMAL ( 20, 2 ), AVG ( inProportionHundred ) ) inProportionHundred,
+        CONVERT ( DECIMAL ( 20, 2 ), AVG ( outProportionTen ) ) outProportionTen,
+        CONVERT ( DECIMAL ( 20, 2 ), AVG ( outProportionFifty ) ) outProportionFifty,
+        CONVERT ( DECIMAL ( 20, 2 ), AVG ( outProportionEighty ) ) outProportionEighty,
+        CONVERT ( DECIMAL ( 20, 2 ), AVG ( outProportionHundred ) ) outProportionHundred
+        FROM
+        (
+        <foreach collection="tableNames" item="tableName" separator="union" open="(" close=")">
+            <include refid="Proportion"></include>
+        </foreach>
+        ) t
+
+    </select>
+    <select id="selectCarrierName" resultType="java.lang.String">
+        select distinct carrierName  from  SolarWindsOrion.dbo.Interfaces where carrierName !=''
+    </select>
+
+    <select id="selectInterfaceIds" resultType="java.lang.Integer">
+        select distinct interfaceID  from  SolarWindsOrion.dbo.Interfaces where carrierName !=''
+    </select>
+    <select id="selectCaption" resultType="java.util.HashMap">
+        select interfaceid,caption  from  SolarWindsOrion.dbo.Interfaces where carrierName = #{carrierName,jdbcType=VARCHAR}
+    </select>
+
+
+    <sql id="interfaceIDs">
+        <if test="interfaceIDs!=null and interfaceIDs.size()!=0">
+            and interfaceID in
+            <foreach collection="interfaceIDs" index="index" item="item" separator="," open="(" close=")">
+                #{item}
+            </foreach>
+        </if>
+    </sql>
+
+    <select id="selectList" resultMap="solarReportMap" parameterType="java.util.HashMap">
+        SELECT
+        i3.interfaceID as interfaceID,
+        i3.carrierName,
+        i3.inBandwidth,
+        i3.caption,
+        t1.inMinbps,
+        t1.inMaxbps,
+        t1.inAveragebps,
+        t1.outMaxbps,
+        t1.outMinbps,
+        t1.outAveragebps,
+        CONVERT ( DECIMAL ( 20, 2 ), t1.inAveragebps/i3.InBandwidth*100 ) AS inAvgUse,
+        CONVERT ( DECIMAL ( 20, 2 ), t1.outAveragebps/i3.InBandwidth*100 ) AS outAvgUse,
+        CONVERT ( DECIMAL ( 20, 2 ), t1.inMaxbps/i3.InBandwidth*100 ) AS inMaxUse,
+        CONVERT ( DECIMAL ( 20, 2 ), t1.outMaxbps/i3.InBandwidth*100 ) AS outMaxUse
+        FROM
+        (
+        SELECT DISTINCT
+        t.interfaceID,
+        CONVERT ( DECIMAL ( 20, 2 ),MAX( t.InMaxbps ) )AS inMaxbps,
+        CONVERT ( DECIMAL ( 20, 2 ),MIN( t.InMinbps ) )AS inMinbps,
+        CONVERT ( DECIMAL ( 20, 2 ),AVG( t.inAveragebps ) ) AS inAveragebps,
+        CONVERT ( DECIMAL ( 20, 2 ),MAX( t.outMaxbps ) ) AS outMaxbps,
+        CONVERT ( DECIMAL ( 20, 2 ),MIN( t.outMinbps ) )AS outMinbps,
+        CONVERT ( DECIMAL ( 20, 2 ),AVG( t.outAveragebps ) ) AS outAveragebps
+        FROM
+        (
+        SELECT DISTINCT
+        i1.interfaceID,
+        i1.inMaxbps,
+        i1.inMinbps,
+        i1.inAveragebps,
+        i1.outMaxbps,
+        i1.outMinbps,
+        i1.outAveragebps
+        FROM
+        (
+        <foreach collection="tableNames" item="tableName" separator="union" open="(" close=")">
+            SELECT
+            a.interfaceID,
+            CONVERT ( DECIMAL ( 20, 2 ),MAX( a.In_Maxbps ) )AS inMaxbps,
+            CONVERT ( DECIMAL ( 20, 2 ),MIN( a.In_Minbps ) )AS inMinbps,
+            CONVERT ( DECIMAL ( 20, 2 ), AVG( a.In_Averagebps ) ) AS inAveragebps,
+            CONVERT ( DECIMAL ( 20, 2 ),MAX( a.Out_Maxbps ) ) AS outMaxbps,
+            CONVERT ( DECIMAL ( 20, 2 ),MIN( a.Out_Minbps ) )AS outMinbps,
+            CONVERT ( DECIMAL ( 20, 2 ), AVG( a.Out_Averagebps ) ) AS outAveragebps
+            FROM
+            ${tableName} a
+            WHERE 1=1
+            <if test="interfaceIDs!=null and interfaceIDs.size()!=0">
+                and a.interfaceID in
+                <foreach collection="interfaceIDs" index="index" item="item" separator="," open="(" close=")">
+                    #{item}
+                </foreach>
+            </if>
+            <include refid="DATE"></include>
+            <include refid="DateDay"></include>
+            <include refid="PeriodRadio"></include>
+            GROUP BY
+            a.interfaceID
+        </foreach>
+        ) i1
+        ) t
+        RIGHT JOIN SolarWindsOrion.dbo.Interfaces i2 ON t.interfaceID= i2.interfaceID
+        WHERE 1=1
+        <if test="interfaceIDs!=null and interfaceIDs.size()!=0">
+            and t.interfaceID in
+            <foreach collection="interfaceIDs" index="index" item="item" separator="," open="(" close=")">
+                #{item}
+            </foreach>
+        </if>
+        <include refid="CARRIERNAME"></include>
+        GROUP BY
+        t.interfaceID
+        ) t1
+        RIGHT JOIN SolarWindsOrion.dbo.Interfaces i3 ON t1.interfaceID= i3.interfaceID
+        WHERE 1=1
+        <if test="interfaceIDs!=null and interfaceIDs.size()!=0">
+            and i3.interfaceID in
+            <foreach collection="interfaceIDs" index="index" item="item" separator="," open="(" close=")">
+                #{item}
+            </foreach>
+        </if>
+        <include refid="CARRIERNAME"></include>
+    </select>
+    <select id="selectInHistory" resultType="cn.mw.module.solarwind.dto.MwHistoryDTO">
+        select date,isnull(value,0) as value from
+        <foreach collection="tableNames" item="tableName" separator="union" open="(" close=")">
+            select dateTime as date ,${inColumn} as value from
+            ${tableName} a
+            WHERE
+            interfaceID=#{interfaceID,jdbcType=INTEGER}
+            <include refid="DATE"></include>
+            <include refid="DateDay"></include>
+            <include refid="PeriodRadio"></include>
+        </foreach>
+        t order by date asc
+    </select>
+    <select id="selectOutHistory" resultType="cn.mw.module.solarwind.dto.MwHistoryDTO">
+        select date,isnull(value,0) as value  from
+        <foreach collection="tableNames" item="tableName" separator="union" open="(" close=")">
+            select dateTime as date ,${outColumn} as value from
+            ${tableName} a
+            WHERE interfaceID=#{interfaceID,jdbcType=INTEGER}
+            <include refid="DATE"></include>
+            <include refid="DateDay"></include>
+            <include refid="PeriodRadio"></include>
+        </foreach>
+        t order by date asc
+    </select>
+
+    <select id="groupSelectList" resultMap="solarDetailMap">
+        SELECT
+        t.interfaceID,
+        t.inMaxbps,
+        t.inAveragebps,
+        t.inMinbps,
+        t.outMaxbps,
+        t.outAveragebps,
+        t.outMinbps,
+        b.InBandwidth,
+        b.caption,
+        CONVERT ( DECIMAL ( 20, 2 ), t.InAveragebps/ b.InBandwidth* 100 ) AS inAvgUse,
+        CONVERT ( DECIMAL ( 20, 2 ), t.OutAveragebps/ b.InBandwidth* 100 ) AS outAvgUse,
+        CONVERT ( DECIMAL ( 20, 2 ), t.InMaxbps/ b.InBandwidth* 100 ) AS inMaxUse,
+        CONVERT ( DECIMAL ( 20, 2 ), t.OutMaxbps/ b.InBandwidth* 100 ) AS outMaxUse,
+        #{tableName,jdbcType=VARCHAR} as tableName,
+        #{startTime,jdbcType=VARCHAR} as startTime,
+        #{endTime,jdbcType=VARCHAR} as endTime,
+        #{startTimeDay,jdbcType=VARCHAR} as startTimeDay,
+        #{endTimeDay,jdbcType=VARCHAR} as endTimeDay
+        FROM
+        (
+        SELECT
+        a.InterfaceID,
+        CONVERT ( DECIMAL ( 20, 2 ), MAX ( a.In_Maxbps ) ) AS inMaxbps,
+        CONVERT ( DECIMAL ( 20, 2 ), AVG ( a.In_Averagebps ) ) AS inAveragebps,
+        CONVERT ( DECIMAL ( 20, 2 ), MIN ( a.In_Minbps ) ) AS inMinbps,
+        CONVERT ( DECIMAL ( 20, 2 ), MAX ( a.Out_Maxbps ) ) AS outMaxbps,
+        CONVERT ( DECIMAL ( 20, 2 ), AVG ( a.Out_Averagebps ) ) AS outAveragebps,
+        CONVERT ( DECIMAL ( 20, 2 ), MIN ( a.Out_Minbps ) ) AS outMinbps
+        FROM
+        ${tableName} a
+        where 1=1
+        <include refid="interfaceIDs"></include>
+        <include refid="DATE"></include>
+        <include refid="DateDay"></include>
+        <include refid="PeriodRadio"></include>
+        GROUP BY
+        InterfaceID
+        ) t
+        RIGHT JOIN
+        (select InterfaceID,InBandwidth,caption from SolarWindsOrion.dbo.Interfaces where carrierName
+        =#{carrierName,jdbcType=VARCHAR} ) b ON t.InterfaceID= b.InterfaceID
+        where
+        (<choose>
+            <when test='percentFront==0f'>
+                (
+                ${inColumn}>=b.InBandwidth*#{percentFront,jdbcType=FLOAT}
+                or
+                ${outColumn}>=b.InBandwidth*#{percentFront,jdbcType=FLOAT}
+                )
+                and
+                (
+                ${inColumn} &lt;b.InBandwidth*#{percentBack,jdbcType=FLOAT}
+                and
+                ${outColumn} &lt;b.InBandwidth*#{percentBack,jdbcType=FLOAT}
+                )
+            </when>
+            <when test='percentFront==0.1f'>
+                (
+                ${inColumn}>=b.InBandwidth*#{percentFront,jdbcType=FLOAT}
+                or
+                ${outColumn}>=b.InBandwidth*#{percentFront,jdbcType=FLOAT}
+                )
+                and
+                (
+                ${inColumn} &lt;b.InBandwidth*#{percentBack,jdbcType=FLOAT}
+                and
+                ${outColumn} &lt;b.InBandwidth*#{percentBack,jdbcType=FLOAT}
+                )
+            </when>
+            <otherwise>
+                (
+                ${inColumn}>=b.InBandwidth*#{percentFront,jdbcType=FLOAT}
+                or
+                ${outColumn}>=b.InBandwidth*#{percentFront,jdbcType=FLOAT}
+                )
+                and
+                (
+                ${inColumn} &lt;b.InBandwidth*#{percentBack,jdbcType=FLOAT}
+                and
+                ${outColumn} &lt;b.InBandwidth*#{percentBack,jdbcType=FLOAT}
+                )
+            </otherwise>
+        </choose>)
+
+    </select>
+    <select id="getCaption" resultType="java.lang.String">
+       select caption from SolarWindsOrion.dbo.Interfaces where InterfaceID=#{interfaceID,jdbcType=INTEGER}
+    </select>
+
+
+    <select id="selectAll" resultType="java.lang.Double">
+       select sum(InterfaceID)/count(*) from InterfaceTraffic_Detail_202004
+    </select>
+</mapper>

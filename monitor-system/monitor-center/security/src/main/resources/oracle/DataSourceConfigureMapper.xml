@@ -1,0 +1,350 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.mw.monitor.security.dao.DataSourceConfigureDao">
+
+    <insert id="creatDataSourceInfo" parameterType="cn.mw.module.security.dto.DataSourceConfigureDTO">
+        insert into  ${TBSNAME}."mw_sys_log_datasource_setting"(
+        "id","datasource_name","datasource_type","ip","port","connection_type","is_pass","username","password","state","query_es_index","delete_flag","auth_type","status"
+        )
+        values
+        (
+        #{id,jdbcType=VARCHAR},
+        #{dataSourceName,jdbcType=VARCHAR},
+        #{dataSourceType,jdbcType=INTEGER},
+        #{ip,jdbcType=VARCHAR},
+        #{port,jdbcType=INTEGER},
+        #{connectionType,jdbcType=INTEGER},
+        #{isPass,jdbcType=INTEGER},
+        #{userName,jdbcType=VARCHAR},
+        #{password,jdbcType=VARCHAR},
+        0,
+        #{queryEsIndex,jdbcType=VARCHAR},
+        0,
+        #{authType,jdbcType=INTEGER},
+        0
+        )
+    </insert>
+
+    <insert id="creatTopicFieldInfo" parameterType="cn.mw.module.security.dto.TopicFieldDTO">
+        insert into  ${TBSNAME}."mw_kafka_topic_info"(
+        "id", "topic_code", "topic_name", "field_code", "field_name", "kafka_field_mapping", "mapping_rule", "kafka_id", "is_delete","is_consume_last"
+        )
+        values
+        (
+        #{id,jdbcType=VARCHAR},
+        #{topicCode,jdbcType=VARCHAR},
+        #{topicName,jdbcType=VARCHAR},
+        #{fieldCode,jdbcType=VARCHAR},
+        #{fieldName,jdbcType=VARCHAR},
+        #{kafkaField,jdbcType=VARCHAR},
+        #{mappingRuleName,jdbcType=VARCHAR},
+        #{kafkaId,jdbcType=INTEGER},
+          0,
+        #{consumeRule,jdbcType=BIT}
+        )
+    </insert>
+
+    <update id="editorDataSourceInfo" parameterType="cn.mw.module.security.dto.DataSourceConfigureDTO">
+        update  ${TBSNAME}."mw_sys_log_datasource_setting" set
+        <if test="dataSourceName != null">
+            "datasource_name" =#{dataSourceName,jdbcType=VARCHAR},
+        </if>
+        <if test="dataSourceType != null">
+            "datasource_type" =#{dataSourceType,jdbcType=INTEGER},
+        </if>
+        <if test="ip != null">
+            "ip"=#{ip,jdbcType=VARCHAR},
+        </if>
+        <if test="port != null">
+            "port"=#{port,jdbcType=INTEGER},
+        </if>
+        <if test="connectionType != null">
+            "connection_type"=#{connectionType,jdbcType=INTEGER},
+        </if>
+        <if test="isPass != null">
+            "is_pass"=#{isPass,jdbcType=BIT},
+        </if>
+        <if test="state != null">
+            "state"=#{state,jdbcType=BIT},
+        </if>
+        <if test="userName != null">
+            "username"=#{userName,jdbcType=VARCHAR},
+        </if>
+        <if test="password != null">
+            "password"=#{password,jdbcType=VARCHAR},
+        </if>
+        <if test="queryEsIndex != null">
+            "query_es_index"=#{queryEsIndex,jdbcType=VARCHAR},
+        </if>
+        <if test="authType != null">
+            authType=#{auth_type,jdbcType=INTEGER},
+        </if>
+        "delete_flag" = 0
+        where "id" =#{id,jdbcType=VARCHAR}
+    </update>
+
+    <update id="editorTopicFieldInfo" parameterType="cn.mw.module.security.dto.TopicFieldDTO">
+        update ${TBSNAME}."mw_kafka_topic_info" set
+        <if test="topicName != null">
+            "topic_name" = #{topicName,jdbcType=VARCHAR},
+        </if>
+        <if test="fieldName != null">
+            "field_name" = #{fieldName,jdbcType=VARCHAR},
+        </if>
+        <if test="kafkaField != null">
+            "kafka_field_mapping" = #{kafkaField,jdbcType=VARCHAR},
+        </if>
+        <if test="mappingRule != null">
+            "mapping_rule" = #{mappingRuleName,jdbcType=VARCHAR},
+        </if>
+        <if test="isDelete != null">
+            "is_delete" = #{isDelete,jdbcType=INTEGER},
+        </if>
+        <if test="consumeRule != null">
+            "is_consume_last" = #{consumeRule,jdbcType=INTEGER}
+        </if>
+        where 1=1
+        <if test="id != null and id != ''">
+            and "id" = #{id,jdbcType=VARCHAR}
+        </if>
+        <if test="topicCode != null and topicCode != ''">
+            and "topic_code" = #{topicCode,jdbcType=VARCHAR}
+        </if>
+    </update>
+
+    <update id="editorDataSourceState" parameterType="cn.mw.module.security.dto.DataSourceConfigureDTO">
+        update  ${TBSNAME}."mw_sys_log_datasource_setting" set
+        "state" = #{state,jdbcType=INTEGER}
+        where "id" = #{id,jdbcType=INTEGER}
+    </update>
+
+    <update id="editorDataSourceStatus" parameterType="cn.mw.module.security.dto.DataSourceConfigureDTO">
+        update  ${TBSNAME}."mw_sys_log_datasource_setting" set
+        "status" = #{status,jdbcType=INTEGER}
+        where "id" = #{id,jdbcType=INTEGER}
+    </update>
+
+    <select id="getDataSourceInfo" parameterType="cn.mw.module.security.dto.DataSourceConfigureDTO"
+            resultType="cn.mw.module.security.dto.DataSourceConfigureDTO">
+        SELECT
+        a."id",
+        a."datasource_name" AS "dataSourceName",
+        a."datasource_type" AS "dataSourceType",
+        b."name" AS "dataSourceTypeName",
+        a."ip",
+        a."port",
+        a."connection_type" AS "connectionType",
+        c."connection_name" AS "connectionTypeName",
+        a."is_pass" AS "isPass",
+        (case  when a."is_pass" = '0' then '否' else '是' end) AS "isPassName",
+        a."username",
+        a."password",
+        (case  when a."state" = '0' then '禁用' else '启用' end) AS "stateName",
+        a."state",
+        a."query_es_index" AS "queryEsIndex",
+        d."auth_name" AS "authName",
+        a."status" AS "status"
+        FROM
+        ${TBSNAME}."mw_sys_log_datasource_setting" a
+        left join  ${TBSNAME}."mw_sys_log_datasource_type" b on a."datasource_type" = b."type"
+        left join  ${TBSNAME}."mw_sys_log_datasource_connection" c on a."connection_type" = c."connection_type"
+        left join ${TBSNAME}."mw_sys_log_datasource_auth" d on a."auth_type" = d."auth_type"
+        <where>
+            1 =1
+            and a."delete_flag" = 0
+            <choose>
+                <when test="fuzzyQuery!= null and fuzzyQuery !='' ">
+                    and (
+                    NVL( a."datasource_name", '' )||
+                    NVL( b."name", '' )||
+                    NVL( a."ip", '' )||
+                    NVL( a."port", '' )||
+                    NVL( c."connection_name", '' )||
+                    NVL( a."is_pass", '' )||
+                    NVL( a."state", '' )||
+                    NVL( a."query_es_index", '' )||
+                    NVL( d."auth_name", '' )
+                    ) LIKE ('%'||#{fuzzyQuery,jdbcType=VARCHAR}||'%')
+                    ORDER BY
+                    ( CASE WHEN INSTR( a."datasource_name", #{fuzzyQuery}) > 0 THEN 0 ELSE 1 END ),
+                    ( CASE WHEN INSTR( a."ip", #{fuzzyQuery}) > 0 THEN 0 ELSE 1 END ),
+                    ( CASE WHEN INSTR( a."port", #{fuzzyQuery} ) > 0 THEN 0 ELSE 1 END ),
+                    ( CASE WHEN INSTR( a."query_es_index", #{fuzzyQuery}) > 0 THEN 0 ELSE 1 END )
+                </when>
+                <otherwise>
+                    <if test="id != null and id != ''">
+                        and a."id" = #{id,jdbcType=INTEGER}
+                    </if>
+                    <if test="ids != null">
+                        and a."id" in (
+                        <foreach collection="ids" item="id" separator=",">
+                            #{id,jdbcType=INTEGER}
+                        </foreach>
+                        )
+                    </if>
+                    <if test="dataSourceName != null and dataSourceName != ''">
+                        and a."datasource_name" like ('%'||#{dataSourceName,jdbcType=VARCHAR}||'%')
+                    </if>
+                    <if test="dataSourceType != null">
+                        and a."datasource_type" = #{dataSourceType,jdbcType=INTEGER}
+                    </if>
+                    <if test="ip != null and ip != ''">
+                        and a."ip" like ('%'||#{ip,jdbcType=VARCHAR}||'%')
+                    </if>
+                    <if test="port != null">
+                        and a."port" = #{port,jdbcType=INTEGER}
+                    </if>
+                    <if test="isPass != null">
+                        and a."is_pass" = #{isPass,jdbcType=BIT}
+                    </if>
+                    <if test="connectionType != null">
+                        and a."connection_type" = #{connectionType,jdbcType=INTEGER}
+                    </if>
+                    <if test="state != null">
+                        and a."state" = #{state,jdbcType=BIT}
+                    </if>
+                    <if test="queryEsIndex != null and queryEsIndex != ''">
+                        and a."query_es_index" like ('%'||#{queryEsIndex,jdbcType=VARCHAR}||'%')
+                    </if>
+                    <if test="status != null">
+                        and a."status" = #{status,jdbcType=BIT}
+                    </if>
+                    order by a."state" desc,a."datasource_name",a."ip"
+                </otherwise>
+            </choose>
+        </where>
+    </select>
+
+    <update id="deleteDataSourceInfo" parameterType="java.util.List">
+        update  ${TBSNAME}."mw_sys_log_datasource_setting" set
+        "delete_flag" = 1
+        where "id" IN (
+        <foreach collection="ids" item="list" separator=",">
+            #{list,jdbcType=INTEGER}
+        </foreach>
+        )
+    </update>
+
+    <select id="dataSourceDropDownByDataSourceType" resultType="java.util.Map">
+    SELECT
+        "type" AS "dropKey",
+        "name" AS "dropValue"
+    FROM
+	     ${TBSNAME}."mw_sys_log_datasource_type"
+    </select>
+
+    <select id="dataSourceDropDownByConnectionType" resultType="java.util.Map">
+    SELECT
+        "connection_type" AS "dropKey",
+        "connection_name" AS "dropValue",
+        "datasource_type_id" AS "dropType"
+    FROM
+	     ${TBSNAME}."mw_sys_log_datasource_connection"
+    </select>
+
+    <select id="dataSourceDropDownByAuthType" resultType="java.util.Map">
+        SELECT
+            "auth_type" AS "dropKey",
+            "auth_name" AS "dropValue",
+            "datasource_type_id" AS "dropType"
+        FROM
+            ${TBSNAME}."mw_sys_log_datasource_auth"
+    </select>
+
+    <select id="fuzzSearchAllFiled" resultType="java.util.Map">
+        SELECT
+            a."datasource_name" AS "dataSourceName",
+            b."name" AS "dataSourceTypeName",
+            a."ip",
+            a."port",
+            c."connection_name" AS "connectionTypeName",
+            ( CASE WHEN a."is_pass" ='0' THEN '否' ELSE '是' END ) AS "isPassName",
+            ( CASE WHEN a."state" ='0' THEN '不启用' ELSE '启用' END ) AS "stateName",
+            a."query_es_index" AS "queryEsIndex"
+        FROM
+            ${TBSNAME}."mw_sys_log_datasource_setting" a
+            LEFT JOIN ${TBSNAME}."mw_sys_log_datasource_type" b ON a."datasource_type" = b."type"
+            LEFT JOIN ${TBSNAME}."mw_sys_log_datasource_connection" c ON a."connection_type" = c."connection_type"
+            where a."delete_flag" = 0
+    </select>
+
+    <select id="getTopicField" resultType="cn.mw.module.security.dto.TopicFieldDTO">
+        SELECT
+            "code" AS "fieldCode",
+            "name" AS "fieldName",
+            "is_march_model" AS "isMatchModel",
+            "model_table_name" AS "matchModelTableName",
+            "input_type" AS "inputType"
+        FROM
+            ${TBSNAME}."mw_alert_field_code"
+        WHERE
+            "is_used" = 1
+    </select>
+
+    <select id="getTimeModel" resultType="cn.mw.module.security.dto.FieldModelDTO">
+        SELECT
+            "code" AS "modelCode",
+            "name" AS "modelName",
+            "name" AS "tagName"
+        FROM
+            ${TBSNAME}."mw_event_time_moule_code"
+    </select>
+
+    <select id="getEventSources" resultType="cn.mw.module.security.dto.FieldModelDTO">
+        SELECT
+            "id" AS "modelCode",
+            "monitoring_server_name" AS "modelName",
+            "monitoring_server_name" AS "tagName",
+            "monitoring_server_type" AS "modelType"
+        FROM
+            ${TBSNAME}."mw_thirdparty_server_table"
+        WHERE "delete_flag" = 0
+    </select>
+
+    <select id="getTopicByKafkaId" resultType="cn.mw.module.security.dto.TopicFieldDTO">
+        SELECT
+        a."id" AS "id",
+        a."topic_code" AS "topicCode",
+        a."topic_name" AS "topicName",
+        a."field_code" AS "fieldCode",
+        a."field_name" AS "fieldName",
+        a."kafka_field_mapping" AS "kafkaField",
+        a."mapping_rule" AS "mappingRule",
+        a."kafka_id" AS "kafkaId",
+        a."is_consume_last" AS "consumeRule",
+        b."input_type" AS "inputType",
+        b."model_table_name" AS "matchModelTableName"
+        FROM
+        ${TBSNAME}."mw_kafka_topic_info" a LEFT JOIN ${TBSNAME}."mw_alert_field_code" b
+        ON a."field_code" = b."code"
+        where a."is_delete" = 0 and a."kafka_id" = #{kafkaId,jdbcType=INTEGER}
+    </select>
+
+    <insert id="creatAlertLevelInfo" parameterType="cn.mw.module.security.dto.FieldModelDTO" useGeneratedKeys="false">
+        insert into ${TBSNAME}."mw_topic_field_alert_level"
+        ("field_id", "topic_code", "level", "source_field", "mapp_value", "is_delete")
+        <foreach collection="levleList" item="item" separator="UNION ALL">
+            (SELECT
+                #{item.fieldId,jdbcType=VARCHAR},
+                #{item.topicCode,jdbcType=VARCHAR},
+                #{item.level,jdbcType=VARCHAR},
+                #{item.sourceField,jdbcType=VARCHAR},
+                #{item.mappValue,jdbcType=VARCHAR},
+                0
+            FROM dual)
+        </foreach>
+    </insert>
+
+    <delete id="deleteAlertLevelInfo" parameterType="string">
+        delete from ${TBSNAME}."mw_topic_field_alert_level"
+        where "field_id" = #{fieldId,jdbcType=VARCHAR}
+    </delete>
+
+    <select id="getLevelList" parameterType="cn.mw.module.security.dto.TopicFieldDTO" resultType="map">
+        SELECT "level" AS "level",
+               "source_field" AS "sourceField",
+               "mapp_value" AS "mappValue"
+        FROM ${TBSNAME}."mw_topic_field_alert_level"
+        WHERE "field_id" = #{id,jdbcType=VARCHAR}
+    </select>
+</mapper>

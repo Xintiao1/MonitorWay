@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.mw.monitor.util.dao.MwUserMapperDao">
+
+    <select id="selectSettingsInfo" resultType="cn.mw.monitor.service.user.dto.SettingDTO">
+        select logo_url,icon,user_icon,http_header,logo_basecode,sideheader_color,sidemenu_color,sidemenu_textcolor,
+         sidemenu_text_selectcolor,title,title_color,logo_descrition,local_language from mw_settings_info
+         order by modify_time desc limit 1
+    </select>
+
+</mapper>

@@ -1,0 +1,15 @@
+truncate table mw_alert_action_label_mapper;
+truncate table mw_alert_action_rule_mapper;
+truncate table mw_alert_action_type_mapper;
+truncate table mw_alert_action_user_mapper;
+truncate table mw_alert_apply_weixin_rule;
+truncate table mw_alert_dingding_rule;
+truncate table mw_alert_email_rule;
+truncate table mw_alert_rule;
+truncate table mw_alert_weixin_rule;
+truncate table mw_alert_assets_iot;
+truncate table mw_alert_record_table;
+truncate table mw_alert_action;
+truncate table mw_alert_trigger_close_table;
+truncate table mw_alert_record_user_mapper;
+truncate table mw_alert_record_email_mapper

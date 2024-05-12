@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.mw.monitor.customPage.dao.MwCustomcolTableDao">
+
+    <insert id="insert" parameterType="java.util.List">
+        INSERT INTO mw_customcol_table
+        (
+            col_id,
+            user_id,
+            sortable,
+            width,
+            visible,
+            order_number
+        ) VALUES
+        <foreach collection="list" item="colList" separator=",">
+        (
+            #{colList.colId,jdbcType=INTEGER},
+            #{colList.userId,jdbcType=INTEGER},
+            #{colList.sortable,jdbcType=BIT},
+            #{colList.width,jdbcType=INTEGER},
+            #{colList.visible,jdbcType=BIT},
+            #{colList.orderNumber,jdbcType=INTEGER}
+        )
+        </foreach>
+    </insert>
+
+    <insert id="insertByModel" parameterType="java.util.List">
+        INSERT INTO mw_cmdbmd_customcol_table
+        (
+        col_id,
+        user_id,
+        sortable,
+        width,
+        visible,
+        model_properties_id,
+        order_number
+        ) VALUES
+        <foreach collection="list" item="colList" separator=",">
+            (
+            #{colList.colId,jdbcType=INTEGER},
+            #{colList.userId,jdbcType=INTEGER},
+            #{colList.sortable,jdbcType=BIT},
+            #{colList.width,jdbcType=INTEGER},
+            #{colList.visible,jdbcType=BIT},
+            #{colList.modelPropertiesId,jdbcType=INTEGER},
+            #{colList.orderNumber,jdbcType=INTEGER}
+            )
+        </foreach>
+    </insert>
+
+
+    <update id="updateBatch" parameterType="java.util.List">
+        <foreach collection="list" item="updateList" separator=";">
+            update mw_customcol_table
+            set col_id = #{updateList.colId,jdbcType=INTEGER},
+                user_id = #{updateList.userId,jdbcType=INTEGER},
+                sortable = #{updateList.sortable,jdbcType=BIT},
+                width = #{updateList.width,jdbcType=INTEGER},
+                visible = #{updateList.visible,jdbcType=BIT},
+                order_number = #{updateList.orderNumber,jdbcType=INTEGER},
+              delete_flag = #{updateList.deleteFlag,jdbcType=INTEGER}
+            where id = #{updateList.customId,jdbcType=INTEGER}
+        </foreach>
+    </update>
+
+    <update id="updateBatchByModel" parameterType="java.util.List">
+        <foreach collection="list" item="updateList" separator=";">
+            update mw_cmdbmd_customcol_table
+            set col_id = #{updateList.colId,jdbcType=INTEGER},
+            user_id = #{updateList.userId,jdbcType=INTEGER},
+            sortable = #{updateList.sortable,jdbcType=BIT},
+            width = #{updateList.width,jdbcType=INTEGER},
+            visible = #{updateList.visible,jdbcType=BIT},
+            order_number = #{updateList.orderNumber,jdbcType=INTEGER},
+            delete_flag = #{updateList.deleteFlag,jdbcType=INTEGER}
+            where id = #{updateList.customId,jdbcType=INTEGER}
+        </foreach>
+    </update>
+
+    <update id="reset">
+        <foreach collection="list" item="updateList" separator=";">
+            update
+                mw_customcol_table
+            set
+                delete_flag = #{updateList.deleteFlag,jdbcType=INTEGER}
+            where id = #{updateList.customId,jdbcType=INTEGER}
+        </foreach>
+    </update>
+
+</mapper>

@@ -1,0 +1,398 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.mw.monitor.scan.dao.ScanResultTableDao">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="cn.mw.monitor.service.scan.model.ScanResultSuccess">
+        <result column="id" property="id" />
+        <result column="scanrule_id" property="scanruleId" />
+        <result column="scan_batch" property="scanBatch" />
+        <result column="host_name" property="hostName" />
+        <result column="ip_address" property="ipAddress" />
+        <result column="template_id" property="templateId" />
+        <result column="template_name" property="templateName" />
+        <result column="group_id" property="groupId" />
+        <result column="sys_obj_id" property="sysObjId" />
+        <result column="brand" property="brand" />
+        <result column="description" property="description" />
+        <result column="specifications" property="specifications" />
+        <result column="assets_type_id" property="assetsTypeId" />
+        <result column="assets_sub_type_id" property="assetsSubTypeId" />
+        <result column="groupTypeName" property="groupTypeName" />
+        <result column="polling_engine" property="pollingEngine" />
+        <result column="monitor_mode" property="monitorMode" />
+        <result column="scan_time" property="scanTime" />
+        <result column="creator" property="creator" />
+        <result column="create_date" property="createDate" />
+        <result column="modifier" property="modifier" />
+        <result column="modification_date" property="modificationDate" />
+        <result column="port" property="port" />
+        <result column="monitor_port" property="monitorPort" />
+        <result column="community" property="community" />
+        <result column="security_name" property="securityName" />
+        <result column="context_name" property="contextName" />
+        <result column="security_level" property="securityLevel" />
+        <result column="auth_protocol" property="authProtocol" />
+        <result column="auth_token" property="authToken" />
+        <result column="priv_protocol" property="privProtocol" />
+        <result column="priv_token" property="privToken" />
+        <result column="template_match_id" property="templateMatchId" />
+        <result column="monitor_server_id" property="monitorServerId" />
+        <result column="scanSuccessIdInAssets" property="scanSuccessIdInAssets" />
+        <result column="snmp_version" property="snmpVersion" />
+    </resultMap>
+
+    <sql id="Base_Column_List" >
+        id,<include refid="excludeId_Column_List"/>
+    </sql>
+
+    <sql id="excludeId_Column_List" >
+        "scanrule_id", "scan_batch","host_name","ip_address", "sys_obj_id","brand","description","specifications","assets_type_id"
+        ,"assets_sub_type_id" ,"polling_engine","monitor_mode","scan_time", "creator", "create_date", "modifier", "modification_date"
+        ,"template_id" ,"template_name" , "group_id", "port", "monitor_port", "community", "security_name", "context_name", "security_level", "auth_protocol"
+        ,"auth_token", "priv_protocol", "priv_token", "template_match_id", "monitor_server_id"
+        ,"device_code","snmp_version"
+    </sql>
+
+    <sql id="selectSuccessList_Column" >
+        DISTINCT(${alias}"id") as "id"
+        ,${alias}"scanrule_id" as "scanrule_id"
+        ,${alias}"template_id" as "template_id"
+        ,${alias}"template_name" as "template_name"
+        ,${alias}"group_id" as "group_id"
+        ,${alias}"scan_batch" as "scan_batch"
+        ,${alias}"host_name" as "host_name"
+        ,${alias}"ip_address" as "ip_address"
+        ,${alias}"sys_obj_id" as "sys_obj_id"
+        ,${alias}"brand" as "brand"
+        ,${alias}"description" as "description"
+        ,${alias}"specifications" as "specifications"
+        ,${alias}"assets_type_id" as "assets_type_id"
+        ,${alias}"assets_sub_type_id" as "assets_sub_type_id"
+        ,${alias}"polling_engine" as "polling_engine"
+        ,${alias}"monitor_mode" as "monitor_mode"
+        ,${alias}"scan_time" as "scan_time"
+        ,${alias}"creator" as "creator"
+        ,${alias}"create_date" as "create_date"
+        ,${alias}"modifier" as "modifier"
+        ,${alias}"port" as "port"
+        ,${alias}"monitor_port" as "monitor_port"
+        ,${alias}"community" as "community"
+        ,${alias}"security_name" as "security_name"
+        ,${alias}"context_name" as "context_name"
+        ,${alias}"security_level" as "security_level"
+        ,${alias}"auth_protocol" as "auth_protocol"
+        ,${alias}"auth_token" as "auth_token"
+        ,${alias}"priv_protocol" as "priv_protocol"
+        ,${alias}"priv_token" as "priv_token"
+        ,${alias}"template_match_id" as "template_match_id"
+        ,${alias}"monitor_server_id" as "monitor_server_id"
+        ,${alias}"snmp_version" as "snmp_version"
+    </sql>
+
+    <sql id="tb">
+        ${TBSNAME}."mw_scanresultsuccess_table" ${alias}
+    </sql>
+
+    <select id="selectSuccessListByIds" resultMap="BaseResultMap" parameterType="java.util.List">
+        SELECT
+        <include refid="selectSuccessList_Column" ><property name="alias" value="tb1."/></include>
+--         ,left1.scan_success_id as scanSuccessIdInAssets
+        , ( CASE WHEN left1."scan_success_id" IS NOT NULL THEN 1 WHEN left2."scan_success_id" IS NOT NULL THEN 1 ELSE NULL END) AS "scanSuccessIdInAssets"
+        FROM
+        <include refid="tb"><property name="alias" value="tb1"/></include>
+        left join ${TBSNAME}."mw_tangibleassets_table" left1 on tb1."id" = left1."scan_success_id" and left1."delete_flag" = 0
+        left join ${TBSNAME}."mw_outbandassets_table" left2 on tb1.id = left2."scan_success_id" and left2."delete_flag" = 0
+        WHERE tb1."id" in(
+        <foreach collection="list" item="item" separator=",">
+            #{item}
+        </foreach>
+        )
+    </select>
+
+    <sql id="select_success_table" >
+        SELECT
+        <include refid="selectSuccessList_Column"><property name="alias" value="tb."/></include>
+        , case  when tb."monitor_mode" = 'ZabbixAgent' then 1
+        when  tb."monitor_mode" = 'SNMPv1v2' then 2
+        when  tb."monitor_mode" = 'SNMPv3' then 2
+        when  tb."monitor_mode" = 'Port' then 3
+        when  tb."monitor_mode" = 'ICMP' then 4
+        else 0 end "monitor_mode1"
+        FROM
+        <include refid="tb"><property name="alias" value="tb"/></include>
+        WHERE 1 = 1
+        AND tb."scan_batch" = (select max("scan_batch")
+        from <include refid="tb"><property name="alias" value=""/></include>
+        where "scanrule_id" = #{scanruleId,jdbcType=INTEGER}
+        )
+        <if test="scanBatch != null and scanBatch != ''">
+            AND tb."scan_batch" = #{scanBatch,jdbcType=VARCHAR}
+        </if>
+        <if test="id != null and id != ''">
+            AND tb."id" = #{id,jdbcType=Integer}
+        </if>
+        <if test="scanruleId != null and scanruleId != ''">
+            AND tb."scanrule_id" = #{scanruleId,jdbcType=INTEGER}
+        </if>
+        <if test="hostName != null and hostName != ''">
+            AND tb."host_name" LIKE ('%'||#{hostName,jdbcType=VARCHAR}||'%')
+        </if>
+        <if test="ipAddress != null and ipAddress != ''">
+            AND tb."ip_address" LIKE ('%'||#{ipAddress,jdbcType=VARCHAR}||'%')
+        </if>
+        <if test="brand != null and brand != ''">
+            AND tb."brand" LIKE ('%'||#{brand,jdbcType=VARCHAR}||'%')
+        </if>
+        <if test="description != null and description != ''">
+            AND tb."description" LIKE ('%'||#{description,jdbcType=VARCHAR}||'%')
+        </if>
+        <if test="specifications != null and specifications != ''">
+            AND tb."specifications" LIKE ('%'||#{specifications,jdbcType=VARCHAR}||'%')
+        </if>
+        <if test="fuzzyQuery!= null and fuzzyQuery !='' ">
+            and (
+            NVL( tb."ip_address", '' )||
+            NVL( tb."host_name", '' )||
+            NVL( tb."brand", '' )||
+            NVL( tb."description", '' )||
+            NVL( tb."specifications", '' )
+            ) LIKE ('%'||#{fuzzyQuery,jdbcType=VARCHAR}||'%')
+            ORDER BY
+            ( CASE WHEN INSTR( tb."ip_address", #{fuzzyQuery}) > 0 THEN 0 ELSE 1 END ),
+            ( CASE WHEN INSTR( tb."host_name", #{fuzzyQuery}) > 0 THEN 0 ELSE 1 END ),
+            ( CASE WHEN INSTR( tb."brand", #{fuzzyQuery} ) > 0 THEN 0 ELSE 1 END ),
+            ( CASE WHEN INSTR( tb."description", #{fuzzyQuery} ) > 0 THEN 0 ELSE 1 END ),
+            ( CASE WHEN INSTR( tb."specifications", #{fuzzyQuery} ) > 0 THEN 0 ELSE 1 END )
+        </if>
+    </sql>
+
+    <select id="selectSuccessList" resultMap="BaseResultMap" parameterType="java.util.Map">
+        select
+        <include refid="selectSuccessList_Column"></include>
+        ,"scanSuccessIdInAssets" from (
+        SELECT
+        <include refid="selectSuccessList_Column">
+            <property name="alias" value="base."/>
+        </include>
+        , ( CASE WHEN left1."scan_success_id" IS NOT NULL THEN 1 WHEN left2."scan_success_id" IS NOT NULL THEN 1 ELSE NULL END) AS "scanSuccessIdInAssets"
+        FROM
+        (<include refid="select_success_table"></include>) base
+        left join ${TBSNAME}."mw_tangibleassets_table" left1
+        on base."ip_address" = left1."in_band_ip"
+        and left1."delete_flag" = 0
+        and left1."scan_success_id" is not null
+        and base."assets_type_id" = left1."assets_type_id"
+        and base."assets_sub_type_id" = left1."assets_type_sub_id"
+        and base."brand" = left1."manufacturer"
+        and base."specifications" = left1."specifications"
+        and base."monitor_mode1" = left1."monitor_mode"
+        left join ${TBSNAME}."mw_outbandassets_table" left2
+        on base."ip_address" = left2."ip_address"
+        and left2."delete_flag" = 0
+        and left2."scan_success_id" is not null
+        and base."assets_type_id" = left2."assets_type_id"
+        and base."assets_sub_type_id" = left2."assets_type_sub_id"
+        and base."brand" = left2."manufacturer"
+        and base."specifications" = left2."specifications"
+        and base."monitor_mode1" = left2."monitor_mode"
+        ) lastone where 1=1
+        <if test="isExist != null and 'EXIST' eq isExist">
+            AND lastone."scanSuccessIdInAssets" is not null
+        </if>
+        <if test="isExist != null and 'NOTEXIST' eq isExist">
+            AND lastone."scanSuccessIdInAssets" is null
+        </if>
+            and lastone."create_date" >= (select "scan_start_date" from ${TBSNAME}."mw_scanrule_table" a where a."scanrule_id" = #{scanruleId,jdbcType=INTEGER})
+        order by lastone."scanSuccessIdInAssets", lastone."id",lastone."ip_address"
+    </select>
+
+<!--    <select id="selectSuccessList" resultMap="BaseResultMap" parameterType="java.util.Map">-->
+<!--        SELECT-->
+<!--        <include refid="selectSuccessList_Column"><property name="alias" value="tb."/></include>-->
+<!--        , left1.scan_success_id as scanSuccessIdInAssets-->
+<!--        , left2.scan_success_id as scanSuccessIdInAssetsOutband-->
+<!--        FROM-->
+<!--        <include refid="tb"><property name="alias" value="tb"/></include>-->
+<!--         left join mw_tangibleassets_table left1 on tb.ip_address = left1.in_band_ip and left1.delete_flag = false and left1.scan_success_id = tb.id-->
+<!--         left join mw_outbandassets_table left2 on tb.ip_address = left2.ip_address and left2.delete_flag = false and left2.scan_success_id = tb.id-->
+<!--        WHERE 1 = 1-->
+<!--        AND tb.scan_batch = (select max(scan_batch)-->
+<!--                            from <include refid="tb"><property name="alias" value=""/></include>-->
+<!--                            where scanrule_id = #{scanruleId,jdbcType=INTEGER}-->
+<!--                            )-->
+<!--        <if test="scanBatch != null and scanBatch != ''">-->
+<!--            AND tb.scan_batch = #{scanBatch,jdbcType=VARCHAR}-->
+<!--        </if>-->
+<!--        <if test="id != null and id != ''">-->
+<!--            AND tb.id = #{id,jdbcType=Integer}-->
+<!--        </if>-->
+<!--        <if test="scanruleId != null and scanruleId != ''">-->
+<!--            AND tb.scanrule_id = #{scanruleId,jdbcType=INTEGER}-->
+<!--        </if>-->
+<!--        <if test="hostName != null and hostName != ''">-->
+<!--            AND tb.host_name LIKE CONCAT('%',#{hostName,jdbcType=VARCHAR},'%')-->
+<!--        </if>-->
+<!--        <if test="ipAddress != null and ipAddress != ''">-->
+<!--            AND tb.ip_address LIKE CONCAT('%',#{ipAddress,jdbcType=VARCHAR},'%')-->
+<!--        </if>-->
+<!--        <if test="brand != null and brand != ''">-->
+<!--            AND tb.brand LIKE CONCAT('%',#{brand,jdbcType=VARCHAR},'%')-->
+<!--        </if>-->
+<!--        <if test="description != null and description != ''">-->
+<!--            AND tb.description LIKE CONCAT('%',#{description,jdbcType=VARCHAR},'%')-->
+<!--        </if>-->
+<!--        <if test="specifications != null and specifications != ''">-->
+<!--            AND tb.specifications LIKE CONCAT('%',#{specifications,jdbcType=VARCHAR},'%')-->
+<!--        </if>-->
+<!--        <if test="isExist != null and 'EXIST' eq isExist">-->
+<!--            AND left1.scan_success_id is not null-->
+<!--        </if>-->
+<!--        <if test="isExist != null and 'NOTEXIST' eq isExist">-->
+<!--            AND left1.scan_success_id is null-->
+<!--        </if>-->
+<!--        order by left1.scan_success_id, tb.id-->
+<!--    </select>-->
+
+    <insert id="batchInsert">
+        INSERT INTO <include refid="tb"><property name="alias" value=""/></include>
+        ("id",<include refid="excludeId_Column_List" />)
+        select ${TBSNAME}.SEQ_MW_SCANRESULTSUCCESS_TABLE.NEXTVAL as id,t.* from (
+
+        <foreach collection="list" item="item" separator="union all">
+            (SELECT
+            #{item.scanruleId,jdbcType=INTEGER} as "scanrule_id"
+            ,#{item.scanBatch,jdbcType=VARCHAR} as "scan_batch"
+            ,#{item.hostName,jdbcType=VARCHAR} as "host_name"
+            ,#{item.ipAddress,jdbcType=VARCHAR} as "ip_address"
+            ,#{item.sysObjId,jdbcType=VARCHAR} as "sys_obj_id"
+            ,#{item.brand,jdbcType=VARCHAR} as "brand"
+            ,#{item.description,jdbcType=VARCHAR} as "description"
+            ,#{item.specifications,jdbcType=VARCHAR} as "specifications"
+            ,#{item.assetsTypeId,jdbcType=INTEGER} as "assets_type_id"
+            ,#{item.assetsSubTypeId,jdbcType=INTEGER} as "assets_sub_type_id"
+            ,#{item.pollingEngine,jdbcType=INTEGER} as "polling_engine"
+            ,#{item.monitorMode,jdbcType=VARCHAR} as "monitor_mode"
+            ,#{item.scanTime,jdbcType=TIMESTAMP} as "scan_time"
+            ,#{item.creator,jdbcType=VARCHAR} as "creator"
+            ,#{item.createDate,jdbcType=TIMESTAMP} as "create_date"
+            ,#{item.modifier,jdbcType=VARCHAR} as "modifier"
+            ,#{item.modificationDate,jdbcType=TIMESTAMP} as "modification_date"
+            ,#{item.templateId,jdbcType=VARCHAR} as "template_id"
+            ,#{item.templateName,jdbcType=VARCHAR} as "template_name"
+            ,#{item.groupId,jdbcType=VARCHAR} as "group_id"
+            ,#{item.port,jdbcType=VARCHAR} as "port"
+            ,#{item.monitorPort,jdbcType=VARCHAR} as "monitor_port"
+            ,#{item.community,jdbcType=VARCHAR} as "community"
+            ,#{item.securityName,jdbcType=VARCHAR} as "security_name"
+            ,#{item.contextName,jdbcType=VARCHAR} as "context_name"
+            ,#{item.securityLevel,jdbcType=VARCHAR} as "security_level"
+            ,#{item.authProtocol,jdbcType=VARCHAR} as "auth_protocol"
+            ,#{item.authToken,jdbcType=VARCHAR} as "auth_token"
+            ,#{item.privProtocol,jdbcType=VARCHAR} as "priv_protocol"
+            ,#{item.privToken,jdbcType=VARCHAR} as "priv_token"
+            ,#{item.templateMatchId,jdbcType=INTEGER} as "template_match_id"
+            ,#{item.monitorServerId,jdbcType=INTEGER} as "monitor_server_id"
+            ,#{item.deviceCode,jdbcType=VARCHAR} as "deviceCode"
+            ,#{item.snmpVersion,jdbcType=INTEGER} as "snmp_version"
+            from dual)
+        </foreach>
+        ) t
+    </insert>
+
+    <insert id="insertSucc" parameterType="cn.mw.monitor.service.scan.model.ScanResultSuccess">
+        INSERT INTO <include refid="tb"><property name="alias" value=""/></include>
+
+        ("id",<include refid="excludeId_Column_List" />)
+        VALUES (
+            ${TBSNAME}.SEQ_MW_SCANRESULTSUCCESS_TABLE.NEXTVAL,
+            #{scanruleId}
+            ,#{scanBatch}
+            ,#{hostName}
+            ,#{ipAddress}
+            ,#{sysObjId}
+            ,#{brand}
+            ,#{description}
+            ,#{specifications}
+            ,#{assetsTypeId}
+            ,#{assetsSubTypeId}
+            ,#{pollingEngine}
+            ,#{monitorMode}
+            ,#{scanTime}
+            ,#{creator}
+            ,#{createDate}
+            ,#{modifier}
+            ,#{modificationDate}
+            ,#{templateId}
+            ,#{groupId}
+            ,#{port}
+            ,#{monitorPort}
+            ,#{community}
+            ,#{securityName}
+            ,#{contextName}
+            ,#{securityLevel}
+            ,#{authProtocol}
+            ,#{authToken}
+            ,#{privProtocol}
+            ,#{privToken}
+            ,#{templateMatchId}
+            ,#{monitorServerId}
+            ,#{deviceCode}
+            ,#{snmpVersion}
+            )
+    </insert>
+
+    <delete id="batchDeleteSuccess" parameterType="java.util.List">
+        delete from <include refid="tb"><property name="alias" value=""/></include>
+        where "scanrule_id" in(
+        <foreach collection="list" item="deleteList" separator=",">
+            #{deleteList.value,jdbcType=INTEGER}
+        </foreach>
+        )
+    </delete>
+
+    <delete id="batchDeleteSuccById" parameterType="java.util.HashMap">
+        delete from <include refid="tb" />
+        where "id" in
+        <foreach collection="ids" item="outputId" open="(" separator="," close=")">
+            #{outputId}
+        </foreach>
+    </delete>
+
+    <select id="getSuccMaxBatchNo" resultType="java.lang.String" parameterType="java.lang.Integer">
+        select max("scan_batch")
+        from <include refid="tb"><property name="alias" value=""/></include>
+        where "scanrule_id" = #{scanRuleId}
+    </select>
+
+    <select id="fuzzSearchSuccAllFiled" resultType="java.util.Map">
+        SELECT
+        base."ip_address",
+        base."host_name",
+        base."brand",
+        base."description",
+        base."specifications"
+        FROM
+        <include refid="tb"><property name="alias" value="base"/></include>
+<!--        (select max(scan_batch)-->
+<!--        from <include refid="tb"><property name="alias" value=""/></include>-->
+<!--        where scanrule_id = #{scanruleId}) base-->
+        WHERE 1=1
+        and base."scan_batch" = (select max("scan_batch")
+        from <include refid="tb"><property name="alias" value=""/></include>
+        where "scanrule_id" = #{scanruleId})
+        and (
+        NVL( base."ip_address", '' )||
+        NVL( base."host_name", '' )||
+        NVL( base."brand", '' )||
+        NVL( base."description", '' )||
+        NVL( base."specifications", '' )
+        ) LIKE ('%'||#{value,jdbcType=VARCHAR}||'%')
+        ORDER BY
+        ( CASE WHEN INSTR( base."ip_address", #{value}) > 0 THEN 0 ELSE 1 END ),
+        ( CASE WHEN INSTR( base."host_name", #{value}) > 0 THEN 0 ELSE 1 END ),
+        ( CASE WHEN INSTR( base."brand", #{value} ) > 0 THEN 0 ELSE 1 END ),
+        ( CASE WHEN INSTR( base."description", #{value} ) > 0 THEN 0 ELSE 1 END ),
+        ( CASE WHEN INSTR( base."specifications", #{value} ) > 0 THEN 0 ELSE 1 END )
+    </select>
+</mapper>

@@ -1,0 +1,321 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.mw.monitor.assets.dao.MwAssetsMainTainDao">
+
+    <resultMap id="mainTainMap" type="cn.mw.monitor.service.assets.param.MwAssetsMainTainParam">
+        <id column="id" jdbcType="INTEGER" property="id" />
+        <result column="maintenanceid" jdbcType="VARCHAR" property="maintenanceid" />
+        <result column="name" jdbcType="VARCHAR" property="name" />
+        <result column="active_since" jdbcType="TIMESTAMP" property="activeSince" />
+        <result column="active_till" jdbcType="TIMESTAMP" property="activeTill" />
+        <result column="description" jdbcType="VARCHAR" property="description" />
+        <result column="maintenanceType" jdbcType="INTEGER" property="maintenanceType" />
+        <result column="creator" jdbcType="VARCHAR" property="creator" />
+        <result column="create_date" jdbcType="TIMESTAMP" property="createDate" />
+        <result column="modifier" jdbcType="VARCHAR" property="modifier" />
+        <result column="modification_date" jdbcType="TIMESTAMP" property="modificationDate" />
+        <result column="tagseval_type" jdbcType="INTEGER" property="tagsEvalType" />
+        <result column="formdata" jdbcType="VARCHAR" property="formData" />
+        <result column="serverId" jdbcType="INTEGER" property="serverId" />
+        <result column="typeId" jdbcType="INTEGER" property="typeId" />
+    </resultMap>
+
+    <insert id="addAssetsMainTain" parameterType="cn.mw.monitor.service.assets.param.MwAssetsMainTainParam">
+        <selectKey keyProperty="id" order="BEFORE" resultType="java.lang.Integer">
+            select ${TBSNAME}.SEQ_MW_ASSETS_MAINTEN.NEXTVAL as "id" from DUAL
+        </selectKey>
+        INSERT INTO ${TBSNAME}."mw_assets_mainten" (
+            "id",
+            "name",
+            "delete_flag",
+            "creator",
+            "create_date",
+            "active_since",
+            "active_till",
+            "description",
+            "maintenanceType",
+            "formdata",
+            "cyclic_frequency"
+        )
+        VALUES
+	    (
+	        #{id},
+            #{name,jdbcType=VARCHAR},
+            0,
+            #{creator,jdbcType=VARCHAR},
+            SYSDATE,
+            #{activeSince,jdbcType=TIMESTAMP},
+            #{activeTill,jdbcType=TIMESTAMP},
+            #{description,jdbcType=VARCHAR},
+            #{maintenanceType,jdbcType=INTEGER},
+            #{formData,jdbcType=VARCHAR},
+            #{cyclicFrequency,jdbcType=INTEGER}
+        )
+    </insert>
+    <insert id="addAssetsMainTainHost" parameterType="java.util.List">
+         INSERT INTO ${TBSNAME}."mw_assets_mainten_host" (
+            "id",
+            "creator",
+            "create_date",
+            "maintenid",
+            "hostid",
+            "host_name",
+            "serverId",
+            "maintenanceid",
+            "type_id",
+            "model_instance_id"
+        )
+        select ${TBSNAME}.SEQ_MW_ASSETS_MAINTEN_HOST.NEXTVAL as id,t.* from (
+        <foreach collection="list" item="list" separator="union all">(
+        select
+            #{list.creator,jdbcType=VARCHAR} as "creator",
+            SYSDATE as "create_date",
+            #{list.maintenid,jdbcType=INTEGER} as "maintenid",
+            #{list.hostid,jdbcType=VARCHAR} as "hostid",
+            #{list.hostName,jdbcType=VARCHAR} as "host_name",
+            #{list.serverId,jdbcType=INTEGER} as "serverId",
+            #{list.maintenanceid,jdbcType=INTEGER} as "maintenanceid",
+            #{list.typeId,jdbcType=INTEGER} as "type_id",
+            #{list.modelInstanceId,jdbcType=VARCHAR} as "model_instance_id"
+            from dual
+            )
+        </foreach>
+        ) t
+    </insert>
+   <!-- <insert id="addAssetsMainTainHostGroup">
+        INSERT INTO mw_assets_mainten_hostgroup (
+        creator,
+        create_date,
+        maintenid,
+        groupid
+        )
+        VALUES
+        <foreach collection="list" item="list" separator=",">
+            (
+            #{list.creator,jdbcType=VARCHAR},
+            now(),
+            #{list.maintenid,jdbcType=INTEGER},
+            #{list.groupid,jdbcType=VARCHAR}
+            )
+        </foreach>
+    </insert>-->
+    <!--<insert id="addAssetsMainTainTimes">
+        INSERT INTO mw_assets_mainten_timesolt(
+            creator,
+            create_date,
+            maintenid,
+            day,
+            dayOfWeek,
+            every,
+            month,
+            period,
+            start_date,
+            start_time,
+            timePeriod_type
+        )
+        values
+            <foreach collection="list" item="list" separator=",">
+                (
+                #{list.creator,jdbcType=VARCHAR},
+                now(),
+                #{list.maintenid,jdbcType=INTEGER},
+                #{list.day,jdbcType=INTEGER},
+                #{list.dayofweek,jdbcType=VARCHAR},
+                #{list.every,jdbcType=INTEGER},
+                #{list.month,jdbcType=VARCHAR},
+                #{list.period,jdbcType=INTEGER},
+                #{list.start_date,jdbcType=TIMESTAMP},
+                #{list.start_time,jdbcType=INTEGER},
+                #{list.temperiod_type,jdbcType=INTEGER}
+                )
+            </foreach>
+    </insert>-->
+
+
+    <select id="selectMainTain" resultMap="mainTainMap" parameterType="cn.mw.monitor.service.assets.param.MwAssetsMainTainParam">
+        SELECT
+        t1."id",
+        t1."name",
+        t1."creator",
+        t1."create_date",
+        t1."modifier",
+        t1."modification_date",
+        t1."active_since",
+        t1."active_till",
+        t1."maintenanceType",
+        t1."formdata",
+        t1."description" as "description"
+        FROM
+        ${TBSNAME}."mw_assets_mainten" t1
+        WHERE
+        t1."delete_flag" = 0
+         <if test="status != null and status == 0">
+            and t1."active_since" &lt;= SYSDATE and t1."active_till" &gt;= SYSDATE
+         </if>
+        <if test="status != null and status == 2">
+            and t1."active_till" &lt;= SYSDATE
+        </if>
+        <if test="status != null and status == 1">
+            and t1."active_since" &gt;= SYSDATE
+        </if>
+        <if test="name != null and name != ''">
+            and t1."name" like   ('%' ||#{name,jdbcType=VARCHAR}||'%')
+        </if>
+        <if test="id != null and id != ''">
+            and t1."id" = #{id,jdbcType=VARCHAR}
+        </if>
+         order by "create_date" desc
+    </select>
+    <select id="selectMainTainHostData" resultType="java.util.Map">
+        SELECT
+        a."maintenid",
+        a."hostid",
+        a."host_name" AS "hostName",
+        a."serverId",
+        a."maintenanceid",
+        a."type_id" AS "typeId",
+        a."model_instance_id" "modelInstanceId"
+        FROM
+        ${TBSNAME}."mw_assets_mainten_host" a
+        WHERE
+        a."delete_flag" = 0 AND "maintenid" IN
+        <foreach collection="list" item="id" index="index" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </select>
+    <!--<select id="selectMainTainHostGroupData" resultType="java.util.Map">
+        SELECT maintenid,groupid
+        FROM mw_assets_mainten_hostgroup
+        WHERE delete_flag = 0 AND maintenid IN
+        <foreach collection="list" item="id" index="index" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </select>-->
+    <!--<select id="selectMainTainTimeSlotData" resultType="java.util.HashMap">
+        SELECT maintenid,day,dayOfWeek,every,month,period,start_date,start_time,timePeriod_type
+        FROM mw_assets_mainten_timesolt
+        WHERE delete_flag = 0 AND maintenid IN
+        <foreach collection="list" item="id" index="index" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </select>-->
+
+
+    <update id="updatemainTain" parameterType="cn.mw.monitor.service.assets.param.MwAssetsMainTainParam">
+        update "mw_assets_mainten"
+        set
+            "name" = #{name,jdbcType=VARCHAR},
+            "modifier" = #{modifier,jdbcType=VARCHAR},
+            "modification_date" = SYSDATE,
+            "active_since" = #{activeSince,jdbcType=TIMESTAMP},
+            "active_till" = #{activeTill,jdbcType=TIMESTAMP},
+            "maintenanceType" = #{maintenanceType,jdbcType=INTEGER},
+            "formdata" = #{formData,jdbcType=VARCHAR},
+            "description" = #{description,jdbcType=VARCHAR}
+        where "id" = #{id,jdbcType=INTEGER}
+    </update>
+    <delete id="deleteHostIdDate" parameterType="java.util.List">
+        delete from ${TBSNAME}."mw_assets_mainten_host" where "maintenid" in
+        <foreach collection="list" item="mainTainId" index="index" open="(" separator="," close=")">
+            #{mainTainId}
+        </foreach>
+    </delete>
+   <!-- <delete id="deleteHostGroupIdDate" parameterType="java.util.List">
+        delete from mw_assets_mainten_hostgroup where maintenid in
+        <foreach collection="list" item="mainTainId" index="index" open="(" separator="," close=")">
+            #{mainTainId}
+        </foreach>
+    </delete>-->
+   <!-- <delete id="deleteTimeSlotDate" parameterType="java.util.List">
+        delete from mw_assets_mainten_timesolt where maintenid in
+        <foreach collection="list" item="mainTainId" index="index" open="(" separator="," close=")">
+            #{mainTainId}
+        </foreach>
+    </delete>-->
+    <delete id="deleteMainTain">
+        delete from ${TBSNAME}."mw_assets_mainten" where "id" in
+        <foreach collection="list" item="id" index="index" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+
+    <select id="selectHostGroupDropDown" resultType="java.util.Map" parameterType="java.lang.Integer">
+        SELECT
+            t1."group_id" as "groupId",
+            t2."type_name" as "typeName",
+            t2."id" as "typeId",
+            t1."monitor_server_id" as "serverId"
+        FROM
+            ${TBSNAME}."mw_assetsgroup_server_mapper" t1
+            LEFT JOIN ${TBSNAME}."mw_assetssubtype_table" t2 ON t1."assets_subtype_id" = t2."id"
+            where (t2."classify" = 1 or t2."classify" = 3) and t1."monitor_server_id" = #{serverId}
+    </select>
+    <select id="selectHostDropDown" resultType="java.util.Map">
+        SELECT
+            "assets_id" as "assetsId",
+            "assets_name" as "assetsName"
+        FROM
+            ${TBSNAME}."mw_tangibleassets_table"
+        WHERE
+            "delete_flag" = 0
+            AND "assets_type_id" = #{typeId}
+            and "monitor_server_id" = #{serverId}
+    </select>
+
+    <!--<insert id="addAssetsMainTainTags">
+        INSERT INTO mw_assets_mainten_tag (
+        creator,
+        create_date,
+        maintenid,
+        tag,
+        operator,
+        value
+        )
+        VALUES
+        <foreach collection="list" item="list" separator=",">
+            (
+            #{list.creator,jdbcType=VARCHAR},
+            now(),
+            #{list.maintenid,jdbcType=INTEGER},
+            #{list.tag,jdbcType=VARCHAR},
+            #{list.operator,jdbcType=INTEGER},
+            #{list.value,jdbcType=VARCHAR}
+            )
+        </foreach>
+    </insert>-->
+    <!--<select id="selectMainTainTagData" resultType="java.util.Map">
+        SELECT maintenid,tag,operator,value
+        FROM mw_assets_mainten_tag
+        WHERE delete_flag = 0 AND maintenid IN
+        <foreach collection="list" item="id" index="index" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </select>-->
+    <select id="selectRepeatName" resultType="java.lang.Integer">
+        select count(1) from ${TBSNAME}."mw_assets_mainten" where "delete_flag" = 0 and "name" =  #{name,jdbcType=VARCHAR}
+        <if test="id != null and id != ''">
+            and "id" != #{id,jdbcType=INTEGER}
+        </if>
+    </select>
+    <select id="selectMainTainPlanNames" resultType="java.lang.String">
+        select "name" from ${TBSNAME}."mw_assets_mainten"  where "delete_flag" = 0
+    </select>
+    <!-- <delete id="deleteTagData" parameterType="java.util.List">
+         delete from mw_assets_mainten_tag where maintenid in
+         <foreach collection="list" item="mainTainId" index="index" open="(" separator="," close=")">
+             #{mainTainId}
+         </foreach>
+     </delete>-->
+    <select id="getHostInfo" resultType="cn.mw.monitor.service.assets.param.MWMainTainHostParam">
+        select
+            "host_name" as "hostName",
+            "hostid" as "hostId",
+            "serverId" as "serverId",
+            "type_id" as "typeId",
+            "maintenanceid" as "maintenanceid",
+            "model_instance_id" as "modelInstanceId"
+         from ${TBSNAME}."mw_assets_mainten_host"  where "delete_flag" = 0 and "maintenid" = #{mainTainId}
+    </select>
+</mapper>
+

@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.mw.monitor.netflow.dao.IpGroupNFAExpandManageDao">
+
+
+    <select id="getIpGroupList" resultType="java.lang.String">
+        SELECT
+            ip_range
+        FROM
+            `mw_netflow_ip_group_expand_nfa`
+        WHERE
+            ip_group_id = #{ipGroupId}
+            and LENGTH(ip_range) > 0
+            UNION
+        SELECT
+            ip_phase
+        FROM
+            `mw_netflow_ip_group_expand_nfa`
+        WHERE
+            ip_group_id = #{ipGroupId}
+            and LENGTH(ip_phase) > 0
+            UNION
+        SELECT
+            ip_list
+        FROM
+            `mw_netflow_ip_group_expand_nfa`
+        WHERE
+            ip_group_id = #{ipGroupId}
+            AND LENGTH( ip_list ) > 0
+    </select>
+
+
+</mapper>

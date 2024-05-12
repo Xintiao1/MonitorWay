@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.mw.monitor.hybridclouds.dao.MwHybridCloudDao">
+
+
+    <sql id="Base_Column_List">
+    ${alias}id,
+    ${alias}assets_id,
+    ${alias}assets_name,
+    ${alias}host_name,
+    ${alias}in_band_ip,
+    ${alias}out_band_ip,
+    ${alias}assets_type_id,
+    ${alias}assets_type_sub_id,
+    ${alias}polling_engine,
+    ${alias}monitor_mode,
+    ${alias}manufacturer,
+    ${alias}specifications,
+    ${alias}description,
+    ${alias}enable,
+    ${alias}delete_flag,
+    ${alias}monitor_flag,
+    ${alias}setting_flag,
+    ${alias}creator,
+    ${alias}create_date,
+    ${alias}modifier,
+    ${alias}modification_date,
+    ${alias}scan_success_id,
+    ${alias}monitor_server_id,
+    ${alias}template_id
+  </sql>
+
+    <select id="selectAssetsByAssetsTypeId" parameterType="java.lang.Integer" resultType="cn.mw.monitor.service.assets.model.MwTangibleassetsDTO">
+        select
+        <include refid="Base_Column_List">
+            <property name="alias" value="t."/>
+        </include>
+        from mw_tangibleassets_table t
+        where t.delete_flag = false and t.assets_type_id = #{assetsTypeId,jdbcType=INTEGER}
+    </select>
+
+
+    <select id="getAssetsIdById" resultType="cn.mw.monitor.service.assets.model.MwTangibleassetsTable" parameterType="cn.mw.monitor.hybridclouds.dto.QueryNewHostParam">
+        SELECT
+            a.id,
+            a.assets_id AS "assetsId",
+            a.assets_name AS "assetsName",
+            a.host_name AS "hostName",
+            a.in_band_ip AS "inBandIp",
+            a.out_band_ip AS "outBandIp",
+            a.assets_type_id AS "assetsTypeId",
+            a.assets_type_sub_id AS "assetsTypeSubId",
+            a.polling_engine AS "pollingEngine",
+            a.monitor_mode AS "monitorMode",
+            a.manufacturer,
+            a.specifications,
+            a.description,
+            a.enable,
+            a.delete_flag AS "deleteFlag",
+            a.monitor_flag AS "monitorFlag",
+            a.setting_flag AS "settingFlag",
+            a.creator,
+            a.create_date AS "createDate",
+            a.modifier,
+            a.modification_date AS "modificationDate",
+            a.scan_success_id AS "scanSuccessId",
+            a.snmp_lev AS "snmpLev",
+            a.monitor_server_id AS "monitorServerId",
+            a.timing,
+            a.template_id AS "templateId",
+            b.type_name AS "assetsTypeName",
+            c.type_name AS "assetsTypeSubName",
+            d.vendor_small_icon AS "vendorSmallIcon",
+            e.drop_value AS monitorModeName,
+            f.monitoring_server_name AS monitorServerName
+        FROM
+            mw_tangibleassets_table a
+            LEFT JOIN mw_assetssubtype_table b ON a.assets_type_id = b.id
+            LEFT JOIN mw_assetssubtype_table c ON a.assets_type_sub_id = c.id
+            LEFT JOIN mw_base_vendor_icon d ON a.manufacturer = d.vendor
+            LEFT JOIN mw_dropdown_table e ON e.drop_code = 'monitor_mode' AND e.drop_key = a.monitor_mode
+            LEFT JOIN mw_thirdparty_server_table f ON a.monitor_server_id = f.id  AND f.delete_flag = FALSE
+        where a.in_band_ip = #{ip}
+        and a.monitor_server_id = #{monitorServerId}
+        and a.assets_id = #{assetHostId}
+        and a.delete_flag = '0'
+    </select>
+</mapper>

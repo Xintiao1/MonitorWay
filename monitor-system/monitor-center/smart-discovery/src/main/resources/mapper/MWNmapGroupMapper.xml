@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.mw.monitor.smartdisc.dao.MWNmapGroupDao">
+
+
+    <insert id="insertNodeGroup">
+        INSERT INTO
+            mw_nmap_node_group(node_name,node_group,delete_flag)
+        VALUES
+            (
+            #{param1,jdbcType=VARCHAR},
+            #{param2,jdbcType=VARCHAR},
+            false
+            )
+    </insert>
+    <insert id="insertPortGroup">
+        INSERT INTO
+            mw_nmap_port_group(port_name,tcp_port_group,udp_port_group,delete_flag)
+        VALUES
+            (
+            #{param1,jdbcType=VARCHAR},
+            #{param2,jdbcType=VARCHAR},
+            #{param3,jdbcType=VARCHAR},
+            false
+            )
+    </insert>
+    <insert id="insertFingerDetectGroup">
+        INSERT INTO
+            mw_nmap_finger_detect_node_group(finger_detect_node_group,delete_flag)
+        VALUES
+            (
+            #{input,jdbcType=VARCHAR},
+            false
+            )
+
+    </insert>
+    <insert id="insertIpLiveDetectGroup">
+        INSERT INTO
+            mw_nmap_detect_live_node_group(live_node_name,live_node_group,delete_flag)
+        VALUES
+            (
+            #{param1,jdbcType=VARCHAR},
+            #{param2,jdbcType=VARCHAR},
+            false
+            )
+
+    </insert>
+    <insert id="insertExceptionIPGroup">
+        INSERT INTO
+            mw_nmap_exception_ip_group(exception_name,exception_ip,delete_flag)
+        VALUES
+            (
+            #{param1,jdbcType=VARCHAR},
+            #{param2,jdbcType=VARCHAR},
+            false
+            )
+    </insert>
+    <select id="selectFingerNodeGroup" resultType="cn.mw.monitor.smartdisc.model.MWNmapFingerNodeGroup">
+        SELECT
+            id,
+            finger_detect_name,
+            finger_detect_node_group,
+            delete_flag
+        FROM
+            mw_nmap_finger_detect_node_group
+    </select>
+    <select id="selectExceptionNodeGroup" resultType="cn.mw.monitor.smartdisc.model.MWNmapExceptionNodeGroup">
+        SELECT
+            id,
+            exception_name,
+            exception_ip,
+            delete_flag
+        FROM
+            mw_nmap_exception_ip_group
+    </select>
+    <select id="selectPortGroup" resultType="cn.mw.monitor.smartdisc.model.MWNmapPortGroup">
+        SELECT
+            id,
+            port_name,
+            tcp_port_group,
+            udp_port_group,
+            delete_flag
+        FROM
+            mw_nmap_port_group
+    </select>
+    <select id="selectLiveNodeGroup" resultType="cn.mw.monitor.smartdisc.model.MWNmapLiveNodeGroup">
+        SELECT
+            id,
+            live_node_name,
+            live_node_group,
+            delete_flag
+        FROM
+            mw_nmap_detect_live_node_group
+    </select>
+    <select id="selectNodeGroup" resultType="cn.mw.monitor.smartdisc.model.MWNmapNodeGroup">
+        SELECT
+            id,
+            node_name,
+            node_group,
+            delete_flag
+        FROM
+            mw_nmap_node_group
+    </select>
+    <select id="selectPortGroupById" resultType="cn.mw.monitor.smartdisc.model.MWNmapPortGroup">
+        SELECT
+            id,
+            port_name,
+            tcp_port_group,
+            udp_port_group,
+            delete_flag
+        FROM
+            mw_nmap_port_group
+        WHERE id = #{portGroupKey,jdbcType =INTEGER}
+
+    </select>
+
+</mapper>

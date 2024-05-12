@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.mw.monitor.screen.dao.MWIndexDao">
+
+    <select id="getTodayMessage" resultType="java.lang.Integer">
+        select count(0) from ${TBSNAME}."mw_alert_record_table" where
+        TRUNC("date") - date '0001-01-01' + 364 = TRUNC(SYSDATE) - date '0001-01-01' + 364
+        <if test="hostIds != null and hostIds.size > 0">
+            and "hostid" in
+            <foreach collection="list" item="item" index="index" separator="," open="(" close=")">
+                #{item}
+            </foreach>
+        </if>
+    </select>
+    <select id="getTodaySuccessMessage" resultType="java.lang.Integer">
+        select count(0) from ${TBSNAME}."mw_alert_record_table" where
+        TRUNC("date") - date '0001-01-01' + 364 = TRUNC(SYSDATE) - date '0001-01-01' + 364
+        and "is_success"=0
+        <if test="hostIds != null and hostIds.size > 0">
+            and "hostid" in
+            <foreach collection="list" item="item" index="index" separator="," open="(" close=")">
+                #{item}
+            </foreach>
+        </if>
+    </select>
+
+    <select id="getSumMessage" resultType="java.lang.Integer">
+        select count(0) from ${TBSNAME}."mw_alert_record_table"
+        <if test="hostIds != null and hostIds.size > 0">
+            where
+            "hostid" in
+            <foreach collection="list" item="item" index="index" separator="," open="(" close=")">
+                #{item}
+            </foreach>
+        </if>
+    </select>
+    <select id="getSumSuccessMessage" resultType="java.lang.Integer">
+        select count(0) from ${TBSNAME}."mw_alert_record_table" where
+        "is_success"=0
+        <if test="hostIds != null and hostIds.size > 0">
+            and "hostid" in
+            <foreach collection="list" item="item" index="index" separator="," open="(" close=")">
+                #{item}
+            </foreach>
+        </if>
+    </select>
+    <select id="getIndexBase" resultType="cn.mw.monitor.screen.model.IndexModelBase">
+        select "bulk_id","bulk_name" from ${TBSNAME}."mw_index_base" where "delete_flag"=0 ;
+    </select>
+    <insert id="insertIndexModel" parameterType="cn.mw.monitor.screen.model.IndexModelBase">
+        insert into ${TBSNAME}."mw_index_base" ("id","bulk_id","bulk_name")
+        select ${TBSNAME}.SEQ_MW_INDEX_BASE.NEXTVAL as id,t.* from (
+        <foreach collection="list" item="li" separator="union all">
+            (select #{li.bulkId} as "bulk_id" ,#{li.bulkName} as "bulk_name" from dual)
+        </foreach>
+        ) t
+    </insert>
+    <insert id="insertIndexBulk" parameterType="cn.mw.monitor.screen.model.IndexBulk">
+        insert into ${TBSNAME}."mw_index_bulk" ("model_data_id","bulk_id","bulk_name","user_id")
+        select t.* from (
+        <foreach collection="list" item="li" separator="union all">
+            (select #{li.modelDataId} as "model_data_id",#{li.bulkId} as "bulk_id",#{li.bulkName} as "bulk_name",#{li.userId} as "user_id" from dual)
+        </foreach>
+        ) t
+    </insert>
+    <update id="deleteIndexModel">
+        update ${TBSNAME}."mw_index_base" set "delete_flag"=1 where 1=1
+        <include refid="criteria"></include>
+    </update>
+    <update id="deleteIndexBulk">
+        update ${TBSNAME}."mw_index_bulk" set "delete_flag"=1 where "user_id"=#{userId} and "model_data_id"=#{modelDataId}
+    </update>
+    <update id="updateBulkName">
+        update ${TBSNAME}."mw_index_bulk" set "bulk_name"=#{bulKName} where "model_data_id"=#{modelDataId} and "delete_flag"=0
+    </update>
+    <update id="deleteBulkByUser" >
+        update ${TBSNAME}."mw_index_bulk" set "delete_flag" =1 where "user_id"=#{userId}
+    </update>
+    <sql id="criteria">
+        <if test="bulkId!=null and bulkId!=''">
+            and "bulk_id"=#{bulkId}
+        </if>
+    </sql>
+    <select id="getPageSelectBase" resultType="cn.mw.monitor.screen.model.IndexModelBase">
+        select t1."bulk_id",t1."bulk_name" from(
+        select "bulk_id" ,"bulk_name" from ${TBSNAME}."mw_index_base" WHERE ROWNUM &lt;= 1
+        ) t1 where t1."bulk_id" not in (
+        select "bulk_id" from ${TBSNAME}."mw_index_base" where "delete_flag"=0
+        )
+    </select>
+    <select id="selectBulkByUser" resultType="cn.mw.monitor.screen.model.IndexBulk">
+        select "model_data_id","bulk_id","bulk_name","user_id" from ${TBSNAME}."mw_index_bulk" where "user_id"=#{userId} and "delete_flag"=0
+    </select>
+    <select id="selectBulkCount" resultType="java.lang.Integer">
+        select count(0) from ${TBSNAME}."mw_index_bulk" where "user_id"=#{userId};
+    </select>
+    <select id="getPageSelectBase2" resultType="cn.mw.monitor.screen.model.IndexModelBase">
+        select "bulk_id","bulk_name" from ${TBSNAME}."mw_index_init_bulk"
+    </select>
+
+
+</mapper>

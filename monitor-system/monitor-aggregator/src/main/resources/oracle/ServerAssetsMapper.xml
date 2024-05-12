@@ -1,0 +1,155 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.mw.monitor.server.dao.ServerAssetsDao">
+
+    <select id="getTypeName" resultType="java.lang.String">
+         select b.type_name  from mw_tangibleassets_table a
+         left join mw_assetssubtype_table b
+         on a.assets_type_sub_id=b.id
+         where a.delete_flag=0
+         and a.assets_id=#{hostid,jdbcType=VARCHAR}
+         and a.monitor_server_id = #{monitorServerId,jdbcType=INTEGER}
+    </select>
+    <select id="getTagsByhostId" resultType="cn.mw.monitor.server.serverdto.TagsDto">
+        select c.label_name as tagName,a.tagboard as tagValue from mw_assetslabel_table a
+        left join mw_tangibleassets_table b on a.assets_id=b.id
+        left join mw_labelmanage_table c on a.label_id= c.label_id
+        where  b.delete_flag=0
+        and b.assets_id=(select id from mw_tangibleassets_table where delete_flag=0 and assets_id=#{hostid,jdbcType=VARCHAR})
+    </select>
+    <select id="getOrgNameByAssetsId" resultType="java.lang.String">
+    select  b."org_name" from ${TBSNAME}."mw_org_mapper" a
+    left join ${TBSNAME}."mw_sys_org" b on a."org_id"=b."org_id"
+    where b."delete_flag"=0 and
+    a."type_id"=#{assetsId,jdbcType=VARCHAR} and a."type"=#{type,jdbcType=VARCHAR}
+    </select>
+    <select id="getGroupNameByAssetsId" resultType="java.lang.String">
+	select  b."group_name" from ${TBSNAME}."mw_group_mapper" a
+	left join ${TBSNAME}."mw_group_table" b on a."group_id"=b."group_id"
+	where b."delete_flag"=0
+	and a."type_id"=#{assetsId,jdbcType=VARCHAR} and a."type"=#{type,jdbcType=VARCHAR}
+    </select>
+    <select id="getUserNameByAssetsId" resultType="java.lang.String">
+	select  b."user_name" from ${TBSNAME}."mw_user_mapper" a
+	left join ${TBSNAME}."mw_sys_user" b on a."user_id"=b."user_id"
+	where b."delete_flag"=0
+	and a."type_id"=#{assetsId,jdbcType=VARCHAR} and a."type"=#{type,jdbcType=VARCHAR}
+    </select>
+
+    <select id="selectTangibleAssetsByIp" parameterType="java.lang.String"
+            resultType="cn.mw.monitor.server.serverdto.AssetsDTO">
+        SELECT
+        t1."id" AS "id",
+        t1."assets_name" AS "assetsName",
+        t2."type_name" AS "assetsTypeName"
+        FROM
+        ${TBSNAME}."mw_tangibleassets_table" t1
+        LEFT JOIN ${TBSNAME}."mw_assetssubtype_table" t2 ON t2."id" = t1."assets_type_id"
+        WHERE
+        t1."delete_flag" = 0
+        <if test="ip != null and ip !='' ">
+            and t1."in_band_ip" = #{ip,jdbcType=VARCHAR}
+        </if>
+        <if test="id != null and id !=''">
+            and t1."id" != #{id,jdbcType=VARCHAR}
+        </if>
+    </select>
+
+    <select id="selectOutbandAssetsByIp" parameterType="java.lang.String"
+            resultType="cn.mw.monitor.server.serverdto.AssetsDTO">
+        SELECT
+        t1.id AS id,
+        t1.assets_name AS assetsName,
+        t2.type_name AS assetsTypeName
+        FROM
+        mw_outbandassets_table t1
+        LEFT JOIN mw_assetssubtype_table t2 ON t2.id = t1.assets_type_id
+        WHERE
+        t1.delete_flag = false
+        <if test="ip != null and ip !='' ">
+            and t1.ip_address = #{ip,jdbcType=VARCHAR}
+        </if>
+        <if test="id != null and id !=''">
+            and t1.id != #{id,jdbcType=VARCHAR}
+        </if>
+    </select>
+
+    <select id="getOrgNameByTypeId" resultType="java.lang.String">
+        select b.org_name from mw_org_mapper a
+        left join mw_sys_org b on a.org_id=b.org_id
+        where b.delete_flag=0 and a.type_id=#{id,jdbcType=VARCHAR} and a.type='WEB_MONITOR';
+    </select>
+    <select id="getGroupNameByTypeId" resultType="java.lang.String">
+        select b.group_name from mw_group_mapper a
+        left join mw_group_table b on a.group_id=b.group_id
+        where b.delete_flag=0 and a.type_id=#{id,jdbcType=VARCHAR} and a.type='WEB_MONITOR';
+    </select>
+    <select id="getUserNameByTypeId" resultType="java.lang.String">
+        select b.user_name from mw_user_mapper a
+        left join mw_sys_user b on a.user_id=b.user_id
+        where b.delete_flag=0 and a.type_id=#{id,jdbcType=VARCHAR} and a.type='WEB_MONITOR';
+    </select>
+
+    <select id="selectErrorAvailableById" resultType="java.lang.String"
+            parameterType="cn.mw.monitor.service.server.param.QueryAssetsAvailableParam">
+        SELECT
+        save_time
+        FROM
+        mw_assetsusability_daily
+        <where>
+            assetsId = #{id}
+            AND assets_usability != '100.00%'
+            AND assets_usability != '100.0000%'
+            AND assets_usability != '0.00%'
+            AND assets_usability != '0.0000%'
+            <if test="startDateStr!=null and startDateStr!=''">
+                and <![CDATA[#{startDateStr,jdbcType=TIMESTAMP} <= save_time]]>
+            </if>
+            <if test="endDateStr!=null and endDateStr!=''">
+                and <![CDATA[#{endDateStr,jdbcType=TIMESTAMP} >= save_time]]>
+            </if>
+        </where>
+        ORDER BY
+        save_time
+    </select>
+
+    <select id="selectAllAvailableById" resultType="java.lang.String"
+            parameterType="cn.mw.monitor.service.server.param.QueryAssetsAvailableParam">
+        SELECT
+        save_time
+        FROM
+        mw_assetsusability_daily
+        <where>
+            assetsId = #{id}
+            AND (assets_usability = '100.00%' or assets_usability = '100.0000%' )
+            <if test="startDateStr!=null and startDateStr!=''">
+                and <![CDATA[#{startDateStr,jdbcType=TIMESTAMP} <= save_time]]>
+            </if>
+            <if test="endDateStr!=null and endDateStr!=''">
+                and <![CDATA[#{endDateStr,jdbcType=TIMESTAMP} >= save_time]]>
+            </if>
+        </where>
+        ORDER BY
+        save_time
+    </select>
+
+    <select id="selectNoneAvailableById" resultType="java.lang.String"
+            parameterType="cn.mw.monitor.service.server.param.QueryAssetsAvailableParam">
+        SELECT
+        save_time
+        FROM
+        mw_assetsusability_daily
+        <where>
+            assetsId = #{id}
+            AND (assets_usability = '0.00%' or assets_usability = '0.0000%' )
+            <if test="startDateStr!=null and startDateStr!=''">
+                and <![CDATA[#{startDateStr,jdbcType=TIMESTAMP} <= save_time]]>
+            </if>
+            <if test="endDateStr!=null and endDateStr!=''">
+                and <![CDATA[#{endDateStr,jdbcType=TIMESTAMP} >= save_time]]>
+            </if>
+        </where>
+        ORDER BY
+        save_time
+    </select>
+</mapper>

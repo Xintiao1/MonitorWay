@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.mw.monitor.scan.dao.InterfaceTypeDao">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="cn.mw.monitor.scan.model.InterfaceType">
+        <result column="id" property="id" />
+        <result column="name" property="name" />
+        <result column="type" property="type" />
+        <result column="description" property="description" />
+        <result column="max_connections" property="maxConnections" />
+        <result column="wan" property="wan" />
+        <result column="lan" property="lan" />
+    </resultMap>
+
+    <sql id="Base_Column_List" >
+        id,name,type,description,max_connections,wan,lan
+    </sql>
+
+    <sql id="tb">
+        mw_interface_types
+    </sql>
+
+    <select id="selectList" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM
+        <include refid="tb"/>
+    </select>
+
+
+</mapper>

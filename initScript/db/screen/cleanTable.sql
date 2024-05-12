@@ -1,0 +1,11 @@
+truncate table mw_bulk_data;
+truncate table mw_filter_assets;
+truncate table mw_large_screen_layout_mapper;
+truncate table mw_large_screen_table;
+truncate table mw_layout_data;
+truncate table mw_layout_data_bulk_mapper;
+truncate table mw_model_data;
+truncate table mw_index_base;
+truncate table mw_index_bulk;
+truncate table mw_newindex_bulk;
+truncate table mw_assetsamount_time;

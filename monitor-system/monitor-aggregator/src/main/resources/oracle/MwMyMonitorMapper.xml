@@ -1,0 +1,567 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.mw.monitor.server.dao.MwMyMonitorDao">
+    <resultMap id="ParentMap" type="cn.mw.monitor.server.model.MwBaseComponent">
+        <id column="id" jdbcType="INTEGER" property="baseComId"/>
+        <result column="component_name" jdbcType="VARCHAR" property="componentName"/>
+        <result column="component_url" jdbcType="VARCHAR" property="componentUrl"/>
+        <result column="component_param" jdbcType="VARCHAR" property="componentParam"/>
+        <result column="component_self_param" jdbcType="VARCHAR" property="componentSelfParam"/>
+        <result column="component_type" jdbcType="VARCHAR" property="componentType"/>
+    </resultMap>
+
+    <select id="selectBaseComponents" resultMap="ParentMap">
+        select "id", "component_name", "component_url", "component_param", "component_self_param", "component_type" from ${TBSNAME}."mw_base_monitor_component"
+    </select>
+
+    <sql id="tb">
+        ${TBSNAME}."mw_component_layout_table"
+    </sql>
+
+    <sql id="tLabel">
+        ${TBSNAME}."mw_mymonitor_label"
+    </sql>
+    <insert id="insert" parameterType="cn.mw.monitor.server.param.AddOrUpdateComLayoutParam">
+        <selectKey resultType="java.lang.Integer" keyProperty="comLayoutId" order="BEFORE">
+            select ${TBSNAME}.SEQ_MW_COMPONENT_LAYOUT_TABLE.NEXTVAL AS "comLayoutId" from dual
+        </selectKey>
+        insert into
+        <include refid="tb"/>
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+        "id",
+            <if test="userId != null">
+                "user_id",
+            </if>
+            <if test="assetsTypeSubId != null">
+                "assets_type_sub_id",
+            </if>
+            <if test="componentLayout != null">
+                "component_layout",
+            </if>
+            <if test="defaultFlag != null">
+                "default_flag",
+            </if>
+            <if test="creator != null">
+                "creator",
+            </if>
+            "create_date",
+            <if test="modifier != null">
+                "modifier",
+            </if>
+            "modification_date",
+            <if test="monitorServerId != null">
+                "monitor_server_id",
+            </if>
+            <if test="templateId != null">
+                "template_id",
+            </if>
+            <if test="navigationBarId != null">
+                "navigation_bar_id",
+            </if>
+            <if test="assetsId != null">
+                "assets_id",
+            </if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+        #{comLayoutId},
+            <if test="userId != null">
+                #{userId,jdbcType=INTEGER},
+            </if>
+            <if test="assetsTypeSubId != null">
+                #{assetsTypeSubId,jdbcType=INTEGER},
+            </if>
+            <if test="componentLayout != null">
+                #{componentLayout,jdbcType=VARCHAR},
+            </if>
+            <if test="defaultFlag != null">
+                #{defaultFlag,jdbcType=BIT},
+            </if>
+            <if test="creator != null">
+                #{creator,jdbcType=VARCHAR},
+            </if>
+            SYSDATE,
+            <if test="modifier != null">
+                #{modifier,jdbcType=VARCHAR},
+            </if>
+            SYSDATE,
+            <if test="monitorServerId != null">
+                #{monitorServerId,jdbcType=INTEGER},
+            </if>
+            <if test="templateId != null">
+                #{templateId,jdbcType=VARCHAR},
+            </if>
+            <if test="navigationBarId != null">
+                #{navigationBarId,jdbcType=INTEGER},
+            </if>
+            <if test="assetsId != null">
+                #{assetsId,jdbcType=INTEGER},
+            </if>
+        </trim>
+    </insert>
+
+    <insert id="insertComLayoutVersion" parameterType="cn.mw.monitor.server.param.AddOrUpdateComLayoutVersionParam">
+        <selectKey resultType="java.lang.Integer" keyProperty="id" order="BEFORE">
+            select ${TBSNAME}.SEQ_MW_COMPONENT_LAYOUT_VERSION.NEXTVAL AS "id" from dual
+        </selectKey>
+        insert into
+        ${TBSNAME}."mw_component_layout_version"
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+        "id",
+            <if test="userId != null">
+                "user_id",
+            </if>
+            <if test="assetsTypeSubId != null">
+                "assets_type_sub_id",
+            </if>
+            <if test="componentLayout != null">
+                "component_layout",
+            </if>
+            <if test="defaultFlag != null">
+                "default_flag",
+            </if>
+            <if test="creator != null">
+                "creator",
+            </if>
+            "create_date",
+            <if test="modifier != null">
+                "modifier",
+            </if>
+            "modification_date",
+            <if test="monitorServerId != null">
+                "monitor_server_id",
+            </if>
+            <if test="templateId != null">
+                "template_id",
+            </if>
+            <if test="navigationBarId != null">
+                "navigation_bar_id",
+            </if>
+            <if test="assetsId != null">
+                "assets_id",
+            </if>
+            <if test="version != null">
+                "version",
+            </if>
+            <if test="comLayoutId != null">
+                "component_layout_id",
+            </if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+        #{id},
+            <if test="userId != null">
+                #{userId,jdbcType=INTEGER},
+            </if>
+            <if test="assetsTypeSubId != null">
+                #{assetsTypeSubId,jdbcType=INTEGER},
+            </if>
+            <if test="componentLayout != null">
+                #{componentLayout,jdbcType=VARCHAR},
+            </if>
+            <if test="defaultFlag != null">
+                #{defaultFlag,jdbcType=BIT},
+            </if>
+            <if test="creator != null">
+                #{creator,jdbcType=VARCHAR},
+            </if>
+            SYSDATE,
+            <if test="modifier != null">
+                #{modifier,jdbcType=VARCHAR},
+            </if>
+            SYSDATE,
+            <if test="monitorServerId != null">
+                #{monitorServerId,jdbcType=INTEGER},
+            </if>
+            <if test="templateId != null">
+                #{templateId,jdbcType=VARCHAR},
+            </if>
+            <if test="navigationBarId != null">
+                #{navigationBarId,jdbcType=INTEGER},
+            </if>
+            <if test="assetsId != null">
+                #{assetsId,jdbcType=INTEGER},
+            </if>
+            <if test="version != null">
+                #{version,jdbcType=INTEGER},
+            </if>
+            <if test="comLayoutId != null">
+                #{comLayoutId,jdbcType=INTEGER},
+            </if>
+        </trim>
+    </insert>
+
+
+    <update id="update" parameterType="cn.mw.monitor.server.param.AddOrUpdateComLayoutParam">
+        update
+        <include refid="tb"/>
+        <set>
+            <if test="componentLayout != null">
+                "component_layout" = #{componentLayout,jdbcType=VARCHAR},
+            </if>
+            <if test="defaultFlag != null">
+                "default_flag"= #{defaultFlag,jdbcType=BIT},
+            </if>
+            <if test="modifier != null">
+                "modifier" = #{modifier,jdbcType=VARCHAR},
+            </if>
+            <if test="monitorServerId != null">
+                "monitor_server_id" = #{monitorServerId,jdbcType=INTEGER},
+            </if>
+            <if test="templateId != null">
+                "template_id" = #{templateId,jdbcType=VARCHAR},
+            </if>
+            <if test="navigationBarId != null and navigationBarId!=0">
+                "navigation_bar_id" = #{navigationBarId,jdbcType=INTEGER},
+            </if>
+            "modification_date" = SYSDATE
+        </set>
+        where "id" = #{comLayoutId,jdbcType=INTEGER}
+    </update>
+
+    <update id="updateComLayoutVersion">
+        update ${TBSNAME}."mw_component_layout_version" set "version" = #{version}
+        where "component_layout_id" = #{comLayoutId,jdbcType=INTEGER}
+    </update>
+
+    <select id="selectByFilter" resultType="cn.mw.monitor.server.param.AddOrUpdateComLayoutParam">
+        select
+        "id" AS "comLayoutId",
+        "user_id" AS "userId",
+        "assets_type_sub_id" AS "assetsTypeSubId",
+        "component_layout" AS "componentLayout",
+        "default_flag" AS "defaultFlag",
+        "creator",
+        "create_date" AS "createDate",
+        "modifier",
+        "modification_date" AS "modificationDate",
+        "monitor_server_id" AS "monitorServerId",
+        "template_id" AS "templateId",
+        "navigation_bar_id" AS "navigationBarId"
+        from
+        <include refid="tb"/>
+        where 1=1
+        <if test="userId != null and userId != 0">
+            and "user_id" = #{userId,jdbcType=INTEGER}
+        </if>
+        <if test="monitorServerId != null and monitorServerId != 0">
+            and "monitor_server_id" = #{monitorServerId,jdbcType=INTEGER}
+        </if>
+        <if test="templateId != null and templateId != 0">
+            and "template_id" = #{templateId,jdbcType=VARCHAR}
+        </if>
+        <if test="defaultFlag != null">
+            and "default_flag" = #{defaultFlag,jdbcType=BIT}
+        </if>
+        <if test="navigationBarId != null">
+            and "navigation_bar_id" = #{navigationBarId,jdbcType=INTEGER}
+        </if>
+        <if test="assetsId != null and assetsId != 0">
+            and "assets_id" = #{assetsId,jdbcType=INTEGER}
+        </if>
+    </select>
+
+    <select id="selectComLayoutVersionCount" resultType="java.lang.Integer">
+        select
+        count(1) AS "num"
+        from
+         ${TBSNAME}."mw_component_layout_version"
+        where "component_layout_id" = #{comLayoutId}
+    </select>
+
+    <select id="selectComLayoutVersion" resultType="java.util.Map">
+        SELECT
+            max("version") AS "maxVersion",
+            min("version") AS "minVersion"
+        FROM
+            ${TBSNAME}."mw_component_layout_version"
+        WHERE
+            "component_layout_id" = #{comLayoutId}
+    </select>
+
+    <select id="selectComLayoutDataById" resultType="cn.mw.monitor.server.param.AddOrUpdateComLayoutParam">
+        select
+        "id" AS "comLayoutId",
+        "user_id" AS "userId",
+        "assets_type_sub_id" AS "assetsTypeSubId",
+        "component_layout" AS "componentLayout",
+        "default_flag" AS "defaultFlag",
+        "creator",
+        "create_date" AS "createDate",
+        "modifier",
+        "modification_date" AS "modificationDate",
+        "monitor_server_id" AS "monitorServerId",
+        "template_id" AS "templateId",
+        "navigation_bar_id" AS "navigationBarId"
+        from
+            ${TBSNAME}."mw_component_layout_table"
+        where "id" = #{comLayoutId,jdbcType=INTEGER}
+    </select>
+
+    <select id="selectComLayoutByVersion" resultType="cn.mw.monitor.server.param.AddOrUpdateComLayoutParam">
+        select
+            "component_layout_id" as "comLayoutId",
+            "user_id" as "userId",
+            "assets_type_sub_id" as "assetsTypeSubId",
+            "component_layout" as "componentLayout",
+            "default_flag" as "defaultFlag",
+            "creator",
+            "create_date" as "createDate",
+            "modifier",
+            "modification_date" as "modificationDate",
+            "monitor_server_id"as " monitorServerId",
+            "template_id" as "templateId",
+            "navigation_bar_id" as "navigationBarId",
+            "assets_id" as "assetsId"
+        from
+            ${TBSNAME}."mw_component_layout_version"
+        where "component_layout_id" = #{comLayoutId,jdbcType=INTEGER}
+        and "version" = #{version,jdbcType=INTEGER}
+    </select>
+
+    <select id="selectByFilterByCustom" resultType="cn.mw.monitor.server.param.AddOrUpdateComLayoutParam"
+            parameterType="cn.mw.monitor.server.param.AddOrUpdateComLayoutParam">
+        select
+        "id" AS "comLayoutId",
+        "user_id" AS "userId",
+        "assets_type_sub_id" AS "assetsTypeSubId",
+        "component_layout" AS "componentLayout",
+        "default_flag" AS "defaultFlag",
+        "creator",
+        "create_date" AS "createDate",
+        "modifier",
+        "modification_date" AS "modificationDate",
+        "monitor_server_id" AS "monitorServerId",
+        "template_id" AS "templateId",
+        "navigation_bar_id" AS "navigationBarId",
+        "assets_id" as "assetsId"
+        from
+        <include refid="tb"/>
+        where 1=1
+        <if test="userId != null and userId != 0">
+            and "user_id" = #{userId,jdbcType=INTEGER}
+        </if>
+        <if test="monitorServerId != null and monitorServerId != 0">
+            and "monitor_server_id" = #{monitorServerId,jdbcType=INTEGER}
+        </if>
+        <if test="templateId != null and templateId != 0">
+            and "template_id" = #{templateId,jdbcType=VARCHAR}
+        </if>
+        <if test="defaultFlag != null">
+            and "default_flag" = #{defaultFlag,jdbcType=BIT}
+        </if>
+        <if test="navigationBarId != null">
+            and "navigation_bar_id" = #{navigationBarId,jdbcType=INTEGER}
+        </if>
+        <if test="assetsId != null">
+            and "assets_id" = #{assetsId,jdbcType=INTEGER}
+        </if>
+    </select>
+
+    <select id="selectNavigationBar" resultType="cn.mw.monitor.server.serverdto.NavigationBarDTO">
+        <!--        select-->
+        <!--        id navigationBarId,-->
+        <!--        navigation_bar_name navigationBarName-->
+        <!--        from-->
+        <!--        <include refid="tLabel"/>-->
+        <!--        where-->
+        <!--        template_id = #{templateId,jdbcType=VARCHAR}-->
+        SELECT
+        "id" AS "navigationBarId",
+        to_char("navigation_bar_name") AS "navigationBarName",
+        to_char('') AS "customNavigationBarId",
+        1 AS "flag"
+        FROM
+        ${TBSNAME}."mw_mymonitor_label"
+        WHERE
+        "template_id" = #{templateId}
+        <if test="assetsId!=null and assetsId!=''">
+            AND "id" NOT IN ( SELECT "navigation_bar_id" FROM ${TBSNAME}."mw_mymonitor_custom_label" WHERE "assets_id" = #{assetsId} AND
+            "type" = '1' )
+            UNION
+            (SELECT
+            "id" AS "navigationBarId",
+            to_char("navigation_bar_name") AS "navigationBarName",
+            to_char("navigation_bar_id") AS "customNavigationBarId",
+            0 AS "flag"
+            FROM
+            ${TBSNAME}."mw_mymonitor_custom_label"
+            WHERE
+            "assets_id" = #{assetsId}
+            AND "type" = '0')
+        </if>
+    </select>
+
+    <select id="checkByNavigation" parameterType="cn.mw.monitor.service.server.param.QueryNavigationBarParam"
+            resultType="java.lang.Integer">
+        select count(1)
+        from ${TBSNAME}."mw_mymonitor_label"
+        where "template_id" = #{templateId}
+        and "id" = #{customNavigationBarId}
+    </select>
+
+    <select id="checkByCustomNavigation" parameterType="cn.mw.monitor.service.server.param.QueryNavigationBarParam"
+            resultType="java.lang.Integer">
+        select count(1)
+        from ${TBSNAME}."mw_mymonitor_custom_label"
+        where "assets_id" = #{assetsId}
+        and "navigation_bar_name" = #{navigationBarName}
+        and "type"= #{type}
+        and "navigation_bar_id" = #{navigationBarId}
+    </select>
+
+    <select id="getAllNavigationBarByDeleteFlag" parameterType="cn.mw.monitor.service.server.param.QueryNavigationBarParam"
+            resultType="cn.mw.monitor.service.server.param.AddNavigationBarByDeleteFlag">
+        SELECT DISTINCT
+            "id",
+            "bar_id" AS "barId",
+            "template_id" AS "templateId",
+            "assets_id" AS "assetsId",
+            "default_flag" AS "defaultFlag"
+        FROM
+            ${TBSNAME}."mw_mymonitor_custom_delete"
+        WHERE
+            "template_id" = #{templateId}
+            OR "assets_id" = #{assetsId}
+    </select>
+
+    <delete id="deleteCustomNavigationBar" parameterType="cn.mw.monitor.service.server.param.QueryNavigationBarParam">
+        DELETE
+        FROM
+            ${TBSNAME}."mw_mymonitor_custom_label"
+        WHERE
+            "assets_id" = #{assetsId}
+            AND "type" = #{type}
+            AND "navigation_bar_id" = #{customNavigationBarId}
+    </delete>
+
+
+    <delete id="deleteCustomNavigationBarByAdd"
+            parameterType="cn.mw.monitor.service.server.param.QueryNavigationBarParam">
+        DELETE
+        FROM
+            ${TBSNAME}."mw_mymonitor_custom_label"
+        WHERE
+            "assets_id" = #{assetsId}
+            AND "type" = #{type}
+            AND "id" = #{navigationBarId}
+    </delete>
+
+    <insert id="insertNavigationBar" parameterType="cn.mw.monitor.service.server.param.QueryNavigationBarParam">
+        <selectKey resultType="java.lang.Integer" keyProperty="navigationBarId" order="BEFORE">
+            select ${TBSNAME}.SEQ_MW_MYMONITOR_LABEL.NEXTVAL AS "navigationBarId" from dual
+        </selectKey>
+        insert into
+        <include refid="tLabel"/>
+        ("id","navigation_bar_name", "template_id")
+        values
+        (${TBSNAME}.SEQ_MW_MYMONITOR_LABEL.NEXTVAL,#{navigationBarName,jdbcType=VARCHAR}, #{templateId,jdbcType=VARCHAR})
+    </insert>
+    <insert id="insertCustomNavigationBar" parameterType="cn.mw.monitor.service.server.param.QueryNavigationBarParam">
+        <selectKey resultType="java.lang.Integer" keyProperty="customNavigationBarId" order="BEFORE">
+            select ${TBSNAME}.SEQ_MW_MYMONITOR_CUSTOM_LABEL.NEXTVAL AS "customNavigationBarId" from dual
+        </selectKey>
+        insert into
+        ${TBSNAME}."mw_mymonitor_custom_label"
+        ("id","navigation_bar_name", "assets_id","type","navigation_bar_id")
+        values
+        (#{customNavigationBarId},#{navigationBarName,jdbcType=VARCHAR}, #{assetsId,jdbcType=VARCHAR},#{type},#{navigationBarId})
+    </insert>
+
+    <insert id="insertCustomNavigationByDeleteTemplate"
+            parameterType="cn.mw.monitor.service.server.param.AddNavigationBarByDeleteFlag"
+            useGeneratedKeys="true" keyProperty="id" keyColumn="id">
+        insert into ${TBSNAME}."mw_mymonitor_custom_delete"
+            ("id",
+            "bar_id",
+            "template_id",
+            "assets_id",
+            "default_flag")
+        values
+        (${TBSNAME}.SEQ_MW_MYMONITOR_CUSTOM_DELETE.NEXTVAL,
+            #{barId,jdbcType=INTEGER},
+            #{templateId,jdbcType=INTEGER},
+            null,
+            #{defaultFlag})
+    </insert>
+
+    <insert id="insertCustomNavigationByDeleteAssets"
+            parameterType="cn.mw.monitor.service.server.param.AddNavigationBarByDeleteFlag">
+        insert into ${TBSNAME}."mw_mymonitor_custom_delete"
+            ("id",
+            "bar_id",
+            "template_id",
+            "assets_id",
+            "default_flag")
+        values
+            (${TBSNAME}.SEQ_MW_MYMONITOR_CUSTOM_DELETE.NEXTVAL,
+            #{barId,jdbcType=INTEGER},
+            null,
+            #{assetsId,jdbcType=INTEGER},
+            #{defaultFlag})
+    </insert>
+
+    <update id="updateNavigationBar" parameterType="cn.mw.monitor.service.server.param.QueryNavigationBarParam">
+        update
+        <include refid="tLabel"/>
+        <set>
+            <if test="navigationBarName != null and navigationBarName != ''">
+                "navigation_bar_name" = #{navigationBarName,jdbcType=VARCHAR},
+            </if>
+        </set>
+        where "id" = #{navigationBarId,jdbcType=INTEGER}
+    </update>
+
+    <update id="updateBycustomNavigationBarId"
+            parameterType="cn.mw.monitor.service.server.param.QueryNavigationBarParam">
+        update
+        <include refid="tLabel"/>
+        <set>
+            <if test="navigationBarName != null and navigationBarName != ''">
+                "navigation_bar_name" = #{navigationBarName,jdbcType=VARCHAR},
+            </if>
+        </set>
+        where "id" = #{customNavigationBarId,jdbcType=INTEGER}
+    </update>
+
+    <update id="updateCustomNavigationBar" parameterType="cn.mw.monitor.service.server.param.QueryNavigationBarParam">
+        update
+        ${TBSNAME}."mw_mymonitor_custom_label"
+        <set>
+            <if test="navigationBarName != null and navigationBarName != ''">
+                "navigation_bar_name" = #{navigationBarName,jdbcType=VARCHAR},
+            </if>
+        </set>
+        where "id" = #{navigationBarId,jdbcType=INTEGER}
+    </update>
+
+    <delete id="deleteNavigationBar" parameterType="cn.mw.monitor.service.server.param.QueryNavigationBarParam">
+        delete from
+        <include refid="tLabel"/>
+        where "id" in (
+        <foreach collection="navigationBarIds" item="id" separator=",">
+            #{id ,jdbcType=INTEGER}
+        </foreach>)
+    </delete>
+
+    <delete id="delete" parameterType="java.util.List">
+        delete from
+        <include refid="tb"/>
+        where "navigation_bar_id" in (
+        <foreach collection="list" item="id" separator=",">
+            #{id ,jdbcType=INTEGER}
+        </foreach>)
+    </delete>
+
+    <delete id="deleteComponentLayoutByCustom">
+        delete from
+        ${TBSNAME}."mw_component_layout_table"
+        where "navigation_bar_id" = #{navigationBarId}
+        and "assets_id" = #{assetsId}
+    </delete>
+
+    <delete id="deleteComLayoutByMinVersion">
+        delete from
+        ${TBSNAME}."mw_component_layout_version"
+        where "component_layout_id" = #{comLayoutId}
+        and "version" = #{version}
+    </delete>
+</mapper>

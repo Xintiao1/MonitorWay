@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.mw.monitor.script.dao.ScriptManageDao">
+
+
+    <select id="fuzzSearchScriptData" resultType="java.util.Map">
+        SELECT
+            *
+        FROM
+            (
+            SELECT
+                "script_name" AS "keyName",
+                'scriptName' AS "type"
+            FROM
+                ${TBSNAME}."mw_script_manage_table"
+            GROUP BY
+                "script_name" UNION
+            SELECT
+                "creator" AS "keyName",
+                'creator' AS "type"
+            FROM
+                ${TBSNAME}."mw_script_manage_table"
+            GROUP BY
+                "creator"
+            ) TB_ALL
+    </select>
+
+
+</mapper>

@@ -1,0 +1,240 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.mw.monitor.user.dao.MwRoleDao">
+
+    <!-- 新增角色信息 -->
+    <insert id="insert" parameterType="cn.mw.monitor.user.model.MwRole"
+            useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO mw_role (
+            role_name,
+            role_desc,
+            data_perm,
+            enable,
+            version,
+            creator,
+            create_date,
+            modifier,
+            modification_date,
+            delete_flag,
+            role_type,
+            allow_login_flag
+        ) VALUES (
+            #{roleName,jdbcType=VARCHAR},
+            #{roleDesc,jdbcType=VARCHAR},
+            #{dataPerm,jdbcType=VARCHAR},
+            'ACTIVE',
+            0,
+            #{creator,jdbcType=VARCHAR},
+            now(),
+            #{modifier,jdbcType=VARCHAR},
+            now(),
+            false,
+            2,
+            #{allowLogin,jdbcType=INTEGER}
+        )
+    </insert>
+
+    <!-- 更新角色信息 -->
+    <update id="update" parameterType="cn.mw.monitor.user.model.MwRole">
+        UPDATE mw_role
+        <set>
+            <if test="roleDesc != null">
+                role_desc = #{roleDesc,jdbcType=VARCHAR},
+            </if>
+            <if test="dataPerm != null">
+                data_perm = #{dataPerm,jdbcType=VARCHAR},
+            </if>
+            modifier = #{modifier,jdbcType=VARCHAR},
+            modification_date = now(),
+            version = version + 1,
+            allow_login_flag = #{allowLogin,jdbcType=INTEGER}
+        </set>
+        WHERE id = #{roleId,jdbcType=INTEGER}
+    </update>
+
+    <!-- 根据角色id查询角色名称 -->
+    <select id="selectRoleNameById" resultType="java.lang.String">
+        SELECT
+            role_name
+        FROM mw_role
+        WHERE delete_flag = FALSE
+        AND id = #{roleId,jdbcType=INTEGER}
+    </select>
+
+    <!-- 删除角色信息 -->
+    <update id="delete" parameterType="java.util.List">
+        UPDATE mw_role
+        SET modifier = #{modifier,jdbcType=VARCHAR},
+            modification_date = now(),
+            delete_flag = TRUE
+        WHERE id IN (
+        <foreach collection="roleIds" item="list" separator=",">
+            #{list,jdbcType=INTEGER}
+        </foreach>
+        )
+    </update>
+
+    <!-- 更新角色状态信息 -->
+    <update id="updateUserState" parameterType="cn.mw.monitor.api.param.role.UpdateRoleStateParam">
+        UPDATE mw_role
+        SET enable = #{enable,jdbcType=VARCHAR},
+            modifier = #{modifier,jdbcType=VARCHAR},
+            modification_date = now()
+        WHERE id = #{roleId,jdbcType=INTEGER}
+    </update>
+
+    <!-- 分页查询角色列表信息 -->
+    <select id="selectList" resultMap="ListResultMap" parameterType="java.util.Map">
+        SELECT
+            id,
+            role_name,
+            role_desc,
+            data_perm,
+            version,
+            enable,
+            creator,
+            create_date,
+            modifier,
+            modification_date,
+            role_type
+        FROM mw_role
+        WHERE delete_flag = FALSE
+        <if test="roleName != null and roleName != ''">
+            AND role_name LIKE CONCAT('%',#{roleName,jdbcType=VARCHAR},'%')
+        </if>
+        <if test="roleDesc != null and roleDesc != ''">
+            AND role_desc LIKE CONCAT('%',#{roleDesc,jdbcType=VARCHAR},'%')
+        </if>
+        <if test="creator != null and creator != ''">
+            AND creator LIKE CONCAT('%',#{creator,jdbcType=VARCHAR},'%')
+        </if>
+        <if test="modifier != null and modifier != ''">
+            AND modifier LIKE CONCAT('%',#{modifier,jdbcType=VARCHAR},'%')
+        </if>
+        <if test="enable != null and enable != ''">
+            AND enable = #{enable,jdbcType=VARCHAR}
+        </if>
+        <if test="createDateStart != null">
+            AND <![CDATA[#{createDateStart,jdbcType=TIMESTAMP} <= create_date ]]>
+        </if>
+        <if test="createDateEnd != null">
+            AND <![CDATA[#{createDateEnd,jdbcType=TIMESTAMP} >= create_date ]]>
+        </if>
+        <if test="modificationDateStart != null">
+            AND <![CDATA[#{modificationDateStart,jdbcType=TIMESTAMP} <= modification_date ]]>
+        </if>
+        <if test="modificationDateEnd != null">
+            AND <![CDATA[#{modificationDateEnd,jdbcType=TIMESTAMP} >= modification_date ]]>
+        </if>
+        ORDER BY
+        create_date DESC
+    </select>
+
+    <resultMap id="ListResultMap" type="cn.mw.monitor.service.user.dto.MwRoleDTO">
+        <id column="id" jdbcType="INTEGER" property="id"/>
+        <result column="id" jdbcType="INTEGER" property="roleId"/>
+        <result column="role_name" jdbcType="VARCHAR" property="roleName"/>
+        <result column="role_desc" jdbcType="VARCHAR" property="roleDesc"/>
+        <result column="data_perm" jdbcType="VARCHAR" property="dataPerm"/>
+        <result column="version" jdbcType="INTEGER" property="version"/>
+        <result column="enable" jdbcType="VARCHAR" property="enable"/>
+        <result column="creator" jdbcType="VARCHAR" property="creator"/>
+        <result column="modifier" jdbcType="VARCHAR" property="modifier"/>
+        <result column="create_date" jdbcType="TIMESTAMP" property="createDate"/>
+        <result column="modification_date" jdbcType="TIMESTAMP" property="modificationDate"/>
+        <result column="role_type" jdbcType="INTEGER" property="roleType"/>
+    </resultMap>
+
+    <select id="selectUser" resultMap="userMap">
+        SELECT
+            t2.user_id,
+            t2.user_name,
+            t2.login_name,
+            t2.user_state
+        FROM mw_sys_user t2
+        LEFT JOIN mw_user_role_mapper t1 ON t1.user_id = t2.user_id
+        WHERE t1.delete_flag = false
+        AND t1.role_id = #{id,jdbcType=INTEGER}
+    </select>
+
+    <resultMap id="userMap" type="cn.mw.monitor.service.user.dto.MwSubUserDTO" >
+        <id column="user_id" jdbcType="INTEGER" property="userId"/>
+        <result column="login_name" jdbcType="VARCHAR" property="loginName"/>
+        <result column="user_name" jdbcType="VARCHAR" property="userName"/>
+        <result column="user_state" jdbcType="VARCHAR" property="userState"/>
+    </resultMap>
+
+    <select id="selectOrg" resultType="cn.mw.monitor.service.user.dto.OrgDTO">
+        SELECT
+            t2.org_name as orgName
+        FROM mw_sys_org t2
+        LEFT JOIN mw_user_org_mapper t1 on t1.org_id = t2.org_id
+        WHERE t1.delete_flag = false
+        AND t1.user_Id = #{userId,jdbcType=INTEGER}
+    </select>
+
+    <!-- 根据角色ID查询角色信息 -->
+    <select id="selectByRoleId" resultType="cn.mw.monitor.user.model.MwRole">
+        SELECT
+            id,
+            id roleId,
+            role_name roleName,
+            role_desc roleDesc,
+            data_perm dataPerm,
+            version,
+            enable,
+            allow_login_flag allowLogin,
+            role_type roleType
+        FROM mw_role
+        WHERE id = #{roleId,jdbcType=INTEGER}
+    </select>
+
+    <!-- 角色下拉框查询 -->
+    <select id="selectDropdownList" resultType="cn.mw.monitor.service.user.dto.MwRoleDTO">
+        SELECT
+            id roleId,
+            role_name roleName
+        FROM mw_role
+        WHERE delete_flag = FALSE
+        AND enable = 'ACTIVE'
+    </select>
+
+    <!-- 根据用户ID取角色信息 -->
+    <select id="selectByUserId" resultType="cn.mw.monitor.user.model.MwRole">
+        select
+            a.id,
+            a.id roleId,
+            a.role_name roleName,
+            a.role_desc roleDesc,
+            a.data_perm dataPerm,
+            a.enable,
+            a.version
+        from mw_role a
+        left join mw_user_role_mapper b on b.role_id = a.id
+        where a.delete_flag = false
+        and b.user_id = #{userId,jdbcType=INTEGER}
+    </select>
+    <select id="selectByRoleName" resultType="java.lang.Integer">
+        select
+            count(id)
+        from
+            mw_role
+        where role_name = #{roleName,jdbcType=VARCHAR}
+        and delete_flag = false
+    </select>
+
+    <!-- 根据角色ID查询角色信息 -->
+    <select id="selectRoleByRoleName" resultType="cn.mw.monitor.user.model.MwRole">
+        SELECT
+            id,
+            id roleId,
+            role_name roleName,
+            role_desc roleDesc,
+            data_perm dataPerm,
+            version,
+            enable
+        FROM mw_role
+        WHERE role_name = #{roleName,jdbcType=VARCHAR}
+        and delete_flag = false
+    </select>
+</mapper>

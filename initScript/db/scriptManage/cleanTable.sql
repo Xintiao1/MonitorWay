@@ -1,0 +1,6 @@
+truncate table mw_homework_manage_table;
+truncate table mw_homework_relation_table;
+truncate table mw_script_account_manage_table;
+truncate table mw_script_exe_history_log;
+truncate table mw_script_manage_table;
+truncate table mw_config_manage_tree_group;

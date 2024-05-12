@@ -1,0 +1,3 @@
+truncate table mw_sys_log_datasource_setting;
+truncate table mw_kafka_topic_info;
+truncate table mw_topic_field_alert_level;

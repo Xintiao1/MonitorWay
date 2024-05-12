@@ -1,0 +1,55 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mw-monitor
+  namespace: mw-components
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: monitor
+  template:
+    metadata:
+      labels:
+        app: monitor
+    spec:
+      imagePullSecrets:
+      - name: registry-pull-secret
+      containers:
+      - name: monitor
+        image: 10.180.5.40/springcloud/monitorway:<BUILD_TAG>
+        imagePullPolicy: IfNotPresent
+        env: 
+        - name: branch
+          value: <BRANCH_NAME>
+        ports:
+        - name: https
+          containerPort: 10081
+        resources:
+          requests: 
+            cpu: "2000m"
+            memory: "2Gi"
+        volumeMounts:
+        - name: produce
+          mountPath: /data/home/monitor/upload
+      volumes:
+      - name: produce
+        nfs:
+          path: /data/monitor-data/mwproduce
+          server: 10.180.5.186
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: monitor-svc
+  namespace: mw-components
+spec:
+  selector:
+    app: monitor
+  type: NodePort
+  ports:
+  - name: http
+    port: 10081
+    nodePort: 30087
+    

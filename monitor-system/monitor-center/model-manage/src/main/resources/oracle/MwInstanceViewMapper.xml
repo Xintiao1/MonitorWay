@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.mw.monitor.model.dao.MwInstanceViewDao">
+    <resultMap id="InstanceViewResultMap" type="cn.mw.monitor.model.dto.MwInstanceViewDTO">
+        <id property="id" column="id" jdbcType="INTEGER"/>
+        <id property="instanceId" column="instance_id" jdbcType="INTEGER"/>
+        <result property="viewName" column="view_name" jdbcType="VARCHAR"/>
+        <result property="creator" column="creator" jdbcType="VARCHAR"/>
+        <result property="createTime" column="create_time" jdbcType="TIMESTAMP"/>
+        <result property="modifier" column="modifier"/>
+        <result property="updTime" column="upd_time" jdbcType="TIMESTAMP"/>
+    </resultMap>
+
+    <sql id="instance_view">
+        ${TBSNAME}."mw_cmdbmd_instance_view"
+    </sql>
+
+    <sql id="instance_view_exclude_id">
+        "instance_id", "view_name", "creator", "create_time", "modifier", "upd_time"
+    </sql>
+
+    <insert id="insert" parameterType="cn.mw.monitor.model.dto.MwInstanceViewDTO">
+        insert into <include refid="instance_view"/>
+        ("id", <include refid="instance_view_exclude_id"/> )
+        values (#{id}, #{instanceId}, #{viewName}, #{creator}, sysdate, #{modifier}, sysdate)
+    </insert>
+
+    <delete id="deleteById">
+        begin
+            delete from <include refid="instance_view"/> where "id" = #{id};
+            delete from ${TBSNAME}."mw_cmdbmd_instance_topo_info" where "instance_view_id" = #{id};
+        end;
+    </delete>
+
+    <update id="update" parameterType="cn.mw.monitor.model.dto.MwInstanceViewDTO">
+        update <include refid="instance_view"/>
+        set "upd_time" = sysdate
+        ,"modifier" = #{modifier,jdbcType=VARCHAR}
+        <if test="viewName != null and viewName != ''">
+            ,"view_name" = #{viewName,jdbcType=VARCHAR}
+        </if>
+        where "id" = #{id,jdbcType=VARCHAR}
+    </update>
+
+    <select id="findById" resultMap="InstanceViewResultMap">
+        select "id",<include refid="instance_view_exclude_id"/> from <include refid="instance_view"/>  where "id" = #{id}
+    </select>
+
+    <select id="findAll" resultMap="InstanceViewResultMap">
+        select "id",<include refid="instance_view_exclude_id"/> from <include refid="instance_view"/>
+        where "instance_id" = #{instanceId,jdbcType=INTEGER}
+    </select>
+
+</mapper>

@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.mw.xiangtai.plugin.monitor.dao.XiangtaiLogVisualizedMapper">
+    <select id="selectAttackTypeMapping"
+            resultType="cn.mw.xiangtai.plugin.domain.dto.AttackTypeCodeMappingDto">
+        select id,attack_code as attackCode,attack_name as attackName from mw_sys_log_attack_type
+        <if test="codes != null and codes.size > 0">
+            where attack_code in
+            <foreach collection="codes" item="item" index="index" open="(" separator="," close=")">
+                #{item,jdbcType=VARCHAR}
+            </foreach>
+        </if>
+    </select>
+    <select id="selectXiangtaiAssetsInfo" resultType="cn.mw.xiangtai.plugin.domain.dto.XiangtaiAssetsInfoDto">
+        SELECT
+            online_device AS onlineDevice,
+            total_assetsnumber AS totalAssetsNumber,
+            bug_number AS bugNumber
+        FROM
+            xiangtai_assets_table
+        ORDER BY
+            create_date DESC
+            LIMIT 1
+    </select>
+    <select id="selectXiangtaiDeviceMappingInfo"
+            resultType="cn.mw.xiangtai.plugin.domain.dto.XiangtaiDeviceDto">
+        select ip_address_segment as ipAddressSegment,address_info as addressInfo,ip_area as ipArea from xiangtai_ipinfo_table
+    </select>
+    <select id="selectIpAddressAreaInfo" resultType="cn.mw.xiangtai.plugin.domain.dto.XIangtaiMapAreaDto">
+        select `name`,whole_name as wholeName,lon,lat from mw_area where level != 1
+        and
+        <foreach collection="areas" item="name" index="index" open="(" separator=" or " close=")">
+            whole_name like  CONCAT('%',#{name},'%')
+        </foreach>
+    </select>
+</mapper>

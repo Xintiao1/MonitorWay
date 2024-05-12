@@ -1,0 +1,309 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.mw.monitor.security.dao.EsSysLogRuleDao">
+
+    <insert id="insertMwAlertRuleSelect" parameterType="java.util.List">
+        insert into mw_sys_log_rule_select(id,deep,condition_unit,name,relation,value,parent_id,rule_id) values
+        <foreach collection="list" item="item" index="index" separator=",">
+            (#{item.key},#{item.deep},#{item.condition},#{item.name},#{item.relation},#{item.value},#{item.parentKey},#{item.uuid})
+        </foreach>
+    </insert>
+
+    <insert id="insertSysLogRule" parameterType="cn.mw.module.security.dto.EsSysLogRuleDTO" keyColumn="id"
+            keyProperty="id" useGeneratedKeys="true">
+        insert into mw_sys_log_rule_mapper(
+        rule_name,rule_id,state,delete_flag ,creator,create_date,updater,update_date,action
+        )
+        values
+        (
+        #{ruleName,jdbcType=VARCHAR},
+        #{ruleId,jdbcType=VARCHAR},
+        true,
+        false,
+        #{creator,jdbcType=VARCHAR},
+        now(),
+        #{updater,jdbcType=VARCHAR},
+        now(),
+        #{action}
+        )
+    </insert>
+
+    <insert id="insertTagInfo" parameterType="cn.mw.module.security.dto.EsSysLogTagDTO" keyColumn="id" keyProperty="id"
+            useGeneratedKeys="true">
+        insert into mw_sys_log_tag(
+        name,color
+        )
+        values
+        (
+        #{name,jdbcType=VARCHAR},
+        #{color,jdbcType=VARCHAR}
+        )
+    </insert>
+
+    <insert id="insertSysLogTagMapper" parameterType="cn.mw.module.security.dto.EsSysLogRuleTagMapperDTO">
+        insert into mw_sys_log_tag_mapper(
+        rule_mapper_id,tag_id
+        )
+        values
+        <foreach collection="tagIds" item="item" index="index" separator=",">
+            (#{ruleMapperId},#{item})
+        </foreach>
+    </insert>
+
+    <insert id="createTagInfo" parameterType="cn.mw.module.security.dto.EsSysLogTagDTO">
+        insert into mw_sys_log_tag(
+        name,color
+        )
+        values(
+        #{tagName},
+        #{tagColor}
+        )
+    </insert>
+
+    <update id="updateSysLogRulesInfo" parameterType="cn.mw.module.security.dto.EsSysLogRuleDTO">
+        update mw_sys_log_rule_mapper
+        <set>
+            <if test="ruleName != null and ruleName != ''">
+                rule_name = #{ruleName,jdbcType=VARCHAR},
+            </if>
+            <if test="ruleId != null and ruleId != ''">
+                rule_id = #{ruleId,jdbcType=VARCHAR},
+            </if>
+            action = #{action},
+            updater = #{updater},
+            update_date = now()
+
+        </set>
+        where id = #{id}
+    </update>
+
+    <update id="updateSysLogRulesState" parameterType="cn.mw.module.security.dto.EsSysLogRuleDTO">
+        update mw_sys_log_rule_mapper
+        set state = #{state}
+        where id in
+        (
+        <foreach collection="ids" item="id" separator=",">
+            #{id,jdbcType=INTEGER}
+        </foreach>
+        )
+    </update>
+
+    <update id="deleteSysLogRulesInfo" parameterType="cn.mw.module.security.dto.EsSysLogRuleDTO">
+        update mw_sys_log_rule_mapper
+        set delete_flag = true
+        where id in
+        (
+        <foreach collection="list" item="ids" separator=",">
+            #{ids,jdbcType=INTEGER}
+        </foreach>
+        )
+    </update>
+
+    <select id="getSystemLogRulesInfos" resultType="cn.mw.module.security.dto.EsSysLogRuleDTO"
+            parameterType="cn.mw.module.security.dto.EsSysLogRuleDTO">
+        SELECT
+        a.id,
+        a.rule_name AS "ruleName",
+        a.rule_id AS "ruleId",
+        a.state,
+        a.creator,
+        a.create_date AS "createDate",
+        a.updater,
+        a.update_date AS "updateDate",
+        a.action as  "action"
+        FROM
+        mw_sys_log_rule_mapper a
+        <where>
+            delete_flag = '0'
+            <if test="ruleName != null and ruleName != ''">
+                and a.rule_name like CONCAT('%',#{ruleName,jdbcType=VARCHAR},'%')
+            </if>
+            <if test="state != null">
+                and a.state = #{state}
+            </if>
+            <if test="creator != null and creator != ''">
+                and a.creator = #{creator}
+            </if>
+            <if test="updater != null and updater != ''">
+                and a.updater = #{updater}
+            </if>
+        </where>
+        order by update_date desc
+    </select>
+
+    <select id="getRulesInfosBySysLogAudit" resultType="cn.mw.module.security.dto.EsSysLogRuleDTO">
+        SELECT
+        a.id,
+        a.rule_name AS "ruleName",
+        a.rule_id AS "ruleId",
+        a.state,
+        a.creator,
+        a.create_date AS "createDate",
+        a.updater,
+        a.update_date AS "updateDate"
+        FROM
+        mw_sys_log_rule_mapper a
+        where
+        delete_flag = '0'
+        and a.state = '1'
+        order by update_date desc
+    </select>
+
+
+    <select id="getSystemLogRulesInfoById" resultType="cn.mw.module.security.dto.EsSysLogRuleDTO"
+            parameterType="cn.mw.module.security.dto.EsSysLogRuleDTO">
+        SELECT
+        a.id,
+        a.rule_name AS "ruleName",
+        a.rule_id AS "ruleId",
+        a.state,
+        a.action as "action"
+        FROM
+        mw_sys_log_rule_mapper a
+        where
+            delete_flag = '0'
+            and a.id = #{id}
+    </select>
+
+    <select id="fuzzSearchAllFiled" resultType="java.util.Map">
+        SELECT
+            rule_name AS "ruleName"
+        FROM
+            mw_sys_log_rule_mapper
+        WHERE
+            delete_flag = 0
+    </select>
+
+    <select id="getSysLogTagInfo" resultType="cn.mw.module.security.dto.EsSysLogTagDTO">
+        select name AS "tagName",color AS "tagColor",id
+        from mw_sys_log_tag
+    </select>
+
+    <select id="getAlertRules" resultType="cn.mw.monitor.weixinapi.MwRuleSelectParam">
+        select
+        id as 'key',
+        deep deep,
+        condition_unit as 'condition',
+        name,
+        relation,
+        value,
+        parent_id as parentKey
+        from mw_sys_log_rule_select
+        <if test="ruleId != null and ruleId != ''">
+            where rule_id = #{ruleId}
+        </if>
+    </select>
+
+
+    <select id="getRuleTags" resultType="cn.mw.module.security.dto.EsSysLogTagDTO">
+        SELECT
+            b.NAME AS "tagName",
+            b.color AS "tagColor",
+            b.id
+        FROM
+            mw_sys_log_tag_mapper a
+            LEFT JOIN mw_sys_log_tag b ON a.tag_id = b.id
+        WHERE
+            a.rule_mapper_id = #{id}
+            and b.id is not null
+    </select>
+
+    <delete id="deleteSysLogTagInfo" parameterType="cn.mw.module.security.dto.EsSysLogTagDTO">
+        delete from mw_sys_log_tag
+        where id in
+        (
+        <foreach collection="list" item="ids" separator=",">
+            #{ids,jdbcType=INTEGER}
+        </foreach>
+        )
+    </delete>
+
+    <delete id="deleteTagInfo">
+        delete from mw_sys_log_tag_mapper where rule_mapper_id = #{id}
+    </delete>
+
+    <delete id="deleteTagInfoByMore">
+        delete from mw_sys_log_tag_mapper
+        where rule_mapper_id in (
+        <foreach collection="list" item="ids" separator=",">
+            #{ids}
+        </foreach>)
+    </delete>
+
+    <delete id="deleteMwAlertRuleSelect">
+        delete from mw_sys_log_rule_select where rule_id = #{ruleId}
+    </delete>
+
+    <delete id="deleteMwAlertRuleSelectByMore">
+        delete from mw_sys_log_rule_select
+        where rule_id in (
+        <foreach collection="list" item="ruleIds" separator=",">
+            #{ruleIds}
+        </foreach>)
+    </delete>
+
+    <insert id="insertActionRuleMapper" parameterType="java.util.List">
+        insert into mw_alert_action_rule_mapper(action_id,rule_id) values
+        <foreach collection="list" item="item" index="index" separator=",">
+            (#{item.actionId,jdbcType=VARCHAR},#{item.ruleId,jdbcType=INTEGER})
+        </foreach>
+    </insert>
+
+    <insert id="insertActionUsersMapper" parameterType="java.util.List">
+        insert into mw_alert_action_user_mapper(action_id,user_id) values
+        <foreach collection="list" item="item" index="index" separator=",">
+            (#{item.actionId,jdbcType=VARCHAR},#{item.userId,jdbcType=INTEGER})
+        </foreach>
+    </insert>
+
+    <insert id="insertActionGroupsMapper" parameterType="java.util.List">
+        insert into mw_alert_action_group_mapper(action_id,group_id) values
+        <foreach collection="list" item="item" index="index" separator=",">
+            (#{item.actionId,jdbcType=VARCHAR},#{item.groupId,jdbcType=INTEGER})
+        </foreach>
+    </insert>
+
+    <select id="selectRules" parameterType="java.lang.String" resultType="java.lang.String">
+        select rule_id as ruleId from  mw_alert_action_rule_mapper where action_id=#{actionId,jdbcType=VARCHAR}
+    </select>
+
+    <select id="selectActionUsersMapper" resultType="java.lang.Integer">
+        select user_id from mw_alert_action_user_mapper where action_id =#{actionId,jdbcType=VARCHAR}
+    </select>
+
+    <select id="selectActionGroupsMapper" resultType="java.lang.Integer">
+        select group_id as groupId from mw_alert_action_group_mapper where action_id =#{actionId,jdbcType=VARCHAR}
+    </select>
+
+    <delete id="deleteActionRulesMapper">
+        delete from mw_alert_action_rule_mapper where action_id=#{actionId,jdbcType=VARCHAR}
+    </delete>
+
+    <delete id="deleteActionUsersMapper">
+        delete from mw_alert_action_user_mapper where action_id=#{actionId,jdbcType=VARCHAR}
+    </delete>
+
+    <delete id="deleteActionGroupsMapper">
+        delete from mw_alert_action_group_mapper where action_id=#{actionId,jdbcType=VARCHAR}
+    </delete>
+
+    <select id="getRulesInfosByAction" resultType="cn.mw.module.security.dto.EsSysLogRuleDTO">
+        SELECT
+        a.id,
+        a.rule_name AS "ruleName",
+        a.rule_id AS "ruleId",
+        a.state,
+        a.creator,
+        a.create_date AS "createDate",
+        a.updater,
+        a.update_date AS "updateDate"
+        FROM
+        mw_sys_log_rule_mapper a
+        where
+        delete_flag = '0'
+        and a.state = '1'
+        and a.action like '%2,'
+        order by update_date desc
+    </select>
+
+</mapper>

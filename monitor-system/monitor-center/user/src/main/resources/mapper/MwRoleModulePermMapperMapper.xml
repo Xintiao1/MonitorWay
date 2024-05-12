@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.mw.monitor.user.dao.MwRoleModulePermMapperDao">
+
+    <!-- 根据角色ID重置角色模块权限信息 -->
+    <update id="updateEnableByRoleId">
+        UPDATE mw_role_module_perm_mapper
+        SET enable = TRUE
+        WHERE role_id = #{roleId,jdbcType=INTEGER}
+    </update>
+
+    <!-- 查询角色模块权限映射信息 -->
+    <select id="selectModulePermByRoleId" parameterType="java.util.Map" resultMap="modulePermMap">
+        SELECT
+            t1.id page_id,
+            t1.module_desc page_name,
+            t1.pid,
+            t1.deep,
+            MAX( CASE t2.perm_name WHEN 'browse' THEN t2.ENABLE ELSE FALSE END ) AS 'browse',
+            MAX( CASE t2.perm_name WHEN 'create' THEN t2.ENABLE ELSE FALSE END ) AS 'create',
+            MAX( CASE t2.perm_name WHEN 'delete' THEN t2.ENABLE ELSE FALSE END ) AS 'delete',
+            MAX( CASE t2.perm_name WHEN 'editor' THEN t2.ENABLE ELSE FALSE END ) AS 'editor',
+            MAX( CASE t2.perm_name WHEN 'perform' THEN t2.ENABLE ELSE FALSE END ) AS 'perform'
+        FROM mw_module t1
+        LEFT JOIN mw_role_module_perm_mapper t2 ON t1.id = t2.module_id
+        <if test="roleId != null">
+            AND t2.role_id = #{roleId,jdbcType=INTEGER}
+        </if>
+
+        WHERE t1.delete_flag = false
+        GROUP BY t1.id
+    </select>
+
+    <!-- 查询模块信息 -->
+    <select id="selectModule" parameterType="java.util.Map" resultMap="modulePermMap">
+        SELECT
+        t1.id page_id,
+        t1.module_desc page_name,
+        t1.pid,
+        t1.deep
+        FROM mw_module t1
+        <if test="nodePath != null">
+            AND nodes like '#{nodePath,jdbcType=VARCHAR},%'
+        </if>
+        WHERE t1.delete_flag = false
+    </select>
+
+    <resultMap id="modulePermMap" type="cn.mw.monitor.service.user.model.PageAuth">
+        <result column="page_id" jdbcType="INTEGER" property="pageId"/>
+        <result column="page_name" jdbcType="VARCHAR" property="pageName"/>
+        <result column="pid"  jdbcType="INTEGER" property="pid"/>
+        <result column="deep"  jdbcType="INTEGER" property="deep"/>
+        <collection property="auth" ofType="cn.mw.monitor.service.user.model.Auth">
+            <result column="browse" jdbcType="BIT" property="browse"/>
+            <result column="create" jdbcType="BIT" property="create"/>
+            <result column="editor" jdbcType="BIT" property="editor"/>
+            <result column="delete" jdbcType="BIT" property="delete"/>
+            <result column="perform" jdbcType="BIT" property="perform"/>
+        </collection>
+    </resultMap>
+
+    <!-- 新增角色模块权限映射信息 -->
+    <insert id="insert">
+        INSERT INTO mw_role_module_perm_mapper (
+            id,
+            role_id,
+            module_id,
+            perm_name,
+            enable
+        ) VALUES
+        <foreach collection="list" item="list" separator=",">
+        (
+            #{list.id,jdbcType=VARCHAR},
+            #{list.roleId,jdbcType=INTEGER},
+            #{list.moduleId,jdbcType=INTEGER},
+            #{list.permName,jdbcType=VARCHAR},
+            <choose>
+                <when test="list.enable == null">
+                    false
+                </when>
+                <otherwise>
+                    #{list.enable,jdbcType=VARCHAR}
+                </otherwise>
+            </choose>
+        )
+        </foreach>
+    </insert>
+
+    <!-- 根据角色ID删除角色模块权限信息 -->
+    <delete id="deleteByRoleId">
+        DELETE FROM mw_role_module_perm_mapper
+        WHERE role_id = #{roleId,jdbcType=INTEGER}
+    </delete>
+
+    <!-- 根据用户ID查询权限信息 -->
+    <select id="selectByUserId" parameterType="java.lang.Integer" resultType="cn.mw.monitor.service.user.model.MwRoleModulePermMapper">
+        select
+            a.id,
+            a.role_id as roleId,
+            a.module_id as moduleId,
+            a.perm_name as permName,
+            a.enable as enable
+        from mw_role_module_perm_mapper a
+        LEFT JOIN mw_user_role_mapper b ON b.role_id = a.role_id
+        where b.delete_flag = false
+        AND b.user_id = #{userId,jdbcType=INTEGER}
+    </select>
+
+</mapper>

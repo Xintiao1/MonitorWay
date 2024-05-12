@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.mw.monitor.activiti.dao.DutyDao">
+
+    <insert id="insertDutyTable" parameterType="java.util.List">
+        insert into mw_duty_table (id,user_id,date,create_user,create_date,shift_id)
+        values
+        <foreach collection="list" item="item" separator="," >
+            (#{item.id},#{item.userId},#{item.date},#{item.createUser},now(),#{item.shiftId})
+        </foreach>
+    </insert>
+
+    <select id="selectDutyInfo" parameterType="cn.mw.monitor.activiti.param.DutyManageParam" resultType="cn.mw.monitor.activiti.param.QueryDutyInfoParam">
+        select CONCAT(t3.user_name,"(",t2.shift_name,")") as title,
+               t1.date as date,
+                t1.id as id
+        from mw_duty_table t1,mw_duty_shift_table t2, mw_sys_user t3
+        where t1.user_id = t3.user_id and t1.shift_id=t2.id
+        <if test="userId != null">
+            and t1.user_id = #{userId}
+        </if>
+        <if test="shiftName != null and shiftName != ''">
+            and t2.shift_name like CONCAT(#{shiftName},"%")
+        </if>
+        <if test="userName != null and userName !=''">
+            and t3.user_name like CONCAT(#{userName},"%")
+        </if>
+        <if test="startDate != null and endDate != null">
+            and  t1.`date` between #{startDate,jdbcType=VARCHAR} and
+            #{endDate,jdbcType=VARCHAR}
+        </if>
+
+    </select>
+
+
+    <select id="getDutyUserIds" parameterType="cn.mw.monitor.service.activiti.param.service.DutyManageCommonService" resultType="java.lang.String">
+        select user_id
+        from mw_duty_table
+        where
+            `date` between #{startDate,jdbcType=VARCHAR} and
+            #{endDate,jdbcType=VARCHAR}
+
+    </select>
+
+    <delete id="deleteDuty">
+        delete from mw_duty_table
+        where id = #{id}
+    </delete>
+
+    <insert id="insertShiftTable" parameterType="cn.mw.monitor.activiti.entiy.ShiftEntity">
+        insert into mw_duty_shift_table (id,shift_name,start_date,end_date,is_twoday,create_user,create_date)
+        values (#{id},#{shiftName},#{dutyStartDate},#{dutyEndDate},#{isTwoDay},#{createUser},now())
+    </insert>
+
+    <select id="selectByUserId" parameterType="java.util.HashSet" resultType="cn.mw.monitor.service.user.model.MWUser">
+        select
+        login_name as loginName,
+        user_id as userId
+        from mw_sys_user
+        where user_id in (
+        <foreach collection="list" item="item" separator=",">
+            #{item,jdbcType=INTEGER}
+        </foreach>
+        ) and delete_flag = 0 and user_state = 'ACTIVE'
+    </select>
+
+    <select id="selectShiftInfo" parameterType="cn.mw.monitor.activiti.param.DutyShiftParam" resultType="cn.mw.monitor.activiti.param.DutyShiftParam">
+        select id as id,
+               shift_name as shiftName,
+               start_date as dutyStartDate,
+               end_date as dutyEndDate,
+               is_twoday as isTwoDay,
+               create_date as createDate
+        from  mw_duty_shift_table
+        where 1=1
+        <if test="shiftName != null and shiftName != ''">
+           and shift_name = #{shiftName}
+        </if>
+        <if test="id != null and id != ''">
+            and id = #{id}
+        </if>
+        order by create_date desc
+    </select>
+
+    <delete id="deleteShiftTable">
+        delete from mw_duty_shift_table
+        where id in (
+        <foreach collection="list" item="item" separator=",">
+            #{item}
+        </foreach>
+        )
+    </delete>
+
+    <select id="selectShiftInfoById" parameterType="java.lang.String" resultType="cn.mw.monitor.activiti.param.DutyShiftParam">
+        select id as id,
+        shift_name as shiftName,
+        start_date as dutyStartDate,
+        end_date as dutyEndDate,
+        is_twoday as isTwoDay
+        from mw_duty_shift_table
+        where id = #{id}
+
+    </select>
+
+    <update id="updateShiftTable" parameterType="cn.mw.monitor.activiti.entiy.ShiftEntity">
+        update mw_duty_shift_table set
+            shift_name = #{shiftName},
+            start_date = #{dutyStartDate},
+            end_date = #{dutyEndDate},
+            is_twoday = #{isTwoDay},
+            update_user = #{updateUser},
+            update_date = now()
+        where id = #{id}
+    </update>
+
+</mapper>

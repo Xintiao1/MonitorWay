@@ -1,0 +1,174 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.mw.monitor.script.dao.ScriptAccountDao">
+
+    <sql id="criteria">
+        <if test="account !=null and account != ''">
+            and account=#{account,jdbcType=VARCHAR}
+        </if>
+        <if test="creator != null and creator != ''">
+            and creator = #{creator,jdbcType=VARCHAR}
+        </if>
+        <if test="createDateStart != null">
+            and <![CDATA[#{createDateStart,jdbcType=TIMESTAMP}<= create_date ]]>
+        </if>
+        <if test="createDateEnd != null">
+            and <![CDATA[#{createDateEnd,jdbcType=TIMESTAMP}>= create_date ]]>
+        </if>
+    </sql>
+
+    <select id="getAccountList" resultType="cn.mw.monitor.script.param.ScriptAccountParam">
+        SELECT
+            TB_ALL.*
+        FROM
+            (
+            SELECT
+                id AS id,
+                account AS account,
+                account_alias AS accountAlias,
+                `port` AS `port`,
+                creator AS creator,
+                create_date AS createDate,
+                modifier AS modifier,
+                modification_date AS modificationDate,
+                account_desc AS accountDesc,
+                system_type AS systemType,
+                0 AS `enable`,
+                '/' AS protocol,
+                '/' AS username,
+                '/' AS enableCmd
+            FROM
+                `mw_script_account_manage_table`
+            WHERE
+                delete_flag = FALSE <include refid="criteria"></include>
+                UNION
+            SELECT
+                id AS id,
+                account AS account,
+                '/' AS accountAlias,
+                `port` AS `port`,
+                creator AS creator,
+                create_date AS createDate,
+                modifier AS modifier,
+                modification_date AS modificationDate,
+                '/' AS accountDesc,
+                'device' AS systemType,
+                `enable` AS `enable`,
+                protocol AS protocol,
+                username AS username,
+                enable_cmd AS enableCmd
+            FROM
+                mw_accountmanage_table
+                where 1 = 1
+            <include refid="criteria"></include>
+            ) TB_ALL
+        ORDER BY
+            TB_ALL.createDate DESC
+    </select>
+
+    <select id="fuzzSearchAccountData" resultType="java.util.Map">
+        SELECT
+            *
+        FROM
+            (
+            SELECT
+                account AS keyName,
+                'account' AS type
+            FROM
+                mw_accountmanage_table
+            GROUP BY
+                keyName UNION
+            SELECT
+                creator AS keyName,
+                'creator' AS type
+            FROM
+                mw_accountmanage_table
+            GROUP BY
+                keyName UNION
+            SELECT
+                account AS keyName,
+                'account' AS type
+            FROM
+                mw_script_account_manage_table
+            GROUP BY
+                keyName UNION
+            SELECT
+                creator AS keyName,
+                'creator' AS type
+            FROM
+                mw_script_account_manage_table
+            GROUP BY
+            keyName
+            ) TB_ALL
+    </select>
+
+    <select id="selectPwdAnd" resultType="java.lang.Integer">
+          select  id from mw_script_account_manage_table where account = #{s} and password = #{encrypt} and delete_flag != 1
+          <if test="port!=null">
+            and  port = #{port}
+          </if>
+          limit 1
+    </select>
+
+    <insert id="insertScriptOut">
+        INSERT INTO `mw_script_out_asssets`( `hostname`, `ip`, `account_id`) VALUES ( #{scriptOutAsssets.hostname}, #{scriptOutAsssets.ip}, #{scriptOutAsssets.accountId})
+    </insert>
+
+    <delete id="removAssets">
+        DELETE FROM `mw_script_out_asssets` WHERE `id` in
+        <foreach collection="ids" item="item" index="index" separator="," open="(" close=")">
+            #{item}
+        </foreach>
+    </delete>
+    <select id="selectCountAssets" resultType="java.lang.Integer">
+    SELECT count(*) FROM `mw_script_out_asssets` WHERE ip=#{ipAddress} AND account_id =#{accountId}
+    </select>
+    <insert id="updateAssets">
+  UPDATE `mw_script_out_asssets` SET `hostname` = #{scriptOutAsssets.hostname}, `ip` = #{scriptOutAsssets.ip} WHERE `id` = #{scriptOutAsssets.id}
+    </insert>
+
+    <select id="getAllAlertBrowse" resultType="cn.mw.monitor.script.entity.MwHomeworkAlert">
+    SELECT * FROM `mw_homework_alert` where 1=1
+         <if test="mwHomeworkAlert.id!=null and mwHomeworkAlert.id!=''">and id = #{mwHomeworkAlert.id}</if>
+         <if test="mwHomeworkAlert.alertPlanName!=null and mwHomeworkAlert.alertPlanName!=''">and alert_plan_name like concat('%',#{mwHomeworkAlert.alertPlanName,jdbcType=VARCHAR},'%') </if>
+        <if test="mwHomeworkAlert.alertTitle!=null and mwHomeworkAlert.alertTitle!=''">and #{mwHomeworkAlert.alertTitle,jdbcType=VARCHAR} like concat('%',alert_title,'%')  </if>
+        <if test="mwHomeworkAlert.alertLevel!=null and mwHomeworkAlert.alertLevel!=''">and alert_level = #{mwHomeworkAlert.alertLevel} </if>
+        <if test="mwHomeworkAlert.alertExeHomework!=null and mwHomeworkAlert.alertExeHomework!=''">and alert_exe_homework like concat('%',#{mwHomeworkAlert.alertExeHomework,jdbcType=VARCHAR},'%')  </if>
+    </select>
+
+    <insert id="alertCreate">
+        INSERT INTO `mw_homework_alert`( `alert_plan_name`, `alert_title`, `alert_level`, `alert_exe_homework`,`title_check` ,`alert_type` ) VALUES ( #{mwHomeworkAlert.alertPlanName,jdbcType=VARCHAR},
+        #{mwHomeworkAlert.alertTitle,jdbcType=VARCHAR}, #{mwHomeworkAlert.alertLevel}, #{mwHomeworkAlert.alertExeHomework,jdbcType=VARCHAR}
+        ,#{mwHomeworkAlert.titleCheck},#{mwHomeworkAlert.alertType})
+    </insert>
+
+    <update id="alertEditor">
+        UPDATE `mw_homework_alert` SET `alert_plan_name` = #{mwHomeworkAlert.alertPlanName,jdbcType=VARCHAR}, `alert_title` = #{mwHomeworkAlert.alertTitle,jdbcType=VARCHAR}, `alert_level` = #{mwHomeworkAlert.alertLevel},
+         `alert_exe_homework` =  #{mwHomeworkAlert.alertExeHomework,jdbcType=VARCHAR}  WHERE `id` = #{mwHomeworkAlert.id}
+    </update>
+    <update id="addAlertNum">
+       UPDATE `mw_homework_alert` SET `alert_trigger_num` =`alert_trigger_num`+1  WHERE `id` = #{id}
+    </update>
+
+    <delete id="removeAlert">
+        DELETE FROM `mw_homework_alert` WHERE `id` in
+        <foreach collection="ids" item="item" index="index" separator="," open="(" close=")">
+            #{item}
+        </foreach>
+    </delete>
+
+    <insert id="addMwHomeWorkAlertMapper">
+       INSERT INTO `mw_homework_alert_mapper`( `homework_alert_id`, `version_id`) VALUES
+        <foreach collection="mwHomeworkAlertMappers" separator="," item="item" index="index" >
+          (  #{item.homeworkAlertId},  #{item.versionId})
+        </foreach>
+    </insert>
+
+
+    <select id="getListMwHomeWorkMapper" resultType="cn.mw.monitor.script.entity.MwHomeworkAlertMapper">
+        SELECT * FROM `mw_homework_alert_mapper` where `homework_alert_id` = #{id}
+    </select>
+    <delete id="deteAssetsId">
+        DELETE FROM `mw_script_out_asssets` WHERE `account_id` = #{id}
+     </delete>
+</mapper>

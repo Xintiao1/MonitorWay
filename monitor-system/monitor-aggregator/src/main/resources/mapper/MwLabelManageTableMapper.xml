@@ -1,0 +1,1100 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.mw.monitor.labelManage.dao.MwLabelManageTableDao">
+
+    <!-- 新增标签信息 -->
+    <insert id="insert" parameterType="cn.mw.monitor.labelManage.api.param.AddUpdateLabelManageParam"
+            useGeneratedKeys="true" keyProperty="labelId">
+        INSERT INTO mw_labelmanage_table
+        (
+        <if test="labelName != null and labelName != ''">
+            label_name,
+        </if>
+        <if test="inputFormat != null">
+            input_format,
+        </if>
+        <if test="chooseAdd != null">
+            choose_add,
+        </if>
+        <if test="earlyWarning != null">
+            early_warning,
+        </if>
+        <if test="screen != null">
+            screen,
+        </if>
+        <if test="report != null">
+            report,
+        </if>
+        <if test="isRequired != null">
+            is_required,
+        </if>
+        <if test="dropdownValue != null and dropdownValue != ''">
+            dropdown_value,
+        </if>
+        <if test="labelCode != null and labelCode != ''">
+            label_code,
+        </if>
+        <if test="deleteRestrict != null">
+            delete_restrict,
+        </if>
+        <if test="enable != null and enable != ''">
+            enable,
+        </if>
+        <if test="creator != null and creator != ''">
+            creator,
+        </if>
+        create_date,
+        <if test="modifier != null and modifier != ''">
+            modifier,
+        </if>
+        modification_date
+        ) VALUES (
+        <if test="labelName != null and labelName != ''">
+            #{labelName,jdbcType=VARCHAR},
+        </if>
+        <if test="inputFormat != null">
+            #{inputFormat,jdbcType=INTEGER},
+        </if>
+        <if test="chooseAdd != null">
+            #{chooseAdd,jdbcType=BIT},
+        </if>
+        <if test="earlyWarning != null">
+            #{earlyWarning,jdbcType=BIT},
+        </if>
+        <if test="screen != null">
+            #{screen,jdbcType=BIT},
+        </if>
+        <if test="report != null">
+            #{report,jdbcType=BIT},
+        </if>
+        <if test="isRequired != null">
+            #{isRequired,jdbcType=BIT},
+        </if>
+        <if test="dropdownValue != null and dropdownValue != ''">
+            #{dropdownValue,jdbcType=VARCHAR},
+        </if>
+        <if test="labelCode != null and labelCode != ''">
+            #{labelCode,jdbcType=VARCHAR},
+        </if>
+        <if test="deleteRestrict != null">
+            #{deleteRestrict,jdbcType=BIT},
+        </if>
+        <if test="enable != null and enable != ''">
+            #{enable,jdbcType=VARCHAR},
+        </if>
+        <if test="creator != null and creator != ''">
+            #{creator,jdbcType=VARCHAR},
+        </if>
+        now(),
+        <if test="modifier != null and modifier != ''">
+            #{modifier,jdbcType=VARCHAR},
+        </if>
+        now()
+        )
+    </insert>
+
+    <!-- 新增标签和资产类型关联关系 -->
+    <insert id="createAssetsTypeLabelMapper">
+        INSERT INTO mw_label_assetstype_mapper
+        (
+        assets_type_id,
+        label_id,
+        update_time
+        ) VALUES
+        <foreach collection="list" item="list" separator=",">
+            (
+            #{list.assetsTypeId,jdbcType=INTEGER},
+            #{list.labelId,jdbcType=INTEGER},
+            now()
+            )
+        </foreach>
+    </insert>
+
+    <insert id="createModuleLabelMapper">
+        INSERT INTO mw_label_module_mapper
+        (
+        module_id,
+        label_id,
+        update_time
+        ) VALUES
+        <foreach collection="list" item="list" separator=",">
+            (
+            #{list.moduleId,jdbcType=INTEGER},
+            #{list.labelId,jdbcType=INTEGER},
+            now()
+            )
+        </foreach>
+    </insert>
+
+
+    <!-- 根据标签id查询标签名称 -->
+    <select id="selectLabelMsgById" resultType="java.util.Map">
+        SELECT
+            label_name labelName,
+            dropdown_value dropdownValue
+        FROM mw_labelmanage_table
+        WHERE label_id = #{labelId,jdbcType=INTEGER}
+    </select>
+
+    <!-- 删除标签信息 -->
+    <update id="delete">
+        UPDATE mw_labelmanage_table
+        SET modifier = #{modifier,jdbcType=VARCHAR},
+        modification_date = now(),
+        delete_flag = TRUE
+        WHERE delete_flag = FALSE
+        AND label_id IN (
+        <foreach collection="labelIds" item="list" separator=",">
+            #{list,jdbcType=INTEGER}
+        </foreach>
+        )
+    </update>
+
+    <!-- 删除标签和资产类型关联关系 -->
+    <update id="deleteAssetsTypeLableMapper">
+        UPDATE mw_label_assetstype_mapper
+        SET update_time = now(),
+        delete_flag = TRUE
+        WHERE delete_flag = FALSE
+        AND label_id IN
+        (
+        <foreach collection="labelIds" item="list" separator=",">
+            #{list,jdbcType=INTEGER}
+        </foreach>
+        )
+    </update>
+
+    <!-- 删除标签和模型类型关联关系 -->
+    <update id="deleteModelLabelapper">
+        UPDATE mw_label_module_mapper
+        SET update_time = now(),
+        delete_flag = TRUE
+        WHERE delete_flag = FALSE
+        AND label_id IN
+        (
+        <foreach collection="labelIds" item="list" separator=",">
+            #{list,jdbcType=INTEGER}
+        </foreach>
+        )
+    </update>
+
+    <!-- 变更标签状态 -->
+    <update id="updateState" parameterType="cn.mw.monitor.labelManage.api.param.UpdateLabelStateParam">
+        UPDATE mw_labelmanage_table
+        SET enable = #{enable,jdbcType=VARCHAR},
+            modifier = #{modifier,jdbcType=VARCHAR},
+            modification_date = now()
+        WHERE label_id = #{labelId,jdbcType=INTEGER}
+    </update>
+
+    <!-- 更新标签信息 -->
+    <update id="update" parameterType="cn.mw.monitor.labelManage.api.param.AddUpdateLabelManageParam">
+        UPDATE mw_labelmanage_table
+        SET
+        <if test="labelName != null and labelName != ''">
+            label_name = #{labelName,jdbcType=VARCHAR},
+        </if>
+        <if test="inputFormat != null">
+            input_format = #{inputFormat,jdbcType=INTEGER},
+        </if>
+        <if test="chooseAdd != null">
+            choose_add = #{chooseAdd,jdbcType=BIT},
+        </if>
+        <if test="earlyWarning != null">
+            early_warning = #{earlyWarning,jdbcType=BIT},
+        </if>
+        <if test="screen != null">
+            screen = #{screen,jdbcType=BIT},
+        </if>
+        <if test="report != null">
+            report = #{report,jdbcType=BIT},
+        </if>
+        <if test="isRequired != null">
+            is_required = #{isRequired,jdbcType=BIT},
+        </if>
+        <choose>
+            <when test="dropdownValue == null">
+                dropdown_value = null,
+            </when>
+            <otherwise>
+                dropdown_value = #{dropdownValue,jdbcType=VARCHAR},
+            </otherwise>
+        </choose>
+        <if test="deleteRestrict != null">
+            delete_restrict = #{deleteRestrict,jdbcType=BIT},
+        </if>
+        <if test="enable != null and enable != ''">
+            enable = #{enable,jdbcType=VARCHAR},
+        </if>
+        <if test="modifier != null and modifier != ''">
+            modifier = #{modifier,jdbcType=VARCHAR},
+        </if>
+        modification_date = now()
+        WHERE label_id = #{labelId,jdbcType=INTEGER}
+    </update>
+
+
+    <!-- 分页查询标签列表信息 -->
+    <select id="selectList" parameterType="java.util.Map" resultMap="BaseResultMap">
+        SELECT
+        label_id,
+        label_name,
+        input_format,
+        (case input_format
+        when 1 then '文本框'
+        when 2 then '时间框'
+        when 3 then '下拉框'
+        when 4 then '其他'
+        end) input_format_name,
+        choose_add,
+        early_warning,
+        screen,
+        report,
+        is_required isRequired,
+        dropdown_value,
+        delete_restrict,
+        enable,
+        creator,
+        create_date,
+        modifier,
+        modification_date
+        FROM mw_labelmanage_table
+        WHERE delete_flag = FALSE
+        <if test="fuzzyQuery != null and fuzzyQuery != ''">
+            and
+            CONCAT(
+            IFNULL( label_name, #{fuzzyQuery} ),
+            IFNULL( creator,  #{fuzzyQuery} ),
+            IFNULL( modifier,  #{fuzzyQuery} )
+            ) LIKE CONCAT('%', #{fuzzyQuery},'%')
+            ORDER BY
+            ( CASE WHEN INSTR( label_name,  #{fuzzyQuery} ) > 0 THEN 0 ELSE 1 END ),
+            ( CASE WHEN INSTR(  creator,  #{fuzzyQuery} ) > 0 THEN 0 ELSE 1 END ),
+            ( CASE WHEN INSTR( modifier,  #{fuzzyQuery} ) > 0 THEN 0 ELSE 1 END )
+        </if>
+        <if test="labelName != null and labelName != ''">
+            AND label_name LIKE CONCAT('%', #{labelName,jdbcType=VARCHAR}, '%')
+        </if>
+        <if test="inputFormat != null">
+            AND input_format = #{inputFormat,jdbcType=INTEGER}
+        </if>
+        <if test="enable != null and enable != ''">
+            AND enable = #{enable,jdbcType=VARCHAR}
+        </if>
+        <if test="isRequired != null ">
+            AND is_required = #{isRequired,jdbcType=BIT}
+        </if>
+        <if test="creator != null and creator != ''">
+            AND creator LIKE CONCAT('%', #{creator,jdbcType=VARCHAR}, '%')
+        </if>
+        <if test="modifier != null and creator != ''">
+            AND modifier LIKE CONCAT('%', #{modifier,jdbcType=VARCHAR}, '%')
+        </if>
+        <if test="createDateStart != null">
+            AND <![CDATA[ create_date >= #{createDateStart,jdbcType=TIMESTAMP} ]]>
+        </if>
+        <if test="createDateEnd != null">
+            AND <![CDATA[ create_date <= #{createDateEnd,jdbcType=TIMESTAMP} ]]>
+        </if>
+        <if test="modificationDateStart != null">
+            AND <![CDATA[ modification_date >= #{modificationDateStart,jdbcType=TIMESTAMP} ]]>
+        </if>
+        <if test="modificationDateEnd != null">
+            AND <![CDATA[ modification_date <= #{modificationDateEnd,jdbcType=TIMESTAMP} ]]>
+        </if>
+    </select>
+
+    <resultMap id="BaseResultMap" type="cn.mw.monitor.labelManage.dto.MwLabelManageDTO">
+        <id column="label_id" jdbcType="INTEGER" property="labelId"/>
+        <result column="label_name" jdbcType="VARCHAR" property="labelName"/>
+        <result column="input_format" jdbcType="INTEGER" property="inputFormat"/>
+        <result column="input_format_name" jdbcType="VARCHAR" property="inputFormatName"/>
+        <result column="choose_add" jdbcType="BIT" property="chooseAdd"/>
+        <result column="early_warning" jdbcType="BIT" property="earlyWarning"/>
+        <result column="screen" jdbcType="BIT" property="screen"/>
+        <result column="report" jdbcType="BIT" property="report"/>
+        <result column="isRequired" jdbcType="BIT" property="isRequired"/>
+        <result column="label_code" jdbcType="VARCHAR" property="labelCode"/>
+        <result column="dropdown_value" jdbcType="VARCHAR" property="dropdownValue"/>
+        <result column="delete_restrict" jdbcType="BIT" property="deleteRestrict"/>
+        <result column="enable" jdbcType="VARCHAR" property="enable"/>
+        <result column="creator" jdbcType="VARCHAR" property="creator"/>
+        <result column="create_date" jdbcType="TIMESTAMP" property="createDate"/>
+        <result column="modifier" jdbcType="VARCHAR" property="modifier"/>
+        <result column="modification_date" jdbcType="TIMESTAMP" property="modificatioDate"/>
+        <collection property="assetsType" ofType="cn.mw.monitor.labelManage.dto.MwAssetsTypeDTO"
+                    select="selectAssetsType" column="label_id"></collection>
+        <collection property="moduleType" ofType="cn.mw.monitor.labelManage.dto.MwModuleTypeDTO"
+                    select="selectModuleType" column="label_id"></collection>
+        <collection property="dropdownTable" ofType="cn.mw.monitor.dropDown.dto.MwDropdownDTO"
+                    select="cn.mw.monitor.dropDown.dao.MwDropdownTableDao.selectByCode"
+                    column="label_code"></collection>
+    </resultMap>
+
+
+    <!-- 根据标签id查询标签关联资产类型信息 -->
+    <select id="selectAssetsType" resultType="cn.mw.monitor.labelManage.dto.MwAssetsTypeDTO">
+        SELECT
+        t1.id id,
+        t1.type_name typeName
+        FROM mw_assetssubtype_table t1
+        WHERE pid = 0
+        <if test="labelId != null and labelId !=''">
+            AND t1.id IN
+            (
+            SELECT
+            t2.assets_type_id
+            FROM mw_label_assetstype_mapper t2
+            WHERE t2.delete_flag = FALSE
+            AND t2.label_id = #{labelId,jdbcType=INTEGER}
+            )
+        </if>
+    </select>
+
+    <select id="selectModuleType" resultType="cn.mw.monitor.labelManage.dto.MwModuleTypeDTO">
+        SELECT
+        t1.id id,
+        t1.module_type moduleType
+        FROM mw_label_module_base t1
+        WHERE 1=1
+        <if test="labelId != null and labelId !=''">
+            AND t1.id IN
+            (
+            SELECT
+            t2.module_id
+            FROM mw_label_module_mapper t2
+            WHERE t2.delete_flag = FALSE
+            AND t2.label_id = #{labelId,jdbcType=INTEGER}
+            )
+        </if>
+    </select>
+
+    <!-- 根据标签ID查询标签信息 -->
+    <select id="selectById" resultMap="BaseResultMap">
+        SELECT
+            label_id,
+            label_name,
+            input_format,
+            choose_add,
+            early_warning,
+            screen,
+            report,
+            is_required isRequired,
+            dropdown_value,
+            label_code,
+            delete_restrict,
+            enable
+        FROM mw_labelmanage_table
+        WHERE label_id = #{labelId,jdbcType=INTEGER}
+    </select>
+    <select id="getLabelListByAssetsTypeId" resultType="cn.mw.monitor.labelManage.dto.MwLabelAssetsTypeDTO">
+        SELECT  t1.label_id as labelId,t1.label_name as labelName,input_format as inputFormat,dropdown_value as dropdownValue from mw_labelmanage_table t1 left join mw_label_assetstype_mapper t2
+        on t1.label_id=t2.label_id where t1.delete_flag=false and t2.assets_type_id=#{assetsTypeId,jdbcType=INTEGER}
+    </select>
+    <select id="getIdListByLabel" resultType="java.lang.String" parameterType="cn.mw.monitor.service.label.model.MWCommonLabel">
+        select #{columnName} from mw_labelmanage_table t1 left join #{mapperTableName} t2 on t1.label_id=t2.label_id
+        left join #{tableName} t3 on t2.link_id=t3.link_id
+        left join mw_dropdown_table t4
+        on t1.dropdown_value=t4.drop_code and t4.drop_key=t2.tagboard where t3.delete_flag=false and
+        t2.label_id=#{labelId,jdbcType=VARCHAR}
+        <choose>
+            <when test="inputFormat == 2">
+                and t2.date_tagboard between #{labelDateStart,jdbcType=TIMESTAMP} and #{labelDateEnd,jdbcType=TIMESTAMP}
+            </when>
+            <when test="inputFormat == 3">
+                and t4.drop_Key = #{dropKey,jdbcType=INTEGER}
+            </when>
+            <otherwise>and t2.tagboard like
+                CONCAT('%',#{labelValue,jdbcType=VARCHAR},'%')
+            </otherwise>
+        </choose>
+    </select>
+    <select id="getAssetsIdByLabel" resultType="java.lang.String">
+        select type_id from mw_label_mapper where 1=1
+        <include refid="criteria"></include> union
+        select type_id from mw_label_drop_mapper where 1=1
+        <include refid="criteria"></include> union
+        select type_id from mw_label_date_mapper where 1=1
+        <include refid="criteria"></include>
+    </select>
+    <sql id="criteria">
+        <if test="filterLabelIds !=null">
+            and label_id IN
+            <foreach collection="filterLabelIds" item="item" index="index" open="(" separator="," close=")">
+                #{item.value,jdbcType=INTEGER}
+            </foreach>
+        </if>
+        <if test="moduleType !=null and moduleType!='' ">
+            and module_type=#{moduleType,jdbcType=VARCHAR}
+        </if>
+    </sql>
+
+
+
+    <!--
+    <insert id="insertBatch" parameterType="java.util.List">
+        insert into mw_labelmanage_table
+        (
+            label_name,
+            input_format,
+            choose_add,
+            early_warning,
+            screen,
+            report,
+            dropdown_value,
+            delete_restrict,
+            enable,
+            creator,
+            create_date
+        ) values
+        <foreach collection="list" item="insertList" separator=",">
+        (
+            #{insertList.labelName,jdbcType=VARCHAR},
+            #{insertList.inputFormat,jdbcType=INTEGER},
+            #{insertList.chooseAdd,jdbcType=BIT},
+            #{insertList.earlyWarning,jdbcType=BIT},
+            #{insertList.screen,jdbcType=BIT},
+            #{insertList.report,jdbcType=BIT},
+            #{insertList.dropdownValue,jdbcType=VARCHAR},
+            #{insertList.deleteRestrict,jdbcType=BIT},
+            #{insertList.enable,jdbcType=VARCHAR},
+            #{insertList.creator,jdbcType=VARCHAR},
+            now()
+        )
+        </foreach>
+    </insert>
+
+    <update id="updateBatch" parameterType="java.util.List">
+    <foreach collection="list" item ="updateList" separator=",">
+        update mw_labelmanage_table
+        set label_name = #{updateList.labelName,jdbcType=VARCHAR},
+            input_format = #{updateList.inputFormat,jdbcType=INTEGER},
+            choose_add = #{updateList.chooseAdd,jdbcType=BIT},
+            early_warning = #{updateList.earlyWarning,jdbcType=BIT},
+            screen = #{updateList.screen,jdbcType=BIT},
+            report = #{updateList.report,jdbcType=BIT},
+            dropdown_value = #{updateList.dropdownValue,jdbcType=VARCHAR},
+            delete_restrict = #{updateList.deleteRestrict,jdbcType=BIT},
+            enable = #{updateList.enable,jdbcType=VARCHAR}
+        where id = #{updateList.id,jdbcType=INTEGER}
+    </foreach>
+    </update>
+
+      (#{insertList.labelId,jdbcType=INTEGER},#{insertList.moduleId,jdbcType=VARCHAR},
+            #{insertList.tagboard,jdbcType=VARCHAR},#{insertList.dateTagboard,jdbcType=TIMESTAMP})
+     -->
+
+
+    <insert id="createLabelMapper" parameterType="java.util.List">
+        insert into mw_label_mapper
+        (label_id,type_id,module_type,tagboard)
+        values
+        <foreach collection="list" item="insertList" separator=",">
+            (#{insertList.labelId,jdbcType=INTEGER},#{insertList.typeId,jdbcType=VARCHAR},
+            #{insertList.moduleType,jdbcType=VARCHAR},#{insertList.tagboard,jdbcType=VARCHAR})
+        </foreach>
+    </insert>
+
+    <insert id="createLabelDateMapper" parameterType="java.util.List">
+        insert into mw_label_date_mapper
+        (label_id,type_id,module_type,date_tagboard)
+        values
+        <foreach collection="list" item="insertList" separator=",">
+            (#{insertList.labelId,jdbcType=INTEGER},#{insertList.typeId,jdbcType=VARCHAR},
+            #{insertList.moduleType,jdbcType=VARCHAR},#{insertList.dateTagboard,jdbcType=TIMESTAMP})
+        </foreach>
+    </insert>
+
+    <insert id="createLabelDropMapper" parameterType="java.util.List">
+        insert into mw_label_drop_mapper
+        (label_id,type_id,module_type,drop_tagboard)
+        values
+        <foreach collection="list" item="insertList" separator=",">
+            (#{insertList.labelId,jdbcType=INTEGER},#{insertList.typeId,jdbcType=VARCHAR},
+            #{insertList.moduleType,jdbcType=VARCHAR},#{insertList.dropTagboard,jdbcType=INTEGER})
+        </foreach>
+    </insert>
+
+
+    <select id="selectLabelBrowse" resultType="cn.mw.monitor.service.assets.model.MwAllLabelDTO"
+            parameterType="cn.mw.monitor.service.label.model.QueryLabelParam">
+        select distinct
+        t1.label_id id,
+        t1.label_code prop,
+        t1.label_name label,
+        t1.input_format inputFormat,
+        t1.choose_add chooseAdd,
+        t1.is_required isRequired
+        from mw_labelmanage_table t1
+        left join mw_label_assetstype_mapper t2 on t1.label_id = t2.label_id
+        left join mw_label_module_mapper t3 on t1.label_id = t3.label_id
+        where t1.delete_flag = false and t2.delete_flag=false and t3.delete_flag=false and t1.enable='ACTIVE'
+        <if test="assetsTypeId != null and assetsTypeId != 0">
+            and t2.assets_type_id = #{assetsTypeId,jdbcType=INTEGER}
+        </if>
+        <if test="moduleId != null and moduleId != 0">
+            and t3.module_id = #{moduleId,jdbcType=INTEGER}
+        </if>
+        <if test="labelName != null and labelName != ''">
+            and t1.label_name LIKE CONCAT('%',#{labelName,jdbcType=VARCHAR},'%')
+        </if>
+        <if test="isRequired != null ">
+            and t1.is_required = #{isRequired,jdbcType=BIT}
+        </if>
+    </select>
+
+    <select id="selectLabelBrowseByList" resultType="cn.mw.monitor.service.assets.model.MwAllLabelDTO"
+            parameterType="cn.mw.monitor.service.label.model.QueryLabelParam">
+        SELECT
+            label_id id,
+            label_name label,
+            input_format inputFormat,
+            label_code prop,
+            choose_add chooseAdd,
+            is_required isRequired
+        FROM
+            mw_labelmanage_table
+        WHERE
+            label_id IN (
+            select distinct
+            id
+            from (
+            <foreach collection="assetsTypeList" item="listId" separator="union ALL">
+                select distinct
+                t1.label_id id,
+                t1.label_name label,
+                t1.input_format inputFormat,
+                t1.label_code prop,
+                t1.choose_add chooseAdd,
+                t1.is_required isRequired
+                from mw_labelmanage_table t1
+                left join mw_label_assetstype_mapper t2 on t1.label_id = t2.label_id
+                left join mw_label_module_mapper t3 on t1.label_id = t3.label_id
+                where t1.delete_flag = false and t2.delete_flag=false and t3.delete_flag=false and t1.enable='ACTIVE'
+                and t2.assets_type_id = #{listId,jdbcType=INTEGER}
+                <if test="moduleId != null and moduleId != 0">
+                    and t3.module_id = #{moduleId,jdbcType=INTEGER}
+                </if>
+                <if test="labelName != null and labelName != ''">
+                    and t1.label_name LIKE CONCAT('%',#{labelName,jdbcType=VARCHAR},'%')
+                </if>
+            </foreach>
+            ) a
+            GROUP BY a.id
+            <if test="assetsTypeList != null and assetsTypeList.size > 1">
+                HAVING count(a.id) >1
+            </if>
+        )
+    </select>
+    <select id="selectLabelBoard" resultType="cn.mw.monitor.service.assets.model.MwAssetsLabelDTO">
+        SELECT distinct
+        t1.label_id id,
+        t1.label_name labelName,
+        input_format inputFormat,
+        tagboard,
+        t1.is_required isRequired,
+        t2.type_id typeId
+        FROM
+        mw_labelmanage_table t1
+        right JOIN mw_label_mapper t2 ON t1.label_id = t2.label_id
+        WHERE
+        t2.module_type = #{moduleType,jdbcType=VARCHAR}
+        <if test="typeId != null and typeId !=''">
+            AND t2.type_id = #{typeId,jdbcType=VARCHAR}
+        </if>
+    </select>
+
+    <select id="selectLabelDateBoard" resultType="cn.mw.monitor.service.assets.model.MwAssetsLabelDTO">
+        SELECT distinct
+        t1.label_id id,
+         t1.label_name labelName,
+        input_format inputFormat,
+        date_tagboard dateTagboard,
+        t1.is_required isRequired,
+        t2.type_id typeId
+        FROM
+        mw_labelmanage_table t1
+        right JOIN mw_label_date_mapper t2 ON t1.label_id = t2.label_id
+        WHERE
+        t2.module_type = #{moduleType,jdbcType=VARCHAR}
+        <if test="typeId != null and typeId !=''">
+            AND t2.type_id = #{typeId,jdbcType=VARCHAR}
+        </if>
+    </select>
+
+    <select id="selectLabelDropBoard" resultType="cn.mw.monitor.service.assets.model.MwAssetsLabelDTO">
+        SELECT distinct
+        t1.label_id id,
+        t1.label_name labelName,
+        t1.input_format inputFormat,
+        t2.drop_tagboard dropTagboard,
+        t3.drop_value dropValue,
+        t3.drop_code prop,
+        t3.drop_key dropKey,
+        t1.is_required isRequired,
+        t2.type_id typeId
+        FROM
+        mw_labelmanage_table t1
+        right join mw_label_drop_mapper t2 ON t1.label_id = t2.label_id
+        left join mw_dropdown_table t3 on t2.drop_tagboard=t3.drop_id
+        WHERE
+        t2.module_type = #{moduleType,jdbcType=VARCHAR}
+        and t3.delete_flag=false
+        <if test="typeId != null and typeId !=''">
+            AND t2.type_id = #{typeId,jdbcType=VARCHAR}
+        </if>
+
+    </select>
+
+    <delete id="deleteLabelBoard">
+        delete from mw_label_mapper where type_id = #{typeId,jdbcType=VARCHAR} and module_type = #{moduleType,jdbcType=VARCHAR}
+    </delete>
+
+    <delete id="deleteLabelDateBoard">
+        delete from mw_label_date_mapper where type_id = #{typeId,jdbcType=VARCHAR} and module_type = #{moduleType,jdbcType=VARCHAR}
+    </delete>
+
+    <delete id="deleteLabelDropBoard">
+        delete from mw_label_drop_mapper where type_id = #{typeId,jdbcType=VARCHAR} and module_type = #{moduleType,jdbcType=VARCHAR}
+    </delete>
+    <delete id="deleteLabelBoards">
+        delete from mw_label_mapper where module_type = #{moduleType,jdbcType=VARCHAR} and type_id in
+        <foreach collection="list" item="item" separator="," open="(" close=")">
+            #{item}
+        </foreach>
+    </delete>
+
+    <delete id="deleteLabelDateBoards">
+        delete from mw_label_date_mapper where module_type = #{moduleType,jdbcType=VARCHAR} and type_id in
+        <foreach collection="list" item="item" separator="," open="(" close=")">
+            #{item}
+        </foreach>
+    </delete>
+
+    <delete id="deleteLabelDropBoards">
+        delete from mw_label_drop_mapper where module_type = #{moduleType,jdbcType=VARCHAR} and type_id in
+        <foreach collection="list" item="item" separator="," open="(" close=")">
+            #{item}
+        </foreach>
+    </delete>
+
+
+    <select id="getTypeIdsByTagboard" parameterType="java.util.List" resultType="java.lang.String">
+        select t.type_id from (
+<!--        <choose>-->
+<!--            <when test="operation == 'union'">-->
+<!--                <foreach collection="tagboardList" item="list" separator="union">-->
+<!--                    select distinct b.type_id from mw_labelmanage_table a-->
+<!--                    left join ${list.tableName} b on a.label_id=b.label_id-->
+<!--                    where b.module_type=#{list.modelType,jdbcType=VARCHAR}-->
+<!--                    and-->
+<!--                    a.label_id=#{list.labelId,jdbcType=INTEGER}-->
+<!--                    <choose>-->
+<!--                        <when test="list.inputFormat=='1'">-->
+<!--                        and b.tagboard like CONCAT('%', #{list.tagboard,jdbcType=VARCHAR}, '%')-->
+<!--                    </when>-->
+<!--                        <when test="list.inputFormat=='2'">-->
+<!--                            and b.date_tagboard  between  #{list.startdateTagboard,jdbcType=DATE} and #{list.enddateTagboard,jdbcType=DATE}-->
+<!--                        </when>-->
+<!--                        <when test="list.inputFormat=='3'">-->
+<!--                            and b.drop_tagboard = #{list.dropTagboard,jdbcType=INTEGER}-->
+<!--                        </when>-->
+<!--                    </choose>-->
+<!--                </foreach>-->
+<!--            </when>-->
+<!--            <otherwise>-->
+                <foreach collection="tagboardList" item="list" separator="intersect">
+                    select distinct b.type_id from mw_labelmanage_table a
+                    left join ${list.tableName} b on a.label_id=b.label_id
+                    where b.module_type=#{list.modelType,jdbcType=VARCHAR}
+                    and
+                    a.label_id=#{list.labelId,jdbcType=INTEGER}
+                    <choose>
+                    <when test="list.inputFormat==1">
+                        and b.tagboard like CONCAT('%', #{list.tagboard,jdbcType=VARCHAR}, '%')
+                    </when>
+                    <when test="list.inputFormat==2">
+                        and b.date_tagboard  between  #{list.startdateTagboard,jdbcType=DATE} and #{list.enddateTagboard,jdbcType=DATE}
+                    </when>
+                    <when test="list.inputFormat==3">
+                        and b.drop_tagboard = #{list.dropTagboard,jdbcType=INTEGER}
+                    </when>
+                    </choose>
+                </foreach>
+<!--            </otherwise>-->
+<!--        </choose>-->
+
+
+        ) t
+    </select>
+    <select id="getCountByLabelId" resultType="java.lang.Integer">
+        select count(0) from ${tableName} where label_id=#{labelId,jdbcType=INTEGER}
+    </select>
+    <select id="getLabelIdsByAssetsId" resultType="java.lang.String">
+        SELECT label_id FROM mw_label_mapper where module_type=#{moduleType,jdbcType=VARCHAR} and type_id=#{typeId,jdbcType=VARCHAR}
+        UNION
+        SELECT label_id FROM mw_label_date_mapper where module_type=#{moduleType,jdbcType=VARCHAR} and type_id=#{typeId,jdbcType=VARCHAR}
+        UNION
+        SELECT label_id FROM mw_label_drop_mapper where module_type=#{moduleType,jdbcType=VARCHAR} and type_id=#{typeId,jdbcType=VARCHAR}
+    </select>
+    <select id="getLabelsByAssetsId" resultType="java.util.Map">
+        SELECT label_id labelId,tagboard `value` FROM mw_label_mapper where module_type=#{moduleType,jdbcType=VARCHAR} and type_id=#{typeId,jdbcType=VARCHAR}
+        UNION
+        SELECT label_id labelId,date_tagboard `value` FROM mw_label_date_mapper where module_type=#{moduleType,jdbcType=VARCHAR} and type_id=#{typeId,jdbcType=VARCHAR}
+        UNION
+        SELECT label_id labelId,t2.drop_value  `value` FROM mw_label_drop_mapper t1
+        left join mw_dropdown_table  t2 on t1.drop_tagboard=t2.drop_id
+        where module_type=#{moduleType,jdbcType=VARCHAR} and type_id=#{typeId,jdbcType=VARCHAR}
+    </select>
+    <select id="getLableData" resultType="cn.mw.monitor.labelManage.api.param.AddUpdateLabelManageParam">
+         select * from mw_labelmanage_table where label_id = #{labelId,jdbcType=INTEGER}
+    </select>
+    <select id="getTextTypeIdAndModule" resultType="java.util.Map">
+         SELECT DISTINCT t2.type_id typeId,t2.module_type moduleType
+         FROM
+            mw_labelmanage_table t1
+        right JOIN mw_label_mapper t2 ON t1.label_id = t2.label_id
+        WHERE
+            t2.label_id = #{labelId,jdbcType=INTEGER}
+    </select>
+    <select id="getDropDownTypeIdAndModule" resultType="java.util.Map">
+        SELECT DISTINCT
+	        t2.type_id typeId,
+	        t2.module_type moduleType
+        FROM
+	        mw_labelmanage_table t1
+	    RIGHT JOIN mw_label_drop_mapper t2 ON t1.label_id = t2.label_id
+	    LEFT JOIN mw_dropdown_table t3 ON t2.drop_tagboard = t3.drop_id
+        WHERE
+	        t3.delete_flag = FALSE
+	    AND t2.label_id = #{labelId,jdbcType=INTEGER}
+    </select>
+    <select id="getDateTypeIdAndModule" resultType="java.util.Map">
+        SELECT DISTINCT
+	        t2.type_id typeId,
+	        t2.module_type moduleType
+        FROM
+	        mw_labelmanage_table t1
+	    RIGHT JOIN mw_label_date_mapper t2 ON t1.label_id = t2.label_id
+        WHERE
+	        t2.label_id = #{labelId,jdbcType=INTEGER}
+    </select>
+    <insert id="insertDropdownTables" parameterType="cn.mw.monitor.labelManage.dto.LabelEditConvertDto"
+            useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO mw_dropdown_table
+        (
+        drop_code,
+        drop_key,
+        drop_value,
+        update_time
+        ) VALUES
+        <foreach collection="list" item="list" separator=",">
+            (
+            #{list.dropCode,jdbcType=VARCHAR},
+            #{list.dropKey,jdbcType=INTEGER},
+            #{list.dropValue,jdbcType=VARCHAR},
+            now()
+            )
+        </foreach>
+    </insert>
+    <insert id="insetLabelDropMapper" parameterType="cn.mw.monitor.labelManage.dto.LabelEditConvertDto">
+         INSERT INTO mw_label_drop_mapper
+        (
+        label_id,
+        type_id,
+        module_type,
+        drop_tagboard
+        ) VALUES
+        <foreach collection="list" item="list" separator=",">
+            (
+            #{list.labelId,jdbcType=INTEGER},
+            #{list.typeId,jdbcType=VARCHAR},
+            #{list.moduleType,jdbcType=VARCHAR},
+            #{list.id,jdbcType=INTEGER}
+            )
+        </foreach>
+    </insert>
+
+
+    <delete id="deleteLabelTextType">
+        delete from ${tableName} where label_id = #{labelId,jdbcType=INTEGER}
+    </delete>
+    <delete id="deleteDropdownTables" parameterType="java.lang.String">
+        delete from mw_dropdown_table where drop_code = #{labelCode}
+    </delete>
+
+
+    <select id="selectAssociatedDropId" resultType="java.lang.Integer">
+       select drop_tagboard dropId from mw_label_drop_mapper where drop_tagboard in (
+        <foreach collection="list" item="list" separator=",">
+           #{list}
+        </foreach>
+       )
+    </select>
+
+    <select id="selectDropDownId" resultType="java.util.Map" parameterType="java.lang.String">
+        select drop_id dropId,drop_key dropKey,drop_value dropValue from mw_dropdown_table where drop_code = #{labelCode} and delete_flag = 0
+    </select>
+
+    <update id="updateDropDownData" parameterType="java.util.List">
+        <foreach collection="list" item="list" separator=";">
+            update mw_dropdown_table set
+                drop_key = #{list.dropKey},
+                drop_value = #{list.dropValue},
+                update_time = now()
+            where drop_id =  #{list.dropId}
+        </foreach>
+    </update>
+    <insert id="insertDropDownData" parameterType="java.util.List">
+        insert into mw_dropdown_table
+        (
+        drop_code,
+        drop_key,
+        drop_value,
+        update_time
+        ) VALUES
+        <foreach collection="list" item="list" separator=",">
+            (
+            #{list.dropCode,jdbcType=VARCHAR},
+            #{list.dropKey,jdbcType=INTEGER},
+            #{list.dropValue,jdbcType=VARCHAR},
+            now()
+            )
+        </foreach>
+    </insert>
+
+    <delete id="deleteDropDownData" parameterType="java.util.Set">
+        update mw_dropdown_table set
+        delete_flag = 1,
+        update_time = now()
+        where drop_id in (
+        <foreach collection="collection" item="item" separator=",">
+             #{item}
+        </foreach>
+        )
+    </delete>
+    <select id="getLabelCode" resultType="java.lang.String">
+        select label_code from mw_labelmanage_table where label_id = #{labelId}
+    </select>
+    <select id="getDropLabelRepeatData" resultType="java.lang.Integer">
+        select drop_id from mw_dropdown_table where delete_flag = 0 and drop_code = #{labelCode} and drop_value = #{dropValue}
+        <if test="dropId != null and dropId != ''">
+            and drop_id != #{dropId}
+        </if>
+    </select>
+
+    <select id="getDropDownKeyMaxValue" resultType="java.lang.Integer">
+        select max(drop_key) dropKey from mw_dropdown_table where drop_code = #{labelCode}
+    </select>
+    <select id="fuzzyQueryLabelAllFiledData" resultType="java.util.Map">
+        SELECT
+            a.label_name labelName,
+            a.creator,
+            a.modifier
+            FROM
+        mw_labelmanage_table a
+        where a.delete_flag = FALSE
+    </select>
+    <select id="fuzzyQueryLabelNames" resultType="java.lang.String">
+        select distinct label_name from mw_labelmanage_table where delete_flag = false
+    </select>
+
+
+    <select id="selectOldLabel" resultType="cn.mw.monitor.dropDown.model.MwDropdownTable">
+     SELECT * from mw_dropdown_table WHERE CONCAT(drop_value,"$+$",drop_code) in
+    (SELECT cell FROM (select CONCAT(drop_value,"$+$",drop_code) as cell from mw_dropdown_table WHERE delete_flag =0 ) a GROUP BY cell HAVING count(cell) >1) and  delete_flag =0 ORDER BY drop_value asc
+      </select>
+
+
+    <update id="updateById" parameterType="java.util.List">
+        update mw_label_drop_mapper set
+        drop_tagboard = #{updateId}
+        where drop_tagboard in (
+        <foreach collection="delete" item="item" separator=",">
+            #{item}
+        </foreach>
+        )
+    </update>
+
+    <delete id="updateDeleteById">
+        update mw_dropdown_table set
+        delete_flag = 0
+        where drop_id = #{id}
+    </delete>
+    <select id="selectLabelBoards" resultType="cn.mw.monitor.service.assets.model.MwAssetsLabelDTO">
+        SELECT distinct
+        t1.label_id id,
+        t1.label_name labelName,
+        input_format inputFormat,
+        tagboard,
+        t1.is_required isRequired,
+        t2.type_id typeId
+        FROM
+        mw_labelmanage_table t1
+        right JOIN mw_label_mapper t2 ON t1.label_id = t2.label_id
+        WHERE
+        t2.module_type = #{moduleType,jdbcType=VARCHAR}
+        <if test="typeIds != null and typeIds.size > 0">
+            AND t2.type_id in (
+            <foreach collection="typeIds" item="item" separator=",">
+                #{item}
+            </foreach>
+            )
+        </if>
+    </select>
+    <select id="selectLabelDateBoards" resultType="cn.mw.monitor.service.assets.model.MwAssetsLabelDTO">
+        SELECT distinct
+        t1.label_id id,
+        t1.label_name labelName,
+        input_format inputFormat,
+        date_tagboard dateTagboard,
+        t1.is_required isRequired,
+        t2.type_id typeId
+        FROM
+        mw_labelmanage_table t1
+        right JOIN mw_label_date_mapper t2 ON t1.label_id = t2.label_id
+        WHERE
+        t2.module_type = #{moduleType,jdbcType=VARCHAR}
+        <if test="typeIds != null and typeIds.size > 0">
+            AND t2.type_id in (
+            <foreach collection="typeIds" item="item" separator=",">
+                #{item}
+            </foreach>
+            )
+        </if>
+    </select>
+    <select id="selectLabelDropBoards" resultType="cn.mw.monitor.service.assets.model.MwAssetsLabelDTO">
+        SELECT distinct
+        t1.label_id id,
+        t1.label_name labelName,
+        t1.input_format inputFormat,
+        t2.drop_tagboard dropTagboard,
+        t3.drop_value dropValue,
+        t3.drop_code prop,
+        t3.drop_key dropKey,
+        t1.is_required isRequired,
+        t2.type_id typeId
+        FROM
+        mw_labelmanage_table t1
+        right join mw_label_drop_mapper t2 ON t1.label_id = t2.label_id
+        left join mw_dropdown_table t3 on t2.drop_tagboard=t3.drop_id
+        WHERE
+        t2.module_type = #{moduleType,jdbcType=VARCHAR}
+        and t3.delete_flag=false
+        <if test="typeIds != null and typeIds.size > 0">
+            AND t2.type_id in (
+            <foreach collection="typeIds" item="item" separator=",">
+                #{item}
+            </foreach>
+            )
+        </if>
+    </select>
+
+    <select id="getAssetsSimplifyLabelList" resultType="cn.mw.monitor.service.assets.model.MwAssetsLabelDTO">
+        SELECT
+            a1.label_id AS labelId,
+            label_name AS labelName,
+            tagboard AS labelValue,
+            a2.input_format as inputFormat
+        FROM
+            (
+                SELECT
+                    id,
+                    type_id,
+                    label_id,
+                    tagboard
+                FROM
+                    mw_label_mapper
+                WHERE
+                    module_type = 'ASSETS' UNION ALL
+                SELECT
+                    id,
+                    type_id,
+                    label_id,
+                    drop_tagboard tagboard
+                FROM
+                    (
+                        SELECT
+                            d1.id,
+                            d1.type_id,
+                            d1.label_id,
+                            d2.drop_value drop_tagboard,
+                            d2.delete_flag
+                        FROM
+                            ( SELECT id, type_id, label_id, module_type, drop_tagboard FROM mw_label_drop_mapper WHERE module_type = 'ASSETS' ) d1
+                                LEFT JOIN mw_dropdown_table d2 ON d1.drop_tagboard = d2.drop_id
+                    ) drop1
+                WHERE
+                    drop1.delete_flag = FALSE UNION ALL
+                SELECT
+                    id,
+                    type_id,
+                    label_id,
+                    date_tagboard tagboard
+                FROM
+                    mw_label_date_mapper
+                WHERE
+                    module_type = 'ASSETS'
+            ) a1
+                LEFT JOIN mw_labelmanage_table a2 ON a2.label_id = a1.label_id
+                LEFT JOIN mw_tangibleassets_table a3 ON a3.id = a1.type_id
+        WHERE
+            a3.delete_flag = FALSE
+    </select>
+
+    <select id="getAssetsIdByLabelList" resultType="java.lang.String">
+        SELECT DISTINCT
+            a3.id
+        FROM
+            (
+                SELECT
+                    id,
+                    type_id,
+                    label_id,
+                    tagboard
+                FROM
+                    mw_label_mapper
+                WHERE
+                    module_type = 'ASSETS' UNION ALL
+                SELECT
+                    id,
+                    type_id,
+                    label_id,
+                    drop_tagboard tagboard
+                FROM
+                    (
+                        SELECT
+                            d1.id,
+                            d1.type_id,
+                            d1.label_id,
+                            d2.drop_value drop_tagboard,
+                            d2.delete_flag
+                        FROM
+                            ( SELECT id, type_id, label_id, module_type, drop_tagboard FROM mw_label_drop_mapper WHERE module_type = 'ASSETS' ) d1
+                                LEFT JOIN mw_dropdown_table d2 ON d1.drop_tagboard = d2.drop_id
+                    ) drop1
+                WHERE
+                    drop1.delete_flag = FALSE UNION ALL
+                SELECT
+                    id,
+                    type_id,
+                    label_id,
+                    date_tagboard tagboard
+                FROM
+                    mw_label_date_mapper
+                WHERE
+                    module_type = 'ASSETS'
+            ) a1
+                LEFT JOIN mw_tangibleassets_table a3 ON a3.id = a1.type_id
+        WHERE
+            a3.delete_flag = FALSE
+          AND (
+              <foreach collection="list" index="index" item="item" open="" close="" separator="or">
+                  (
+                    a1.label_id = #{item.labelId}
+                    and a1.tagboard = #{item.labelValue}
+                  )
+              </foreach>
+            )
+    </select>
+</mapper>

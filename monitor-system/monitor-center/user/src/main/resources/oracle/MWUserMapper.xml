@@ -1,0 +1,1111 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.mw.monitor.user.dao.MWUserDao">
+
+    <resultMap id="ListResultMap" type="cn.mw.monitor.user.dto.MwUserDTO">
+        <id column="user_id" property="userId"/>
+        <result column="login_name" property="loginName"/>
+        <result column="user_name" property="userName"/>
+        <result column="password" property="password"/>
+        <result column="phone_number" property="phoneNumber"/>
+        <result column="wechat_id" property="wechatId"/>
+        <result column="dd_id" property="ddId"/>
+        <result column="email" property="email"/>
+        <result column="user_expire_state" property="userExpireState"/>
+        <result column="user_expire_state_name" property="userExpireStateName"/>
+        <result column="user_expiry_date" property="userExpiryDate"/>
+        <result column="user_state" property="userState"/>
+        <result column="active_passwd_plan" property="activePasswdPlan"/>
+        <result column="active_passwd_plan_name" property="activePasswdPlanName"/>
+        <result column="default_passwd_plan" property="defaultPasswdPlan"/>
+        <result column="role_id" property="roleId"/>
+        <result column="role_name" property="roleName"/>
+        <result column="login_state" property="loginState"/>
+        <result column="login_state_name" property="loginStateName"/>
+        <result column="user_desc" property="userDesc"/>
+        <result column="creator" property="creator"/>
+        <result column="modifier" property="modifier"/>
+        <result column="create_time" property="createTime"/>
+        <result column="update_time" property="updateTime"/>
+        <result column="conditions_value" property="conditionsValue"/>
+        <result column="action_value" property="actionValue"/>
+        <result column="validity_type" property="validityType"/>
+        <result column="user_type" property="userType"/>
+        <result column="passwd_name" property="activePasswdPlanName"/>
+        <result column="user_img" property="userImg"/>
+        <result column="more_phones" property="morePhones"/>
+        <collection property="department" ofType="cn.mw.monitor.service.user.dto.OrgDTO"
+                    select="selectOrg" column="user_id"></collection>
+    </resultMap>
+
+    <resultMap id="OneResultMap" type="cn.mw.monitor.user.dto.MwUserDTO">
+        <id column="user_id" property="userId"/>
+        <result column="user_name" property="userName"/>
+        <result column="login_name" property="loginName"/>
+        <result column="phone_number" property="phoneNumber"/>
+        <result column="wechat_id" property="wechatId"/>
+        <result column="dd_id" property="ddId"/>
+        <result column="email" property="email"/>
+        <result column="user_expire_state" property="userExpireState"/>
+        <result column="user_expiry_date" property="userExpiryDate"/>
+        <result column="user_state" property="userState"/>
+        <result column="user_control_enable" property="userControlEnable"/>
+        <result column="active_passwd_plan" property="activePasswdPlan"/>
+        <result column="default_passwd_plan" property="defaultPasswdPlan"/>
+        <result column="user_desc" property="userDesc"/>
+        <result column="user_img" property="userImg"/>
+        <result column="conditions_value" property="conditionsValue"/>
+        <result column="action_value" property="actionValue"/>
+        <result column="validity_type" property="validityType"/>
+        <result column="user_type" property="userType"/>
+        <result column="more_phones" property="morePhones"/>
+        <collection property="department" ofType="cn.mw.monitor.service.user.dto.OrgDTO"
+                    select="selectOrg" column="user_id"></collection>
+        <collection property="userGroup" ofType="cn.mw.monitor.user.dto.GroupDTO"
+                    select="selectGroup" column="user_id"></collection>
+        <collection property="role" ofType="cn.mw.monitor.user.dto.RoleDTO"
+                    select="selectRole" column="user_id"></collection>
+    </resultMap>
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="cn.mw.monitor.user.dto.MwUserDTO">
+        <id column="user_id" property="userId"/>
+        <result column="login_name" property="loginName"/>
+        <result column="user_name" property="userName"/>
+        <result column="password" property="password"/>
+        <result column="phone_number" property="phoneNumber"/>
+        <result column="wechat_id" property="wechatId"/>
+        <result column="dd_id" property="ddId"/>
+        <result column="email" property="email"/>
+        <result column="user_expire_state" property="userExpireState"/>
+        <result column="user_expiry_date" property="userExpiryDate"/>
+        <result column="user_state" property="userState"/>
+        <result column="active_passwd_plan" property="activePasswdPlan"/>
+        <result column="default_passwd_plan" property="defaultPasswdPlan"/>
+        <result column="role_name" property="roleName"/>
+        <result column="user_desc" property="userDesc"/>
+        <result column="user_img" property="userImg"/>
+        <result column="creator" property="creator"/>
+        <result column="modifier" property="modifier"/>
+        <result column="create_time" property="createTime"/>
+        <result column="update_time" property="updateTime"/>
+        <result column="login_state" property="loginState"/>
+        <result column="passwd_state" property="passwdState"/>
+        <result column="passwd_expiry_date" property="passwdExpiryDate"/>
+        <result column="user_control_enable" property="userControlEnable"/>
+        <collection property="department" ofType="cn.mw.monitor.service.user.dto.OrgDTO">
+            <id column="org_id" property="orgId"/>
+            <result column="org_name" property="orgName"/>
+            <result column="nodes" property="nodes"/>
+        </collection>
+        <collection property="userGroup" ofType="cn.mw.monitor.user.dto.GroupDTO">
+            <id column="group_id" property="groupId"/>
+            <result column="group_name" property="groupName"/>
+        </collection>
+    </resultMap>
+
+    <resultMap id="UserControlMap" type="cn.mw.monitor.user.model.MwUserControl">
+        <id column="user_id" property="userId"/>
+        <result column="control_type_id" property="controlTypeId"/>
+        <result column="rule" property="rule"/>
+    </resultMap>
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="dropDownResultMap" type="cn.mw.monitor.user.dto.MwUserDTO">
+        <id column="user_id" property="userId"/>
+        <result column="login_name" property="loginName"/>
+        <result column="user_name" property="userName"/>
+    </resultMap>
+
+    <sql id="view_user_org">
+        ${TBSNAME}."view_user_org"
+    </sql>
+
+    <sql id="tb_user_role">
+       ${TBSNAME}."mw_user_role_mapper"
+    </sql>
+
+    <sql id="sel_tb_columns">
+       SELECT
+            a."user_id" as "userId",
+            a."login_name" as "loginName",
+            a."user_name" as "userName",
+            a."password" as "password",
+            a."phone_number" as "phoneNumber",
+            a."wechat_id" as "wechatId",
+            a."dd_id" as "ddId",
+            a."email" as "email",
+            a."user_expiry_date" as "userExpiryDate",
+            a."user_state" as "userState",
+            a."user_img" as "userImg",
+            a."user_desc" as "userDesc",
+            a."create_time" as "createTime",
+            a."update_time" as "updateTime",
+            a."login_state" as "loginState",
+            a."active_passwd_plan" as "activePasswdPlan",
+            a."default_passwd_plan" as "defaultPasswdPlan",
+            a."passwd_state" as "passwdState",
+            a."user_expire_state" as "userExpireState",
+            a."passwd_expiry_date" as "passwdExpiryDate",
+            a."user_control_enable" as "userControlEnable",
+            a."action_value" as "actionValue",
+            a."conditions_value" as "conditionsValue",
+            a."open_id" as "openId",
+            a."user_type" as "userType"
+    </sql>
+
+    <sql id="sel_tb_from">
+        FROM ${TBSNAME}."mw_sys_user" a
+    </sql>
+
+    <sql id="sel_tb_where">
+        where 1=1
+        and a."delete_flag" = 0
+    </sql>
+
+    <sql id="sel_tb">
+        <include refid="sel_tb_columns"/>
+        <include refid="sel_tb_from"/>
+        <include refid="sel_tb_where"/>
+    </sql>
+
+    <!-- 分页查询 -->
+    <select id="selectList" resultMap="ListResultMap" parameterType="java.util.HashMap">
+        SELECT
+            a."user_id",
+            a."user_name",
+            a."login_name",
+            a."phone_number",
+            a."wechat_id",
+            a."dd_id",
+            a."email",
+            a."user_expire_state",
+            CASE
+            TO_CHAR( a."user_expire_state" )
+            WHEN 'NORMAL' THEN
+            '正常'
+            WHEN 'TRYOUT' THEN
+            '再试'
+            WHEN 'EXPIRE' THEN
+            '过期' ELSE '锁定'
+            END "user_expire_state_name",
+            a."user_expiry_date",
+            a."user_state",
+            a."active_passwd_plan",
+            CASE
+            a."active_passwd_plan"
+            WHEN 1 THEN
+            ( SELECT plan."passwd_name" FROM ${TBSNAME}."mw_passwd_plan" plan WHERE plan."passwd_id" = a."default_passwd_plan" )
+            ELSE
+            ( SELECT plan."passwd_name" FROM ${TBSNAME}."mw_passwd_plan" plan WHERE plan."passwd_id" = a."active_passwd_plan" )
+            END "active_passwd_plan_name",
+            a."login_state",
+            CASE
+            TO_CHAR( a."login_state" )
+            WHEN 'ONLINE' THEN
+            '在线'
+            ELSE '离线'
+            END "login_state_name",
+            a."user_desc",
+            a."creator",
+            a."create_time",
+            a."modifier",
+            a."update_time",
+            role."role_name",
+            a."conditions_value",
+            a."action_value",
+            a."validity_type",
+            a."user_type",
+            passwd."passwd_name"
+        FROM
+        ${TBSNAME}."mw_sys_user" a
+        LEFT JOIN ${TBSNAME}."mw_user_role_mapper" b ON a."user_id" = b."user_id"
+        LEFT JOIN ${TBSNAME}."mw_role" role ON b."role_id" = role."id"
+        LEFT JOIN ${TBSNAME}."mw_passwd_plan" passwd ON passwd."passwd_id" = a."active_passwd_plan"
+        <if test="orgId != null and orgId > 0">
+            LEFT JOIN ${TBSNAME}."mw_user_org_mapper" d on a."user_id" = d."user_id"
+        </if>
+        <if test="groupId != null and groupId > 0">
+            LEFT JOIN ${TBSNAME}."mw_user_group_mapper" e on a."user_id" = e."user_id"
+        </if>
+        WHERE a."delete_flag" = 0
+        <if test="userName != null and userName != ''">
+            AND a."user_name" LIKE ('%'||#{userName}||'%')
+        </if>
+        <if test="loginName != null and loginName != ''">
+            and a."login_name" LIKE ('%'||#{loginName}||'%')
+        </if>
+        <if test="ddId != null and ddId != ''">
+            and a."dd_id" LIKE ('%'||#{ddId}||'%')
+        </if>
+        <if test="phoneNumber != null and phoneNumber != ''">
+            and a."phone_number" LIKE ('%'||#{phoneNumber}||'%')
+        </if>
+        <if test="wechatId != null and wechatId != ''">
+            and a."wechat_id" LIKE ('%'||#{wechatId}||'%')
+        </if>
+        <if test="email != null and email != ''">
+            and a."email" LIKE ('%'||#{email}||'%')
+        </if>
+        <if test="userType != null">
+            and a."user_type" LIKE ('%'||#{userType}||'%')
+        </if>
+        <if test="userState != null">
+            and a."user_state" = #{userState}
+        </if>
+        <if test="roleName != null and roleName != ''">
+            and role."role_name" LIKE ('%'||#{roleName}||'%')
+        </if>
+        <if test="activePasswdPlanName != null and activePasswdPlanName != ''">
+            and passwd."passwd_name" LIKE ('%'||#{activePasswdPlanName}||'%')
+        </if>
+        <if test="userExpireState != null">
+            and a."user_expire_state" = #{userExpireState}
+        </if>
+        <if test="loginState != null">
+            AND a."login_state"=#{loginState}
+        </if>
+        <if test="activePasswdPlan != null">
+            AND a."active_passwd_plan"=#{activePasswdPlan}
+        </if>
+        <if test="userExpiryDateStart != null">
+            AND <![CDATA[#{userExpiryDateStart} <= a."user_expiry_date" ]]>
+        </if>
+        <if test="userExpiryDateEnd != null">
+            AND <![CDATA[#{userExpiryDateEnd} >= a."user_expiry_date" ]]>
+        </if>
+        <if test="createTimeStart != null">
+            AND <![CDATA[#{createTimeStart} <= a."create_time" ]]>
+        </if>
+        <if test="createTimeEnd != null">
+            AND <![CDATA[#{createTimeEnd} >= a."create_time" ]]>
+        </if>
+        <if test="updateTimeStart != null">
+            AND <![CDATA[#{updateTimeStart} <= a."update_time" ]]>
+        </if>
+        <if test="updateTimeEnd != null">
+            AND <![CDATA[#{updateTimeEnd} >= a."update_time" ]]>
+        </if>
+        <if test="orgId != null and orgId > 0">
+            and d."delete_flag" = 0
+            and d."org_id" = #{orgId}
+        </if>
+        <if test="groupId != null and groupId > 0">
+            and e."group_id" = #{groupId}
+            and e."delete_flag" = 0
+        </if>
+        ORDER BY a."create_time"
+    </select>
+
+    <select id="selectById" resultMap="OneResultMap" parameterType="java.lang.Integer">
+        SELECT
+            "user_id",
+            "user_name",
+            "login_name",
+            "phone_number",
+            "wechat_id",
+            "dd_id",
+            "email",
+            "user_expire_state",
+            "user_expiry_date",
+            "user_state",
+            "user_control_enable",
+            "active_passwd_plan",
+            "default_passwd_plan",
+            "user_desc",
+            "user_img",
+            "conditions_value",
+            "action_value",
+            "validity_type",
+            "more_phones",
+            "user_type"
+        FROM ${TBSNAME}."mw_sys_user"
+        WHERE "delete_flag" = 0
+        AND "user_id" = #{userId}
+    </select>
+
+    <select id="selectOrg" parameterType="java.lang.Integer" resultType="cn.mw.monitor.service.user.dto.OrgDTO">
+        SELECT
+            b."org_id" "orgId",
+            b."org_name" "orgName",
+            b."nodes"
+        FROM ${TBSNAME}."mw_user_org_mapper" a
+	    LEFT JOIN ${TBSNAME}."mw_sys_org" b ON b."org_id" = a."org_id"
+	    WHERE a."delete_flag" = 0
+	    AND b."delete_flag" = 0
+	    AND a."user_id" = #{userId}
+    </select>
+
+    <select id="selectGroup" parameterType="java.lang.Integer" resultType="cn.mw.monitor.user.dto.GroupDTO">
+        SELECT
+            b."group_id" "groupId",
+            b."group_name" "groupName"
+        FROM ${TBSNAME}."mw_user_group_mapper" a
+        LEFT JOIN ${TBSNAME}."mw_group_table" b ON b."group_id" = a."group_id"
+        WHERE a."delete_flag" = 0
+	    AND b."delete_flag" = 0
+	    AND a."user_id" = #{userId}
+    </select>
+
+    <select id="selectRole" parameterType="java.lang.Integer" resultType="cn.mw.monitor.user.dto.RoleDTO">
+        SELECT
+            b."id" "roleId",
+            b."role_name" "roleName"
+        FROM ${TBSNAME}."mw_user_role_mapper" a
+        LEFT JOIN ${TBSNAME}."mw_role" b ON b."id" = a."role_id"
+        WHERE a."delete_flag" = 0
+	    AND b."delete_flag" = 0
+	    AND a."user_id" = #{userId}
+    </select>
+
+    <!--新增用户-->
+    <insert id="insert" parameterType="cn.mw.monitor.service.user.model.MWUser">
+        <selectKey keyProperty="userId" order="BEFORE" resultType="java.lang.Integer">
+            select ${TBSNAME}.SEQ_SYS_USER.NEXTVAL from dual
+        </selectKey>
+        INSERT INTO ${TBSNAME}."mw_sys_user"
+        (
+        "user_id",
+        "login_name",
+        "user_name",
+        "password",
+        "phone_number",
+        "wechat_id",
+        "dd_id",
+        "email",
+        "user_expiry_date",
+        "user_state",
+        "user_img",
+        "user_desc",
+        "creator",
+        "modifier",
+        "create_time",
+        "update_time",
+        "login_state",
+        "active_passwd_plan",
+        "default_passwd_plan",
+        "passwd_state",
+        "user_expire_state",
+        "passwd_expiry_date",
+        "user_control_enable",
+        "delete_flag",
+        "conditions_value",
+        "action_value",
+        "validity_type",
+        "user_type",
+        "more_phones" )
+        VALUES (
+        #{userId},
+        #{loginName,jdbcType=VARCHAR},
+        #{userName,jdbcType=VARCHAR},
+        #{password,jdbcType=VARCHAR},
+        #{phoneNumber,jdbcType=VARCHAR},
+        #{wechatId,jdbcType=VARCHAR},
+        #{ddId,jdbcType=VARCHAR},
+        #{email,jdbcType=VARCHAR},
+        #{userExpiryDate,jdbcType=DATE},
+        'ACTIVE',
+        #{userDesc,jdbcType=VARCHAR},
+        #{userImg,jdbcType=VARCHAR},
+        #{creator,jdbcType=VARCHAR},
+        #{modifier,jdbcType=VARCHAR},
+        sysdate,
+        sysdate,
+        #{loginState,jdbcType=VARCHAR},
+        #{activePasswdPlan,jdbcType=INTEGER},
+        #{defaultPasswdPlan,jdbcType=INTEGER},
+        #{passwdState,jdbcType=VARCHAR},
+        #{userExpireState,jdbcType=VARCHAR},
+        #{passwdExpiryDate,jdbcType=DATE},
+        #{userControlEnable,jdbcType=BOOLEAN},
+        0,
+        #{conditionsValue,jdbcType=VARCHAR},
+        #{actionValue,jdbcType=VARCHAR},
+        #{validityType,jdbcType=VARCHAR},
+        #{userType,jdbcType=VARCHAR},
+        #{morePhones,jdbcType=VARCHAR}
+        )
+    </insert>
+
+    <update id="delete" parameterType="java.util.List">
+        update ${TBSNAME}."mw_sys_user"
+        set
+        "delete_flag" = 1
+        WHERE "user_id" in(
+        <foreach collection="list" item="deleteList" separator=",">
+            #{deleteList.value}
+        </foreach>
+        )
+    </update>
+
+    <!--修改用户, 用户过期状态, 密码状态, 用户登录状态需要通过页面请求操作, 不提供直接更新-->
+    <update id="update" parameterType="cn.mw.monitor.service.user.model.MWUser">
+        UPDATE ${TBSNAME}."mw_sys_user"
+        <set>
+            <if test="userName != null and userName != ''">
+                "user_name" = #{userName},
+            </if>
+            <if test="password != null and password != ''">
+                "password" = #{password},
+            </if>
+            <if test="phoneNumber != null">
+                "phone_number" = #{phoneNumber},
+            </if>
+            <if test="wechatId != null">
+                "wechat_id" = #{wechatId},
+            </if>
+            <if test="ddId != null">
+                "dd_id" = #{ddId},
+            </if>
+            <if test="email != null">
+                "email" = #{email},
+            </if>
+            <if test="userExpiryDate != null">
+                "user_expiry_date" = #{userExpiryDate},
+            </if>
+            <if test="userDesc != null and userDesc != ''">
+                "user_desc" = #{userDesc},
+            </if>
+            <if test="userImg != null and userImg != ''">
+                "user_img" = #{userImg},
+            </if>
+            <if test="userState != null and userState != ''">
+                "user_state" = #{userState},
+            </if>
+            <if test="activePasswdPlan != null">
+                "active_passwd_plan" = #{activePasswdPlan},
+            </if>
+            <if test="defaultPasswdPlan != null">
+                "default_passwd_plan" = #{defaultPasswdPlan},
+            </if>
+            <if test="passwdExpiryDate != null">
+                "passwd_expiry_date" = #{passwdExpiryDate},
+            </if>
+            <if test="userControlEnable != null">
+                "user_control_enable" = #{userControlEnable},
+            </if>
+            "modifier" = #{modifier},
+            <if test="conditionsValue != null and conditionsValue != ''">
+                "conditions_value" = #{conditionsValue},
+            </if>
+            <if test="actionValue != null and actionValue != ''">
+                "action_value" = #{actionValue},
+            </if>
+            <if test="userExpireState != null">
+                "user_expire_state" = #{userExpireState},
+            </if>
+            <if test="validityType != null">
+                "validity_type" = #{validityType},
+            </if>
+            <if test="morePhones != null">
+                "more_phones" = #{morePhones},
+            </if>
+            "update_time" = sysdate
+        </set>
+        WHERE "user_id" = #{userId}
+    </update>
+
+    <update id="updateState" parameterType="cn.mw.monitor.service.user.model.MWUser">
+        UPDATE ${TBSNAME}."mw_sys_user"
+        <set>
+            <if test="loginState != null and loginState != ''">
+                "login_state" = #{loginState},
+            </if>
+            <if test="passwdState != null and passwdState != ''">
+                "passwd_state" = #{passwdState},
+            </if>
+            <if test="userExpireState != null">
+                "user_expire_state" = #{userExpireState},
+            </if>
+        </set>
+        WHERE "user_id" = #{userId}
+    </update>
+
+    <update id="updateUserState" parameterType="cn.mw.monitor.api.param.user.UpdateUserStateParam">
+        UPDATE ${TBSNAME}."mw_sys_user"
+        SET
+        "user_state" = #{enable},
+        "update_time" = sysdate
+        WHERE "user_id" = #{id}
+    </update>
+
+
+    <!-- ID查找用户 -->
+    <select id="selectByUserId" parameterType="int" resultType="cn.mw.monitor.service.user.model.MWUser">
+        <include refid="sel_tb"/>
+        AND a."user_id" = #{userId}
+        and a."delete_flag" = 0
+    </select>
+
+    <!-- 用户名查找用户 -->
+    <select id="selectByLoginName" parameterType="string" resultType="cn.mw.monitor.service.user.dto.UserDTO">
+        <include refid="sel_tb_columns"/>,b."role_id" "roleId"
+        <include refid="sel_tb_from"/>
+        LEFT JOIN ${TBSNAME}."mw_user_role_mapper" b ON a."user_id" = b."user_id"
+        <include refid="sel_tb_where"/>
+        AND a."login_name" = #{loginName}
+        and a."delete_flag" = 0
+    </select>
+
+    <!-- openid查找用户 -->
+    <select id="selectByOpenid" resultType="cn.mw.monitor.service.user.dto.UserDTO">
+        <include refid="sel_tb_columns"/>,b."role_id" "roleId"
+        <include refid="sel_tb_from"/>
+        LEFT JOIN ${TBSNAME}."mw_user_role_mapper" b ON a."user_id" = b."user_id"
+        <include refid="sel_tb_where"/>
+        AND a."open_id" = #{openId}
+    </select>
+
+    <!-- 查找负责人 -->
+    <select id="selectResponser" parameterType="java.util.HashMap" resultMap="ListResultMap">
+        SELECT
+            a."user_id",
+            a."login_name"
+        FROM ${TBSNAME}."mw_sys_user" a
+        LEFT JOIN ${TBSNAME}."mw_user_mapper" b ON a."user_id" = b."user_id"
+        WHERE a."delete_flag" = 0
+        AND b."type" = #{type}
+        AND b."type_id" = #{typeId}
+    </select>
+
+
+    <!-- 查询当前机构及子机构下的用户 -->
+    <select id="selectListByPerm" parameterType="java.util.Map" resultMap="BaseResultMap">
+        select *
+        from (select user_id, login_name, org_id
+        from
+        <include refid="view_user_org"/>
+        where nodes like ('%'||#{nodes}||'%')
+        and org_id in (
+        <foreach collection="orgIds" item="item" separator=",">
+            #{item}
+        </foreach>
+        )
+        union
+        select user_id, login_name
+        from
+        <include refid="view_user_org"/>
+        where 1 = 1
+        and user_id in (
+        <foreach collection="groupIds" item="item" separator=",">
+            #{item}
+        </foreach>
+        )
+        and org_id in (
+        <foreach collection="orgIds" item="item" separator=",">
+            #{item}
+        </foreach>
+        )
+        )
+        ORDER BY login_name
+    </select>
+
+    <select id="getUserByOrgId" parameterType="java.lang.Integer" resultMap="BaseResultMap">
+        SELECT
+            user_id,
+            login_name,
+            user_name,
+            phone_number,
+            wechat_id,
+            dd_id,
+            email,
+            user_expiry_date,
+            user_state,
+            user_img,
+            user_desc,
+            creator,
+            modifier,
+            create_time,
+            update_time,
+            login_state,
+            active_passwd_plan,
+            default_passwd_plan,
+            passwd_state,
+            user_expire_state,
+            passwd_expiry_date,
+            user_control_enable,
+            delete_flag,
+            o.org_name
+        FROM ${TBSNAME}."mw_sys_user" u
+        LEFT JOIN ${TBSNAME}."mw_sys_org" o ON u."org_id" = o."org_id"
+        WHERE u."delete_flag" = 0
+        AND u."dept_id" =#{deptId}
+        ORDER BY "create_time"
+    </select>
+
+    <select id="selectDropdown" resultMap="BaseResultMap">
+        SELECT
+        a."user_id",
+        a."user_name",
+        a."login_name"
+        FROM ${TBSNAME}."mw_sys_user" a
+        LEFT JOIN ${TBSNAME}."mw_user_group_mapper" b ON a."user_id" = b."user_id"
+        LEFT JOIN ${TBSNAME}."mw_group_table" c ON c."group_id" = b."group_id"
+        WHERE a."delete_flag" = 0
+        and b."delete_flag" = 0
+        and c."delete_flag" = 0
+        and a."login_name" = #{loginName}
+        <if test="null != groupIds">
+            union
+            SELECT
+            a."user_id",
+            a."user_name",
+            a."login_name"
+            FROM ${TBSNAME}."mw_sys_user" a
+            LEFT JOIN ${TBSNAME}."mw_user_group_mapper" b ON a."user_id" = b."user_id"
+            LEFT JOIN ${TBSNAME}."mw_group_table" c on c."group_id" = b."group_id"
+            where
+            a."delete_flag" = 0
+            and b."delete_flag" = 0
+            and c."delete_flag" = 0
+            and a."user_state" = 'ACTIVE'
+            and
+            c."group_id" in (
+            <foreach collection="groupIds" item="item" index="index" separator=",">
+                #{item}
+            </foreach>
+            )
+        </if>
+        union
+        SELECT
+        a."user_id",
+        a."user_name",
+        a."login_name"
+        FROM ${TBSNAME}."mw_sys_user" a
+        LEFT JOIN ${TBSNAME}."mw_user_org_mapper" b ON a."user_id" = b."user_id"
+        LEFT JOIN ${TBSNAME}."mw_sys_org" department on department."org_id" = b."org_id"
+        WHERE
+        a."delete_flag" = 0
+        and department."delete_flag" = 0
+        and b."delete_flag" = 0
+        and a."user_state"='ACTIVE'
+        <if test="perm =='PRIVATE'">
+            and
+            <foreach collection="nodes" index="index" item="item" separator="OR">
+                department."nodes" like '%'||#{item}||'%'
+            </foreach>
+        </if>
+    </select>
+
+    <select id="selectDropdownByIdList" resultMap="dropDownResultMap">
+        SELECT
+        a."user_id",
+        a."user_name",
+        a."login_name"
+        FROM ${TBSNAME}."mw_sys_user" a
+        WHERE a."delete_flag" = 0
+        <if test="list != null">
+            and a."user_id" in
+            <foreach collection="list" open="(" close=")" separator="," index="index" item="item">
+                #{item}
+            </foreach>
+        </if>
+    </select>
+
+    <insert id="insertUserRoleMapper" parameterType="cn.mw.monitor.user.model.MwUserRoleMap" useGeneratedKeys="true"
+            keyProperty="id" keyColumn="id">
+        insert into
+        <include refid="tb_user_role"/>
+        (user_id, role_id)
+        values (
+        #{userId}
+        ,#{roleId}
+        )
+    </insert>
+
+    <insert id="insertUserControl">
+        insert into
+            ${TBSNAME}."mw_user_control"
+        ("id","user_id","control_type_id","rule")
+        values (
+        ${TBSNAME}.SEQ_USER_CONTROL.NEXTVAL,
+        #{userId},
+        #{controlTypeId},
+        #{rule}
+        )
+    </insert>
+
+    <insert id="insertUserControlAction">
+        insert into
+            ${TBSNAME}."mw_user_control_cond"
+        ("id","user_id","cond","operation")
+        values (
+        ${TBSNAME}.SEQ_USER_CONTROL_COND.NEXTVAL,
+        #{userId},
+        #{cond},
+        #{operation}
+        )
+    </insert>
+
+    <insert id="insertInform" parameterType="cn.mw.monitor.service.user.model.MWUser">
+        insert into
+            ${TBSNAME}."mw_passwd_inform"
+            ("id","user_id","inoperactive_passwd_plan","delete_flag","modify_type")
+        values
+            (
+                ${TBSNAME}.SEQ_PASSWORD_INFORM.NEXTVAL,
+                #{userId},
+                #{inoperactivePasswdPlan},
+                0,
+                #{modifyType}
+            )
+    </insert>
+
+    <update id="updateUserControlAction">
+        update
+        ${TBSNAME}."mw_user_control_cond"
+        <set>
+            <if test="cond != null ">
+                "cond" = #{cond},
+            </if>
+            <if test="operation != null">
+                "operation" = #{operation}
+            </if>
+        </set>
+        where
+        "user_id" = #{userId}
+    </update>
+
+    <update id="updateUserOpenId">
+        update ${TBSNAME}."mw_sys_user"
+        set
+        "open_id" = #{openId}
+        WHERE "user_id" = #{userId}
+    </update>
+
+    <delete id="deteleUserRoleMapper" parameterType="cn.mw.monitor.user.model.MwUserRoleMap">
+        delete from
+        <include refid="tb_user_role"/>
+        where user_id in
+        (
+        <foreach collection="list" item="deleteList" separator=",">
+            #{deleteList.value}
+        </foreach>
+        )
+    </delete>
+
+    <update id="updateUserRoleMapper" parameterType="cn.mw.monitor.user.model.MwUserRoleMap">
+        update
+        <include refid="tb_user_role"/>
+        set "role_id" = #{roleId}
+        where "user_id" = #{userId}
+    </update>
+
+    <update id="updateUserControl">
+        update
+        ${TBSNAME}."mw_user_control"
+        set
+        <if test="rule != null">
+            "rule" = #{rule}
+        </if>
+        where
+        "user_id" = #{userId}
+        <if test="controlTypeId != null">
+            and "control_type_id" = #{controlTypeId}
+        </if>
+    </update>
+
+    <update id="updateInform" parameterType="java.lang.Integer">
+        update ${TBSNAME}."mw_passwd_inform"
+        set
+            "delete_flag" = 1
+        where "user_id" = #{userId}
+    </update>
+
+    <update id="updateInformPasswdPlan">
+        update ${TBSNAME}."mw_passwd_inform"
+        set
+            inoperactive_passwd_plan = #{inoperactivePasswdPlan}
+        where user_id = #{userId}
+    </update>
+
+    <select id="getUserByName" resultType="cn.mw.monitor.service.user.dto.UserDTO">
+        select * from ${TBSNAME}."mw_sys_user"
+        where "login_name" = #{loginName}
+        and "delete_flag" = 0
+    </select>
+
+    <select id="getPrivateUserByLoginName" resultType="java.lang.String">
+        select t1."login_name" from ${TBSNAME}."mw_sys_user" t1
+        left join  ${TBSNAME}."mw_user_group_mapper" t2 on t1."user_id"=t2."user_id"
+	    left join ${TBSNAME}."mw_group_table" t3 on t2."group_id"=t3."group_id"
+		where t3."group_id" in (select t1."group_id" from ${TBSNAME}."mw_group_table" t1
+		left join ${TBSNAME}."mw_user_group_mapper" t2 on t1."group_id"=t2."group_id"
+		left join  ${TBSNAME}."mw_sys_user"  t3 on t2."user_id"=t3."user_id" where  t3."login_name"=#{loginName}
+		and t1."enable"='ACTIVE' and t1."delete_flag"=0)
+   </select>
+
+    <select id="getPublicUserByLoginName" resultType="java.lang.String">
+        select login_name from ${TBSNAME}."mw_sys_user" t1
+		left join ${TBSNAME}."mw_user_org_mapper" t2 on t1.user_id=t2.user_id
+		left join ${TBSNAME}."mw_sys_org" t3 on t2.org_id=t3.org_id where t3.org_id in (
+		select t1.org_id from ${TBSNAME}."mw_sys_org" t1 left join ${TBSNAME}."mw_user_org_mapper" t2 on t1.org_id=t2.org_id
+		left join ${TBSNAME}."mw_sys_user" t3 on t2.user_id=t3.user_id where t3.login_name= #{loginName}and t1.delete_flag=0 and t1.enable='ACTIVE')
+    </select>
+
+    <select id="getRolePermByUserId" resultType="java.lang.String">
+        select "data_perm" from ${TBSNAME}."mw_role" a left join ${TBSNAME}."mw_user_role_mapper" b on a."id"=b."role_id"
+        left join ${TBSNAME}."mw_sys_user" c on c."user_id"=b."user_id" where c."user_id"=#{userId}
+    </select>
+
+    <select id="getLoginNameByUserId" resultType="java.lang.String" parameterType="java.lang.Integer">
+        select "login_name" from ${TBSNAME}."mw_sys_user" where "user_id"=#{userId}
+    </select>
+
+    <select id="selectCurrUserInfo" resultMap="ListResultMap">
+        SELECT
+            a."user_id",
+            a."user_name",
+            a."login_name",
+            a."phone_number",
+            a."wechat_id",
+            a."dd_id",
+            a."email",
+            a."user_state",
+            a."user_img",
+            a."more_phones"
+        FROM ${TBSNAME}."mw_sys_user" a
+        WHERE a."delete_flag" = 0
+        and a."user_id" = #{userId}
+    </select>
+
+    <select id="selectUserControlByUserId" resultMap="UserControlMap">
+        select
+            "control_type_id",
+            "rule",
+            "user_id"
+        from
+            ${TBSNAME}."mw_user_control"
+        where
+            "user_id" = #{userId}
+    </select>
+
+    <select id="selectCountUserControl" resultType="java.lang.Integer">
+        select count("id") as "sumCount"
+        from ${TBSNAME}."mw_user_control"
+        where "user_id" = #{userId}
+        and "control_type_id" = #{controlTypeId}
+    </select>
+
+    <select id="selectUserControlAction" resultType="java.lang.Integer">
+        select
+            count("id") as "sumCount"
+        from
+            ${TBSNAME}."mw_user_control_cond"
+        where
+            "user_id" = #{userId}
+    </select>
+
+    <select id="selectInformByUserId" resultType="cn.mw.monitor.user.model.MWPasswdInform">
+        select
+            "user_id",
+            "inoperactive_passwd_plan",
+            "delete_flag",
+            "modify_type"
+        from
+            ${TBSNAME}."mw_passwd_inform"
+        where
+            "user_id" = #{userId,jdbcType = INTEGER}
+            and "delete_flag" = 0
+    </select>
+
+    <select id="selectADUserByLoginName" resultType="java.lang.Integer">
+        select count(0)
+        from ${TBSNAME}."mw_sys_user" a
+        where a.delete_flag =0
+        AND a.login_name = #{loginName}
+        AND a.user_type = #{userType}
+    </select>
+
+    <select id="selectADUserByType" resultType="cn.mw.monitor.service.user.dto.UserDTO">
+        <include refid="sel_tb_columns"/>,b."role_id" "roleId"
+        <include refid="sel_tb_from"/>
+        LEFT JOIN ${TBSNAME}."mw_user_role_mapper" b ON a."user_id" = b."user_id"
+        <include refid="sel_tb_where"/>
+        AND a."login_name" = #{loginName}
+        and a."delete_flag" = 0
+        and a."user_type" = #{userType}
+    </select>
+
+    <select id="selectAllUserId" resultType="java.lang.Integer">
+        select
+            "user_id"
+        from
+            ${TBSNAME}."mw_sys_user"
+        where
+            "delete_flag" = 0
+    </select>
+
+    <delete id="deleteUserAssetsMapper" parameterType="java.util.List">
+        delete from mw_user_assets_mapper where user_id in
+        (
+        <foreach collection="list" item="deleteList" separator=",">
+            #{deleteList.value}
+        </foreach>
+        )
+    </delete>
+
+    <delete id="deleteUserActionMapper" parameterType="java.util.List">
+        delete from ${TBSNAME}."mw_alert_action_user_mapper" where "user_id" in
+        (
+        <foreach collection="list" item="deleteList" separator=",">
+            #{deleteList.value}
+        </foreach>
+        )
+    </delete>
+
+    <delete id="deleteUserMonitorMapper" parameterType="java.util.List">
+        delete from mw_user_webmonitor_mapper
+        where user_id in (
+        <foreach collection="list" item="deleteList" separator=",">
+            #{deleteList.value}
+        </foreach>
+        )
+    </delete>
+
+    <delete id="deleteUserMapper">
+        delete from ${TBSNAME}."mw_user_mapper"
+        where "user_id" in (
+        <foreach collection="list" item="deleteList" separator=",">
+            #{deleteList.value}
+        </foreach>
+        )
+    </delete>
+
+    <delete id="delUserControl">
+        delete from ${TBSNAME}."mw_user_control"
+        where "user_id" = #{userId}
+        and "control_type_id" = #{controlTypeId}
+    </delete>
+
+    <select id="selectADUsersNameByIds" resultType="java.lang.String">
+        SELECT
+        "login_name"
+        FROM
+        ${TBSNAME}."mw_sys_user"
+        WHERE
+        "user_id" IN
+        <foreach collection="list" item="item" separator="," open="(" close=")" index="index">
+            #{item}
+        </foreach>
+        AND "user_type" = 'AD'
+        AND "delete_flag" = 0
+    </select>
+
+    <select id="selectAllUserList" parameterType="java.util.HashMap" resultMap="BaseResultMap">
+        SELECT
+            a."user_id",
+            a."login_name",
+			a."user_name"
+        FROM ${TBSNAME}."mw_sys_user" a
+        WHERE a."delete_flag" = 0
+    </select>
+
+
+    <select id="getAdmin" resultType="java.lang.Integer">
+        SELECT
+            a."user_id"
+        FROM ${TBSNAME}."mw_sys_user" a
+        LEFT JOIN  ${TBSNAME}."mw_user_role_mapper" m ON m."user_id" = a."user_id" AND a."delete_flag" = 0 AND m."role_id" =0
+    </select>
+
+    <select id="getAllUserList" resultType="cn.mw.monitor.service.assets.model.UserDTO">
+        select
+        t2."user_id" "userId",t2."user_name" "userName",t2."login_name" "loginName",t2."user_state" "userState"
+        from ${TBSNAME}."mw_user_mapper" t1
+        left join ${TBSNAME}."mw_sys_user" t2 on t1."user_id" = t2."user_id"
+        where t1."type_id" = #{typeId} and t1."type"=#{dataType}
+    </select>
+
+    <select id="selectByStringGroup" resultType="cn.mw.monitor.service.user.model.MWUser">
+        SELECT * FROM (
+          select
+                t2."user_id" "userId",t2."user_name" "userName",t2."login_name" "loginName",t2."user_state" "userState"
+                        ,t3."role_id",t4."group_id"
+                from ${TBSNAME}."mw_user_mapper" t1
+                left join ${TBSNAME}."mw_sys_user" t2 on t1."user_id" = t2."user_id"
+                left join (SELECT * from ${TBSNAME}."mw_user_role_mapper" r  WHERE "delete_flag"=0) t3 ON t1."user_id" = t3."user_id"
+                left join (SELECT * from ${TBSNAME}."mw_user_group_mapper" g  WHERE "delete_flag"=0) t4 ON t1."user_id" = t4."user_id"
+        <if test="type != '' or type != null">
+            <if test="type == 'ROLE'">
+                and t3."role_id" in
+                <foreach collection="ids" item="id" separator="," open="(" close=")" index="index">
+                    #{id}
+                </foreach>
+            </if>
+            <if test="type == 'GROUP'">
+                and t4."group_id" in
+                <foreach collection="ids" item="id" separator="," open="(" close=")" index="index">
+                    #{id}
+                </foreach>
+            </if>
+            <if test="type == 'USER'">
+                and t2."userId" in
+                <foreach collection="ids" item="id" separator="," open="(" close=")" index="index">
+                    #{id}
+                </foreach>
+            </if>
+        </if>
+        ) a WHERE "userId" IS not NULL
+        GROUP BY "userId"
+    </select>
+
+    <select id="getLoginNameByUserIds" resultType="java.lang.String">
+        select "login_name" from ${TBSNAME}."mw_sys_user" where "user_id" in
+        <foreach collection="userIds" item="item" index="index" open="(" separator="," close=")">
+            #{item}
+        </foreach>
+
+    </select>
+
+    <select id="listUserIdByParams" resultType="java.lang.Integer">
+        SELECT DISTINCT
+            a."user_id"
+        FROM
+            ${TBSNAME}."mw_sys_user" a
+        LEFT JOIN ${TBSNAME}."mw_user_org_mapper" d ON a."user_id" = d."user_id"
+        WHERE
+            a."delete_flag" = 0
+        <if test="orgId != null and orgId > 0">
+            AND d."delete_flag" = 0
+            AND d."org_id" = #{orgId}
+        </if>
+    </select>
+
+    <delete id="deleteUserSubModelSystem">
+        delete from "mw_alert_user_subscribe_modelsystem_table"
+        where "user_id" = #{userId}
+    </delete>
+
+    <delete id="deleteUserSubRuleId">
+        delete from "mw_alert_user_subscribe_rule_table"
+        where "user_id" = #{userId}
+    </delete>
+
+    <insert id="insertUserSubModelSystem">
+        insert into "mw_alert_user_subscribe_modelsystem_table"
+        ("user_id","model_system")
+        <foreach collection="list" item="item" index="index" separator="union all">
+            SELECT  #{userId},#{item} FROM DUAL
+        </foreach>
+    </insert>
+
+    <insert id="insertUserSubRuleId">
+        insert into "mw_alert_user_subscribe_rule_table"
+        ("user_id","rule_id")
+        <foreach collection="list" item="item" index="index" separator="union all">
+            SELECT  #{userId},#{item} FROM DUAL
+        </foreach>
+    </insert>
+
+    <select id="selectUserSubModelSystem" resultType="java.lang.String">
+        select "model_system" from "mw_alert_user_subscribe_modelsystem_table"
+        where "user_id" = #{userId}
+    </select>
+
+    <select id="selectUserSubRuleId" resultType="java.lang.String">
+        select "rule_id" from "mw_alert_user_subscribe_rule_table"
+        where "user_id" = #{userId}
+    </select>
+
+</mapper>

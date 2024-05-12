@@ -1,0 +1,159 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.mw.syslog.dao.MwSysLogDao">
+
+    <insert id="insert" statementType="STATEMENT">
+        INSERT INTO ${tableName} (
+            remark,
+            user_name,
+            user_ip,
+            class_name,
+            method_name,
+            exeu_time,
+            type,
+            create_date
+        ) VALUES (
+            '${mwSysLogEntity.remark}',
+            '${mwSysLogEntity.userName}',
+            '${mwSysLogEntity.userIp}',
+            '${mwSysLogEntity.className}',
+            '${mwSysLogEntity.mothodName}',
+            '${mwSysLogEntity.exeuTime}',
+            '${mwSysLogEntity.type}',
+            '${mwSysLogEntity.createDate}'
+        )
+    </insert>
+
+    <insert id="saveLoginLog" statementType="STATEMENT">
+        insert into ${tableName}
+        (user_ip,user_name,create_date,is_success,login_way,fail_type) values
+        (
+        '${loginLogDTO.userIp}',
+        '${loginLogDTO.userName}',
+        '${loginLogDTO.createDate}',
+        '${loginLogDTO.isSuccess}',
+        '${loginLogDTO.loginWay}',
+        '${loginLogDTO.failType}'
+        )
+    </insert>
+
+    <select id="selectList" resultType="cn.mw.syslog.model.MwSysLogEntity">
+        SELECT
+            remark,
+            user_name,
+            user_ip,
+            class_name,
+            method_name,
+            exeu_time,
+            type,
+            create_date
+        FROM ${tableName}
+        where 1=1
+        <if test="record.logType!=null and record.logType!=''">
+            and  type = #{record.logType,jdbcType=INTEGER}
+        </if>
+        <if test="record.logType==null or record.logType==''">
+            and  type = 0
+        </if>
+        <if test="record.userName!=null and record.userName!=''">
+            and  user_name like concat('%',#{record.userName,jdbcType=VARCHAR},'%')
+        </if>
+        <if test="record.userIp!=null and record.userIp!=''">
+            and  user_ip  like concat('%',#{record.userIp,jdbcType=VARCHAR},'%')
+        </if>
+        <if test="record.remark!=null and record.remark!=''">
+        and  remark  like concat('%',#{record.remark,jdbcType=VARCHAR},'%')
+        </if>
+        <if test="record.createDateStart !=null">
+            and <![CDATA[#{record.createDateStart,jdbcType=TIMESTAMP} <= create_date ]]>
+        </if>
+        <if test="record.createDateEnd !=null">
+            and <![CDATA[#{record.createDateEnd,jdbcType=TIMESTAMP} > create_date ]]>
+        </if>
+        ORDER BY log_id DESC
+    </select>
+
+    <select id="selectSysLog" resultType="cn.mw.monitor.service.systemLog.dto.SysLogDTO">
+        select log_time,user_name,model_name,obj_name,operate_des,type from ${tableName} where 1=1
+        <if test="systemLogParam.userName!=null and systemLogParam.userName!=''">
+            and user_name  like concat('%',#{systemLogParam.userName,jdbcType=VARCHAR},'%')
+        </if>
+        <if test="systemLogParam.modelName!=null and systemLogParam.modelName!=''">
+            and model_name  like concat('%',#{systemLogParam.modelName,jdbcType=VARCHAR},'%')
+        </if>
+        <if test="systemLogParam.objName!=null and systemLogParam.objName!=''">
+            and obj_name like concat('%',#{systemLogParam.objName,jdbcType=VARCHAR},'%')
+        </if>
+        <if test="systemLogParam.type!=null and systemLogParam.type!=''">
+            and type = #{systemLogParam.type,jdbcType=VARCHAR}
+        </if>
+        <if test="systemLogParam.operateDes!=null and systemLogParam.operateDes!=''">
+            and operate_des like concat('%',#{systemLogParam.operateDes,jdbcType=VARCHAR},'%')
+        </if>
+        <if test="systemLogParam.createDateStart !=null">
+            and <![CDATA[#{systemLogParam.createDateStart,jdbcType=TIMESTAMP} <= log_time ]]>
+        </if>
+        <if test="systemLogParam.createDateEnd !=null">
+            and <![CDATA[#{systemLogParam.createDateEnd,jdbcType=TIMESTAMP} > log_time ]]>
+        </if>
+        ORDER BY id DESC
+    </select>
+    <select id="selectLoginLog" resultType="cn.mw.monitor.service.systemLog.dto.LoginLogDTO" parameterType="cn.mw.monitor.service.systemLog.param.SystemLogParam">
+        select user_ip,user_name,create_date,is_success,fail_type,login_way from ${tableName} where 1=1
+        <if test="systemLogParam.userName!=null and systemLogParam.userName!=''">
+            and user_name  like concat('%',#{systemLogParam.userName,jdbcType=VARCHAR},'%')
+        </if>
+        <if test="systemLogParam.userIp!=null and systemLogParam.userIp!=''">
+            and user_ip  like concat('%',#{systemLogParam.userIp,jdbcType=VARCHAR},'%')
+        </if>
+        <if test="systemLogParam.isSuccess!=null and systemLogParam.isSuccess!=''">
+            and is_success like concat('%',#{systemLogParam.isSuccess,jdbcType=VARCHAR},'%')
+        </if>
+        <if test="systemLogParam.failType!=null and systemLogParam.failType!=''">
+            and fail_type like concat('%',#{systemLogParam.failType,jdbcType=VARCHAR},'%')
+        </if>
+        <if test="systemLogParam.createDateStart !=null">
+            and <![CDATA[#{systemLogParam.createDateStart,jdbcType=TIMESTAMP} <= create_date ]]>
+        </if>
+        <if test="systemLogParam.createDateEnd !=null">
+            and <![CDATA[#{systemLogParam.createDateEnd,jdbcType=TIMESTAMP} > create_date ]]>
+        </if>
+        <if test="systemLogParam.loginWay!=null and systemLogParam.loginWay!='' ">
+            and login_way like concat('%',#{systemLogParam.loginWay,jdbcType=VARCHAR},'%')
+        </if>
+        ORDER BY log_id DESC
+    </select>
+
+    <select id="selectTableName" resultType="java.lang.String">
+        SELECT
+            TABLE_NAME
+        FROM information_schema.TABLES
+        WHERE TABLE_SCHEMA = 'monitor_log'
+        AND TABLE_TYPE = 'BASE TABLE'
+        <if test="tableNameType!=null and tableNameType!='' ">
+            AND TABLE_NAME like concat('%',#{tableNameType,jdbcType=VARCHAR},'%')
+        </if>
+        ORDER BY TABLE_NAME DESC
+    </select>
+
+</mapper>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,3 @@
+truncate table mw_webmonitor_table;
+truncate table mw_org_webmonitor_mapper;
+truncate table mw_user_webmonitor_mapper;

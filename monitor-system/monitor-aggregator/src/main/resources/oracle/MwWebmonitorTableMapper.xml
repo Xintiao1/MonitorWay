@@ -1,0 +1,285 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.mw.monitor.webMonitor.dao.MwWebmonitorTableDao">
+    <resultMap id="BaseResultMap" type="cn.mw.monitor.webMonitor.model.MwWebmonitorTable">
+        <id column="id" jdbcType="INTEGER" property="id"/>
+        <result column="http_test_id" jdbcType="VARCHAR" property="httpTestId"/>
+        <result column="web_name" jdbcType="VARCHAR" property="webName"/>
+        <result column="web_url" jdbcType="VARCHAR" property="webUrl"/>
+        <result column="host_id" jdbcType="VARCHAR" property="hostId"/>
+        <result column="update_interval" jdbcType="INTEGER" property="updateInterval"/>
+        <result column="attempts" jdbcType="INTEGER" property="attempts"/>
+        <result column="client" jdbcType="INTEGER" property="client"/>
+        <result column="http_proxy" jdbcType="VARCHAR" property="httpProxy"/>
+        <result column="enable" jdbcType="VARCHAR" property="enable"/>
+        <result column="follow_jump" jdbcType="BIT" property="followJump"/>
+        <result column="time_out" jdbcType="INTEGER" property="timeOut"/>
+        <result column="status_code" jdbcType="VARCHAR" property="statusCode"/>
+        <result column="required_string" jdbcType="VARCHAR" property="string"/>
+        <result column="creator" jdbcType="VARCHAR" property="creator"/>
+        <result column="create_date" jdbcType="TIMESTAMP" property="createDate"/>
+        <result column="modifier" jdbcType="VARCHAR" property="modifier"/>
+        <result column="modification_date" jdbcType="TIMESTAMP" property="modificationDate"/>
+    </resultMap>
+
+    <resultMap id="ListResultMap" type="cn.mw.monitor.webMonitor.dto.MwWebMonitorDTO">
+        <id column="id" jdbcType="INTEGER" property="id"/>
+        <result column="http_test_id" jdbcType="VARCHAR" property="httpTestId"/>
+        <result column="web_name" jdbcType="VARCHAR" property="webName"/>
+        <result column="web_url" jdbcType="VARCHAR" property="webUrl"/>
+        <result column="host_id" jdbcType="VARCHAR" property="hostId"/>
+        <result column="update_interval" jdbcType="INTEGER" property="updateInterval"/>
+        <result column="attempts" jdbcType="INTEGER" property="attempts"/>
+        <result column="client" jdbcType="INTEGER" property="client"/>
+        <result column="http_proxy" jdbcType="VARCHAR" property="httpProxy"/>
+        <result column="enable" jdbcType="VARCHAR" property="enable"/>
+        <result column="follow_jump" jdbcType="BIT" property="followJump"/>
+        <result column="time_out" jdbcType="INTEGER" property="timeOut"/>
+        <result column="status_code" jdbcType="VARCHAR" property="statusCode"/>
+        <result column="required_string" jdbcType="VARCHAR" property="string"/>
+        <result column="creator" jdbcType="VARCHAR" property="creator"/>
+        <result column="create_date" jdbcType="TIMESTAMP" property="createDate"/>
+        <result column="modifier" jdbcType="VARCHAR" property="modifier"/>
+        <result column="modification_date" jdbcType="TIMESTAMP" property="modificationDate"/>
+        <result column="assets_name" jdbcType="VARCHAR" property="assetsName"/>
+        <result column="in_band_ip" jdbcType="VARCHAR" property="inBandIp"/>
+        <result column="monitor_server_id" jdbcType="INTEGER" property="monitorServerId"/>
+        <result column="assets_id" jdbcType="VARCHAR" property="assetsId"/>
+    </resultMap>
+
+
+    <sql id="Base_Column_List">
+    t1."id", t1."http_test_id",  t1."web_name",  t1."web_url",  t1."host_id",  t1."update_interval",  t1."attempts",  t1."client", t1."http_proxy",  t1."enable",
+     t1."follow_jump", t1."time_out", t1."status_code",  t1."required_string",  t1."creator",  t1."create_date", t1."modifier",
+     t1."modification_date"
+  </sql>
+
+    <sql id="tb">
+    "mw_webmonitor_table"
+  </sql>
+
+    <sql id="criteria">
+        <if test="webName != null and webName != ''">
+            and "web_name" like '%'||#{webName,jdbcType=VARCHAR}||'%'
+        </if>
+        <if test="webUrl != null and webUrl != ''">
+            and "web_url" like '%'||#{webUrl,jdbcType=VARCHAR}||'%'
+        </if>
+        <if test="fuzzyQuery!= null and fuzzyQuery !='' ">
+            and CONCAT(
+            nvl( web_name, '' ),
+            nvl( web_url, '' )
+            ) LIKE '%'||#{fuzzyQuery,jdbcType=VARCHAR}||'%'
+            ORDER BY
+            ( CASE WHEN INSTR( web_name, #{fuzzyQuery}) > 0 THEN 0 ELSE 1 END ),
+            ( CASE WHEN INSTR( web_url, #{fuzzyQuery}) > 0 THEN 0 ELSE 1 END )
+        </if>
+    </sql>
+
+    <select id="selectByPrimaryKey" parameterType="java.lang.Integer" resultMap="ListResultMap">
+        select
+        <include refid="Base_Column_List"/>
+        ,
+        t2."monitor_server_id",
+        t2."assets_id"
+        from
+        <include refid="tb"></include> t1
+        left join "mw_tangibleassets_table" t2
+        on t1."host_id"=t2."id"
+        where t1."id" = #{id,jdbcType=INTEGER}
+    </select>
+
+    <select id="selectByPrimaryKeys" parameterType="java.util.List" resultMap="ListResultMap">
+        select
+        <include refid="Base_Column_List"/>
+        ,
+        t2."monitor_server_id",
+        t2."assets_id"
+        from
+        <include refid="tb"></include> t1
+        left join "mw_tangibleassets_table" t2
+        on t1."host_id"=t2."id"
+        where t1."id" in
+        <foreach collection="list" item="deleteList" separator="," open="(" close=")">
+            #{deleteList.value,jdbcType=INTEGER}
+        </foreach>
+    </select>
+
+    <delete id="delete" parameterType="java.util.List">
+        delete from
+        <include refid="tb"></include>
+        where "id" in
+        <foreach collection="list" item="deleteList" separator="," open="(" close=")">
+            #{deleteList.value,jdbcType=INTEGER}
+        </foreach>
+    </delete>
+
+    <insert id="insert" parameterType="cn.mw.monitor.webMonitor.api.param.webMonitor.AddUpdateWebMonitorParam"
+            useGeneratedKeys="true" keyProperty="id">
+        insert into
+        <include refid="tb"></include>
+        ("id",
+         "http_test_id","web_name", "web_url",
+        "host_id", "update_interval", "attempts",
+        "client", "http_proxy", "enable",
+        "follow_jump", "time_out", "status_code",
+        "required_string", "creator", "create_date",
+        "modifier", "modification_date")
+        values (
+        SEQ_WEBMONITOR.NEXTVAL,
+        #{httpTestId,jdbcType=INTEGER},#{webName,jdbcType=VARCHAR}, #{webUrl,jdbcType=VARCHAR},
+        #{hostId,jdbcType=VARCHAR}, #{updateInterval,jdbcType=INTEGER}, #{attempts,jdbcType=INTEGER},
+        #{client,jdbcType=INTEGER}, #{httpProxy,jdbcType=VARCHAR}, #{enable,jdbcType=VARCHAR},
+        #{followJump,jdbcType=BIT}, #{timeOut,jdbcType=INTEGER}, #{statusCode,jdbcType=VARCHAR},
+        #{string,jdbcType=VARCHAR}, #{creator,jdbcType=VARCHAR}, sysdate,
+        #{modifier,jdbcType=VARCHAR}, sysdate)
+    </insert>
+
+    <update id="update" parameterType="cn.mw.monitor.webMonitor.api.param.webMonitor.AddUpdateWebMonitorParam">
+    update "mw_webmonitor_table"
+    set "http_test_id" = #{httpTestId,jdbcType=INTEGER},
+      "web_name" = #{webName,jdbcType=VARCHAR},
+      "web_url" = #{webUrl,jdbcType=VARCHAR},
+      "host_id" = #{hostId,jdbcType=VARCHAR},
+      "update_interval" = #{updateInterval,jdbcType=INTEGER},
+      "attempts" = #{attempts,jdbcType=INTEGER},
+      "client" = #{client,jdbcType=INTEGER},
+      "http_proxy" = #{httpProxy,jdbcType=VARCHAR},
+      "enable" = #{enable,jdbcType=VARCHAR},
+      "follow_jump" = #{followJump,jdbcType=BIT},
+      "time_out" = #{timeOut,jdbcType=INTEGER},
+      "status_code" = #{statusCode,jdbcType=VARCHAR},
+      "required_string" = #{string,jdbcType=VARCHAR},
+      "modifier" = #{modifier,jdbcType=VARCHAR},
+      "modification_date" = sysdate
+    where "id" = #{id,jdbcType=INTEGER}
+  </update>
+
+    <update id="updateBatch" parameterType="cn.mw.monitor.webMonitor.api.param.webMonitor.BatchUpdateParam">
+        update "mw_webmonitor_table"
+        <set>
+            <if test="updateIntervalcheckbox == true">
+                "update_interval" = #{updateInterval,jdbcType=INTEGER},
+            </if>
+            <if test="attemptscheckbox == true">
+                "attempts" = #{attempts,jdbcType=INTEGER},
+            </if>
+            <if test="enablecheckbox == true">
+                "enable" = #{enable,jdbcType=VARCHAR},
+            </if>
+            <if test="timeOutcheckbox == true">
+                "time_out" = #{timeOut,jdbcType=VARCHAR},
+            </if>
+            <if test="statusCodecheckbox == true">
+                "status_code" = #{statusCode,jdbcType=VARCHAR},
+            </if>
+            "modifier" = #{modifier,jdbcType=VARCHAR},
+            "modification_date" = sysdate
+        </set>
+        where "id" in (
+        <foreach collection="ids" item="id" separator=",">
+            #{id ,jdbcType=INTEGER}
+        </foreach>)
+    </update>
+
+    <delete id="updateUserState"
+            parameterType="cn.mw.monitor.webMonitor.api.param.webMonitor.UpdateWebMonitorStateParam">
+        update
+        <include refid="tb"></include>
+        set "enable" = #{enable,jdbcType=VARCHAR}
+        where "id" = #{id,jdbcType=INTEGER}
+    </delete>
+
+    <select id="selectList" resultMap="ListResultMap">
+        select
+        <include refid="Base_Column_List"></include>,
+        t2."in_band_ip",
+        t2."assets_name",
+        t2."monitor_server_id",
+        t2."assets_id",
+        t3."monitoring_server_name" as "monitorServer"
+        from
+        <include refid="tb"></include> t1
+        left join "mw_tangibleassets_table" t2
+        on t1."host_id"=t2."id"
+        left join "mw_thirdparty_server_table" t3
+        on t2."monitor_server_id"=t3."id"
+        where 1=1
+        <if test="isSystem == false">
+            and FIND_IN_SET("id",#{listSet})
+        </if>
+        <include refid="criteria"></include>
+    </select>
+
+    <select id="getHostIdAndServerId" resultType="cn.mw.monitor.webMonitor.dto.HostDto">
+        select "assets_id","monitor_server_id" from "mw_tangibleassets_table" where "id"= #{id,jdbcType=VARCHAR}
+    </select>
+    <select id="selectIds" resultType="java.lang.Integer">
+        select "id" from "mw_webmonitor_table" where "host_id" in
+        <foreach collection="list" index="index" item="item" separator="," open="(" close=")">
+            #{item}
+        </foreach>
+
+    </select>
+    <select id="selectHttpIds" resultType="cn.mw.monitor.service.webmonitor.model.HttpParam">
+     select a."id","http_test_id" "httpId","monitor_server_id" "monitorServerId" from "mw_webmonitor_table" a left join "mw_tangibleassets_table" b on a."host_id"=b."id"  where a."host_id" in
+     <foreach collection="list" index="index" item="item" separator="," open="(" close=")">
+      #{item}
+      </foreach>
+    </select>
+    <select id="getMonitorFlagById" resultType="java.lang.Integer">
+         select b."monitor_flag" from "mw_webmonitor_table" a left join "mw_tangibleassets_table" b on a."host_id"=b."id"
+         where a."id"=#{id,jdbcType=INTEGER}
+    </select>
+
+    <select id="getAssetsId" resultType="cn.mw.monitor.webMonitor.dto.HostDto">
+        SELECT a."id" "hostId", a."assets_id" "assetsId", a."monitor_server_id" "monitorServerId"
+        FROM "mw_tangibleassets_table" AS a,
+        (SELECT c.id FROM "mw_thirdparty_server_table" AS c WHERE c."delete_flag" = false and c."monitoring_server_name" = #{monitorServerName,jdbcType=VARCHAR}) AS b
+        WHERE a."in_band_ip" = #{hostIp,jdbcType=VARCHAR} AND a."monitor_server_id" = b."id" AND a."assets_type_id" = 1 AND a."delete_flag"= 0;
+    </select>
+
+    <select id="getAssetsIp" resultType="cn.mw.monitor.webMonitor.dto.HostDto">
+        SELECT a."id" "hostId", a."assets_id" "assetsId", a."monitor_server_id" "monitorServerId"
+        FROM "mw_tangibleassets_table" AS a,
+        (SELECT c."id" FROM "mw_thirdparty_server_table" AS c WHERE c."delete_flag" = false) AS b
+        WHERE a."in_band_ip" = #{hostIp,jdbcType=VARCHAR} AND a."monitor_server_id" = b.id AND a."assets_type_id" = 1 AND a."delete_flag"= 0 rownum =  1;
+    </select>
+
+    <select id="selectUserIdsByUserNames" resultType="java.lang.Integer">
+         select "user_id" from "mw_sys_user" where "delete_flag" = 0 and "user_name" in
+         <foreach collection="list" index="index" item="item" separator="," open="(" close=")">
+        #{item}
+        </foreach>
+    </select>
+
+    <select id="selectGroupIdsByGroupNames" resultType="java.lang.Integer">
+         select group_id from mw_group_table where delete_flag = false and group_name in
+        <foreach collection="list" index="index" item="item" separator="," open="(" close=")">
+            #{item}
+        </foreach>
+    </select>
+
+    <select id="selectOrgIdsByOrgNames" resultType="cn.mw.monitor.service.user.dto.OrgDTO">
+         select "org_id" "orgId", "org_name" "orgName", "nodes" from "mw_sys_org" where "delete_flag" = 0 and "org_name" in
+        <foreach collection="list" index="index" item="item" separator="," open="(" close=")">
+            #{item}
+        </foreach>
+    </select>
+
+    <select id="fuzzSearchAllFiled" resultType="java.util.Map">
+        SELECT
+        "web_name",
+        "web_url"
+        FROM
+        "mw_webmonitor_table"
+        WHERE 1=1
+        and CONCAT(
+        nvl( "web_name", '' ),
+        nvl( "web_url", '' )
+        ) LIKE '%'||#{value,jdbcType=VARCHAR}||'%'
+        ORDER BY
+        ( CASE WHEN INSTR( "web_name", #{value}) > 0 THEN 0 ELSE 1 END ),
+        ( CASE WHEN INSTR( "web_url", #{value}) > 0 THEN 0 ELSE 1 END )
+    </select>
+</mapper>

@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <parent>
+        <artifactId>monitor-system</artifactId>
+        <groupId>cn.mw</groupId>
+        <version>1.0-SNAPSHOT</version>
+    </parent>
+    <modelVersion>4.0.0</modelVersion>
+
+    <artifactId>monitor-center</artifactId>
+    <packaging>pom</packaging>
+    <modules>
+        <module>user-api</module>
+        <module>user</module>
+        <module>assets-api</module>
+        <module>assets</module>
+        <module>zbx</module>
+        <module>zbx-api</module>
+        <module>alert-api</module>
+        <module>alert</module>
+        <module>screen-api</module>
+        <module>screen</module>
+        <module>scanrule</module>
+        <module>labelManage</module>
+        <module>dropDown</module>
+        <module>engineManage</module>
+        <module>customPage</module>
+        <module>mwapi</module>
+	    <module>scan</module>
+        <module>assetsTemplate</module>
+	    <module>assetsSubType</module>
+        <module>webMonitor</module>
+        <module>server</module>
+        <module>report</module>
+        <module>dbautoplay</module>
+        <module>solar-report</module>
+        <module>virtualization</module>
+        <module>weixin-api</module>
+        <module>ipmanage-api</module>
+        <module>link</module>
+        <module>knowledgeBase</module>
+        <module>security</module>
+        <module>configmanage</module>
+        <module>accountmanage</module>
+        <module>templatemanage</module>
+        <module>activitiBase</module>
+        <module>timetask</module>
+        <module>syslog</module>
+        <module>vendormanage</module>
+        <module>dev-admin</module>
+        <module>model-manage</module>
+        <module>smart-discovery</module>
+        <module>license</module>
+        <module>credentialsmanage</module>
+        <module>hybridclouds</module>
+        <module>wireless</module>
+        <module>fingerprint</module>
+        <module>auto-manage</module>
+        <module>script-manage</module>
+        <module>visualized</module>
+        <module>netflow</module>
+        <module>agent</module>
+        <module>graphManage</module>
+        <module>logManage</module>
+        <module>plugin</module>
+        <module>huaxing-plugin</module>
+        <module>xiangtai-plugin</module>
+    </modules>
+
+
+</project>

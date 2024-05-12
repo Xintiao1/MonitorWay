@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.mw.monitor.user.dao.MWPasswCompTypeDao">
+
+    <select id="selectList" resultType="cn.mw.monitor.user.model.MWPassCompType">
+        SELECT
+            id,
+            type_name typeName,
+            type_num typeNum
+        FROM mw_passw_complex_type
+    </select>
+
+    <select id="selectById" resultType="cn.mw.monitor.user.model.MWPassCompType">
+        SELECT
+            id,
+            type_name typeName,
+            type_num typeNum
+        FROM mw_passw_complex_type
+        WHERE id = #{id,jdbcType=INTEGER}
+    </select>
+
+</mapper>

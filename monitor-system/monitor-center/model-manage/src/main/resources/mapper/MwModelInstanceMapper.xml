@@ -1,0 +1,855 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.mw.monitor.model.dao.MwModelInstanceDao">
+
+
+    <select id="selectByModelUserIdList" parameterType="cn.mw.monitor.model.param.QueryCustomModelparam"
+            resultMap="BaseResultByModelMap">
+        SELECT
+        t1.id,
+        t1.prop,
+        t1.label,
+        t1.type,
+        t1.order_number AS "orderNum",
+        t2.id custom_id,
+        t2.col_id,
+        t2.user_id,
+        t2.sortable,
+        t2.width,
+        t2.visible,
+        t2.order_number,
+        t2.delete_flag
+        FROM
+        mw_cmdbmd_pagefield_table t1
+        LEFT JOIN mw_cmdbmd_customcol_table t2 ON t1.id = t2.col_id
+        LEFT JOIN mw_cmdbmd_manage t5 ON t1.model_id = t5.model_id
+        <where>
+            t2.user_id = #{userId,jdbcType=INTEGER}
+            and t1.visible = true
+            AND ( t1.model_id = #{modelId,jdbcType=INTEGER} OR FIND_IN_SET(t1.model_id, ( SELECT pids FROM
+            mw_cmdbmd_manage WHERE model_id = #{modelId,jdbcType=INTEGER} )))
+        </where>
+        ORDER BY
+        t2.order_number
+    </select>
+
+    <insert id="insertInstanceName" useGeneratedKeys="true" keyColumn="instance_id" keyProperty="instanceId"
+            parameterType="java.util.List">
+        insert into mw_cmdbmd_instance(instance_name,model_id,relation_instance_id )
+        values
+        <foreach collection="list" item="item" index="index" separator=",">
+            (#{item.instanceName,jdbcType=VARCHAR},#{item.modelId,jdbcType=INTEGER},#{item.relationInstanceId,jdbcType=INTEGER})
+        </foreach>
+    </insert>
+
+    <select id="selectFiledsByGroupList" parameterType="cn.mw.monitor.model.param.QueryCustomModelparam"
+            resultType="cn.mw.monitor.service.model.param.MwCustomColByModelDTO">
+        SELECT
+        DISTINCT
+        t1.prop,
+        t1.label,
+        t1.type,
+        t2.sortable,
+        t2.visible,
+        t2.order_number AS "orderNumber",
+        t2.delete_flag AS "deleteFlag"
+        FROM
+        mw_cmdbmd_pagefield_table t1
+        LEFT JOIN mw_cmdbmd_customcol_table t2 ON t1.id = t2.col_id
+        left join mw_cmdbmd_manage t5 on t5.model_id = t1.model_id
+        <where>
+            t2.user_id = #{userId,jdbcType=INTEGER}
+            and t1.visible = true
+            AND (t1.model_id IN ( SELECT model_id FROM mw_cmdbmd_manage WHERE group_nodes LIKE CONCAT( '%,',
+            #{modelId,jdbcType=INTEGER}, ',%' ) AND delete_flag = '0' and model_type_id = '1')
+            OR FIND_IN_SET(t1.model_id,(SELECT DISTINCT GROUP_CONCAT(pids) FROM mw_cmdbmd_manage WHERE
+            model_id IN ( SELECT model_id FROM mw_cmdbmd_manage WHERE group_nodes LIKE CONCAT( '%,',
+            #{modelId,jdbcType=INTEGER}, ',%' ) AND delete_flag = '0' and model_type_id = '1')
+            and pids is not null and pids !='')))
+        </where>
+        ORDER BY
+
+    </select>
+
+    <select id="selectAllInstanceInfo" resultType="cn.mw.monitor.service.model.param.MwModelInstanceParam">
+        SELECT
+            a.instance_id AS "instanceId",
+            a.instance_name AS "instanceName"
+        FROM
+            mw_cmdbmd_instance a
+            LEFT JOIN mw_cmdbmd_manage b ON a.model_id = b.model_id
+        WHERE
+            b.model_view > '0'
+    </select>
+
+    <select id="selectRelationInstanceInfo" resultType="cn.mw.monitor.service.model.param.MwModelInstanceParam">
+        SELECT
+        a.instance_id AS "instanceId",
+        a.instance_name AS "instanceName",
+        a.relation_instance_id AS "relationInstanceId",
+        b.model_view AS "modelView",
+        b.model_index AS "modelIndex"
+        FROM
+        mw_cmdbmd_instance a
+        LEFT JOIN mw_cmdbmd_manage b ON a.model_id = b.model_id
+        WHERE
+        1 = 1
+        <if test="list != null and list.size > 0">
+            and (b.model_index in
+            <foreach collection="list" item="item" index="index" open="(" close=")" separator=",">
+                #{item}
+            </foreach>
+            )
+        </if>
+    </select>
+
+    <select id="getInstanceIdsByModelIndex" resultType="java.lang.Integer">
+        select a.instance_id
+        from mw_cmdbmd_instance a
+        left join mw_cmdbmd_manage b on a.model_id = b.model_id
+        where 1 = 1
+        <if test="list != null and list.size > 0">
+            and b.model_index in (
+            <foreach collection="list" item="item" index="index" separator=",">
+                #{item}
+            </foreach>
+            )
+        </if>
+        <if test="relationInstanceId!=null">
+            and a.relation_instance_id = #{relationInstanceId}
+        </if>
+    </select>
+
+    <select id="getInstanceIdsByRelationIds" resultType="java.lang.Integer"
+            parameterType="cn.mw.monitor.model.param.DeleteModelInstanceParam">
+        select a.instance_id
+        from mw_cmdbmd_instance a
+        left join mw_cmdbmd_manage b on a.model_id = b.model_id
+        where 1 = 1
+        <if test="DeleteModelInstanceParam.relationInstanceIds != null and DeleteModelInstanceParam.relationInstanceIds.size > 0">
+            and a.relation_instance_id in (
+            <foreach collection="DeleteModelInstanceParam.relationInstanceIds" item="item" index="index" separator=",">
+                #{item}
+            </foreach>
+            )
+        </if>
+        <if test="DeleteModelInstanceParam.modelIndexs != null and DeleteModelInstanceParam.modelIndexs.size > 0">
+            and b.model_index IN (
+            <foreach collection="DeleteModelInstanceParam.modelIndexs" item="index" separator=",">
+                #{index}
+            </foreach>
+            )
+        </if>
+        <if test="DeleteModelInstanceParam.modelIds != null and DeleteModelInstanceParam.modelIds.size > 0">
+            and b.model_id IN (
+            <foreach collection="DeleteModelInstanceParam.modelIds" item="index" separator=",">
+                #{index}
+            </foreach>
+            )
+        </if>
+    </select>
+
+    <select id="getInstanceIdsByRelationIdAndModelId" resultType="java.lang.Integer">
+        select a.instance_id
+        from mw_cmdbmd_instance a
+        where 1 = 1
+        <if test="list != null and list.size > 0">
+            and a.relation_instance_id in (
+            <foreach collection="list" item="item" index="index" separator=",">
+                #{item}
+            </foreach>
+            )
+        </if>
+    </select>
+
+    <delete id="deleteInstanceIdsByRelationIdAndModelId">
+        DELETE t1 FROM mw_cmdbmd_instance t1
+        WHERE
+        t1.relation_instance_id in (
+        <foreach collection="list" item="item" index="index" separator=",">
+            #{item}
+        </foreach>
+        )
+    </delete>
+
+
+    <select id="selectProxyIdById" parameterType="java.lang.String" resultType="cn.mw.monitor.service.model.param.MwModelEngineDTO">
+        select
+         proxy_id AS "proxyId",
+         engine_name AS "engineName"
+        from
+        mw_enginemanage_table
+        where id = #{id,jdbcType=VARCHAR}
+    </select>
+
+
+    <select id="queryModelListInfo" resultType="cn.mw.monitor.model.dto.ModelListInfoDTO">
+        SELECT
+        a.model_index AS "modelIndex",
+        a.model_name AS modelName,
+        a.model_desc AS modelDesc,
+        a.model_type_id AS modelTypeId,
+        b.model_type_name AS "modelTypeName",
+        CONCAT( "model_", a.model_id ) AS "modelGroupIdStr",
+        "model" AS "type",
+        a.model_id AS "modelGroupId",
+        a.pids,
+        ( SELECT count( instance_id ) FROM mw_cmdbmd_instance WHERE model_id = a.model_id
+        <if test="instanceIdList != null and instanceIdList.size > 0">
+            and (instance_id in
+            <foreach collection="instanceIdList" item="item" index="index" open="(" close=")" separator=",">
+                #{item}
+            </foreach>
+            )
+        </if>
+        ) AS "instanceNum",
+        ( CASE WHEN (LOCATE(',0,',a.group_nodes) >0)THEN 1 ELSE 0 END ) AS "isBase",
+        a.create_date AS "creatDate",
+        a.creator
+        FROM
+        mw_cmdbmd_manage a
+        LEFT JOIN mw_cmdbmd_type_base b ON a.model_type_id = b.model_type_id
+        <where>
+            a.delete_flag = false
+            and a.is_show = true
+            and a.model_type_id = '1'
+            <if test="groupId!=null">
+                and FIND_IN_SET( model_group_id, ( SELECT DISTINCT GROUP_CONCAT( model_group_id ) FROM mw_cmdbmd_group a
+                WHERE a.nodes LIKE concat('%,',#{groupId},',%') ))
+            </if>
+            <if test="modelIdList != null and modelIdList.size > 0">
+                and (a.model_index in
+                <foreach collection="modelIdList" item="item" index="index" open="(" close=")" separator=",">
+                    #{item}
+                </foreach>
+                or a.model_level = '0'
+                )
+            </if>
+        </where>
+    </select>
+
+    <select id="getModelPropertiesType" resultType="java.lang.String">
+        SELECT
+            a.properties_type AS "propertiesType"
+        FROM
+            mw_cmdbmd_properties a
+        WHERE
+            a.model_id =  #{modelId,jdbcType=INTEGER} OR FIND_IN_SET(a.model_id, ( SELECT pids FROM mw_cmdbmd_manage WHERE model_id =  #{modelId,jdbcType=INTEGER} ))
+        GROUP BY
+            a.properties_type
+        ORDER BY
+	        (CASE a.properties_type WHEN '默认属性' THEN 0 ELSE 1 END )
+	        and (is_look_show = '1')
+    </select>
+
+    <select id="getMonitorModeInfo" resultType="java.util.Map">
+        select drop_key AS "dropKey",drop_value AS "dropValue"
+        from mw_dropdown_table
+        where drop_code = 'monitor_mode'
+        and delete_flag = 0
+    </select>
+
+    <select id="getModelPropertiesTypeByGroup" resultType="java.lang.String">
+        SELECT DISTINCT
+            t3.properties_type AS "propertiesType"
+        FROM
+            mw_cmdbmd_properties t3
+        WHERE
+             (t3.model_id IN ( SELECT model_id FROM mw_cmdbmd_manage WHERE group_nodes LIKE CONCAT( '%,', #{modelId,jdbcType=INTEGER}, ',%' ) AND delete_flag = '0' and model_type_id = '1')
+            OR FIND_IN_SET(t3.model_id,(
+                SELECT DISTINCT GROUP_CONCAT(pids) FROM mw_cmdbmd_manage WHERE
+                model_id IN ( SELECT model_id FROM mw_cmdbmd_manage WHERE group_nodes LIKE CONCAT( '%,', #{modelId,jdbcType=INTEGER}, ',%' ) AND delete_flag = '0' and model_type_id = '1' )
+                and pids is not null and pids !='')))
+        GROUP BY
+            t3.properties_type
+        ORDER BY
+            ( CASE t3.properties_type WHEN '默认属性' THEN 0 ELSE 1 END )
+    </select>
+
+    <select id="getPropertiesInfoByModelId" resultType="java.util.Map">
+        SELECT
+            a.properties_name,
+            a.index_id,
+            a.properties_type_id
+        FROM
+            mw_cmdbmd_properties a
+            LEFT JOIN mw_cmdbmd_manage b ON a.model_id = b.model_id
+        WHERE
+            (a.model_id = #{modelId,jdbcType=INTEGER}
+            OR FIND_IN_SET( a.model_id, ( SELECT pids FROM mw_cmdbmd_manage WHERE model_id = #{modelId,jdbcType=INTEGER} ) ))
+        ORDER BY
+            b.model_type_id,
+            a.sort
+    </select>
+
+    <select id="getModelPropertiesByType" resultType="cn.mw.monitor.model.dto.ModelPropertiesDto">
+        SELECT
+            a.properties_id,
+            a.`index_id`,
+            a.properties_name,
+            a.properties_type,
+            a.properties_type_id,
+            a.properties_level,
+            a.sort,
+            b.model_type_id,
+            a.is_read,
+            a.is_must,
+            a.is_only,
+            a.is_manage,
+            a.is_show
+        FROM
+            mw_cmdbmd_properties a
+            LEFT JOIN mw_cmdbmd_manage b ON a.model_id = b.model_id
+        WHERE
+            (a.model_id = #{modelId,jdbcType=INTEGER}
+            OR FIND_IN_SET( a.model_id, ( SELECT pids FROM mw_cmdbmd_manage WHERE model_id = #{modelId,jdbcType=INTEGER} ) ))
+            AND a.properties_type = #{type,jdbcType=VARCHAR}
+        ORDER BY
+            b.model_type_id,
+            a.sort
+    </select>
+
+    <select id="getModelIndexInfo" resultType="cn.mw.monitor.model.dto.MwModelInfoDTO">
+        SELECT
+            a.model_index AS "modelIndex",
+            a.model_name AS "modelName",
+            b.model_group_name AS "modelGroupName"
+        FROM
+            mw_cmdbmd_manage a
+		left join mw_cmdbmd_group b on a.model_group_id = b.model_group_id
+        WHERE
+            a.model_id = #{modelId,jdbcType=INTEGER}
+    </select>
+
+    <select id="selectAllUserList" parameterType="java.util.HashMap"
+            resultType="cn.mw.monitor.service.user.model.MWUser">
+        SELECT
+            a.user_id AS "userId",
+            a.login_name AS "loginName",
+			a.user_name AS "userName"
+        FROM mw_sys_user a
+        WHERE a.delete_flag = FALSE
+    </select>
+
+    <select id="getTimeOutPropertiesInfo" resultType="java.util.Map">
+        SELECT
+            b.properties_name,
+            c.expire_remind,
+            c.before_expiretime,
+            c.time_unit,
+            a.model_id,
+            a.model_index,
+            b.index_id
+        FROM
+            mw_cmdbmd_manage a
+            LEFT JOIN mw_cmdbmd_properties b ON a.model_id = b.model_id
+            LEFT JOIN mw_cmdbmd_properties_value c ON b.properties_value_id = c.id
+        WHERE
+            1 = 1
+            AND c.expire_remind IS NOT NULL
+            AND c.before_expiretime IS NOT NULL
+            AND c.time_unit IS NOT NULL
+            AND c.expire_remind = TRUE
+            and a.delete_flag = false
+    </select>
+
+    <select id="getPropertiesNameByModelId" resultType="java.util.Map" parameterType="java.lang.Integer">
+        SELECT
+            index_id AS "indexId",
+            properties_name  AS "name",
+            properties_type_id AS "type"
+        FROM
+            mw_cmdbmd_properties
+        WHERE
+           ( model_id = #{modelId,jdbcType=INTEGER}
+            OR FIND_IN_SET(model_id, ( SELECT pids FROM mw_cmdbmd_manage WHERE model_id = #{modelId,jdbcType=INTEGER} ) ))
+            and (is_look_show = '1')
+    </select>
+
+    <select id="getPropertiesNameByGrouyModelId" resultType="java.util.Map" parameterType="java.lang.Integer">
+        SELECT DISTINCT
+            t3.index_id AS "indexId",
+            t3.properties_name  AS "name",
+            t3.properties_type_id AS "type"
+        FROM
+            mw_cmdbmd_properties t3
+        WHERE
+             (t3.model_id IN ( SELECT model_id FROM mw_cmdbmd_manage WHERE group_nodes LIKE CONCAT( '%,', #{modelGroupId,jdbcType=INTEGER}, ',%' ) AND delete_flag = '0' and model_type_id = '1')
+            OR FIND_IN_SET(t3.model_id,(
+                SELECT GROUP_CONCAT(DISTINCT pids) FROM mw_cmdbmd_manage WHERE
+                model_id IN ( SELECT model_id FROM mw_cmdbmd_manage WHERE group_nodes LIKE CONCAT( '%,', #{modelGroupId,jdbcType=INTEGER}, ',%' ) AND delete_flag = '0' and model_type_id = '1' )
+                and pids is not null and pids !='')))
+    </select>
+
+
+    <select id="getModelIndexByInstanceIds" resultType="java.lang.String">
+        SELECT
+        model_index AS "modelIndex"
+        FROM
+        mw_cmdbmd_instance a
+        LEFT JOIN mw_cmdbmd_manage b ON a.model_id = b.model_id
+        WHERE
+        a.instance_id IN (
+        <foreach collection="list" item="instanceId" separator=",">
+            #{instanceId}
+        </foreach>
+        )
+        AND b.model_index IS NOT NULL
+    </select>
+
+    <select id="getInstanceNameByIds" resultType="cn.mw.monitor.model.param.QueryInstanceParam">
+        SELECT
+        instance_id AS "modelInstanceId",
+        instance_name AS "instanceName"
+        FROM
+        mw_cmdbmd_instance
+        WHERE
+        instance_id IN (
+        <foreach collection="list" item="instanceId" separator=",">
+            #{instanceId}
+        </foreach>
+        )
+    </select>
+
+    <select id="getInstanceNameListByIds" resultType="cn.mw.monitor.service.model.param.MwInstanceCommonParam">
+        SELECT
+        instance_id AS "instanceId",
+        instance_name AS "instanceName"
+        FROM
+        mw_cmdbmd_instance
+        WHERE
+        instance_id IN (
+        <foreach collection="list" item="instanceId" separator=",">
+            #{instanceId}
+        </foreach>
+        )
+    </select>
+
+    <select id="getInstanceTypeById" resultType="cn.mw.monitor.model.dto.MwModelInstanceTypeDto">
+        SELECT
+            a.instance_id AS "instanceId",
+            b.model_view AS "viewType"
+        FROM
+            mw_cmdbmd_instance a
+                LEFT JOIN mw_cmdbmd_manage b ON a.model_id = b.model_id
+        WHERE
+            b.delete_flag = FALSE
+          AND b.model_view IN (1,2)
+    </select>
+
+    <select id="getInstanceNameById" resultType="java.lang.String">
+        SELECT
+        instance_name AS "instanceName"
+        FROM
+        mw_cmdbmd_instance
+        WHERE
+        instance_id = #{instanceId}
+    </select>
+
+    <select id="getModelIdByInstanceId" resultType="java.lang.Integer">
+        SELECT
+            model_id AS "modelId"
+        FROM
+            mw_cmdbmd_instance
+        WHERE
+            instance_id = #{instanceId}
+    </select>
+
+    <select id="getModelIndexByModelId" resultType="java.lang.String">
+        SELECT
+            model_index
+        FROM
+            mw_cmdbmd_manage
+        WHERE
+            model_id = #{modelId}
+    </select>
+
+    <select id="getAllModelIndexInfo" resultType="java.util.Map">
+        SELECT
+            model_id,
+            model_name,
+            model_index
+        FROM
+            mw_cmdbmd_manage
+        WHERE
+            delete_flag = FALSE
+        AND model_type_id = '1'
+        AND ((model_id IN (SELECT b.model_id FROM mw_cmdbmd_properties a
+                    LEFT JOIN mw_cmdbmd_manage b ON a.model_id = b.model_id
+                    LEFT JOIN mw_cmdbmd_properties_value c ON a.properties_value_id = c.id
+                    WHERE a.properties_type_id = '8' AND c.expire_remind = TRUE ))
+              OR (pids IN (SELECT b.model_id FROM mw_cmdbmd_properties a
+                    LEFT JOIN mw_cmdbmd_manage b ON a.model_id = b.model_id
+                    LEFT JOIN mw_cmdbmd_properties_value c ON a.properties_value_id = c.id
+                    WHERE a.properties_type_id = '8' AND c.expire_remind = TRUE))
+            )
+    </select>
+
+    <select id="selectModelInstanceTreeByRedirect" resultType="cn.mw.monitor.model.dto.MwModelManageTypeDto">
+       SELECT
+            t.model_group_id,
+            CONCAT( "group_", t.model_group_id ) AS "modelGroupIdStr",
+            t.model_group_name,
+            "" AS "modelIndex",
+            t.is_show,
+            "" as "icon",
+            (select count( a.instance_id ) FROM mw_cmdbmd_instance a left join mw_cmdbmd_manage b on a.model_id = b.model_id
+            where b.group_nodes like CONCAT('%,',t.model_group_id,',%') and b.delete_flag = false and b.is_show = true) As"instanceNum",
+            t.deep,
+            "group" AS "type",
+            CONCAT( "group_", t.pid ) AS "pidStr",
+            t.pid,
+            "" AS pids
+        FROM
+            mw_cmdbmd_group t
+        WHERE
+            1 = 1
+           and t.is_show = true
+           and t.nodes like CONCAT('%,',#{modelGroupId},',%')
+            UNION
+        SELECT
+            a.model_id AS "model_group_id",
+            CONCAT( "model_", a.model_id ) AS "modelGroupIdStr",
+            a.model_name AS "model_group_name",
+            a.model_index AS "modelIndex",
+            1 AS "is_show",
+            a.url AS "icon",
+            ( SELECT count( instance_id ) FROM mw_cmdbmd_instance WHERE model_id = a.model_id ) AS "instanceNum",
+            "10" AS deep,
+            "model" AS "type",
+            CONCAT( "group_", a.model_group_id ) AS "pidStr",
+            a.model_group_id AS "pid",
+            a.pids
+        FROM
+            mw_cmdbmd_manage a
+        WHERE
+            1 = 1
+            and a.delete_flag = false
+            and a.is_show = true
+            and a.model_type_id = '1'
+            and a.model_id = #{modelId}
+    </select>
+
+
+    <select id="selectCountInstances" resultType="java.lang.Integer">
+        select count(0) from mw_cmdbmd_instance
+    </select>
+
+    <select id="selectModelInstanceInfoById" resultType="cn.mw.monitor.service.model.param.MwModelInstanceCommonParam">
+        SELECT
+            t1.instance_id AS "modelInstanceId",
+            t1.instance_name AS "modelInstanceName",
+            t2.model_index AS "modelIndex"
+        FROM
+            mw_cmdbmd_instance t1
+            LEFT JOIN mw_cmdbmd_manage t2 ON t1.model_id = t2.model_id
+        WHERE
+            t1.model_id = #{modelId}
+    </select>
+
+    <select id="selectModelInstanceInfoByIds" resultType="cn.mw.monitor.service.model.param.MwModelInstanceCommonParam">
+        SELECT
+        t1.instance_id AS "modelInstanceId",
+        t1.instance_name AS "modelInstanceName",
+        t1.relation_instance_id AS "relationInstanceId",
+        t2.model_id AS modelId,
+        t2.model_index AS "modelIndex"
+        FROM
+        mw_cmdbmd_instance t1
+        LEFT JOIN mw_cmdbmd_manage t2 ON t1.model_id = t2.model_id
+        WHERE
+        t1.model_id in (
+        <foreach collection="list" item="item" index="index" separator=",">
+            #{item}
+        </foreach>
+        )
+    </select>
+
+    <select id="getInstanceNameByModelId" resultType="java.lang.String">
+        SELECT
+            instance_name AS "name"
+        FROM
+            mw_cmdbmd_instance
+        WHERE
+            model_id = #{modelId}
+        ORDER BY
+            instance_name
+    </select>
+
+    <select id="getAllRoomInfo" resultType="cn.mw.monitor.service.model.param.MwModelInstanceCommonParam">
+        SELECT
+        a.instance_id AS "modelInstanceId",
+        a.instance_name AS "modelInstanceName"
+        FROM
+        mw_cmdbmd_instance a
+        LEFT JOIN mw_cmdbmd_manage b ON a.model_id = b.model_id
+        WHERE
+        b.delete_flag = '0'
+        AND b.model_view = '1'
+        <if test="instanceIdList != null and instanceIdList.size > 0">
+            AND (a.instance_id in
+            <foreach collection="instanceIdList" item="item" index="index" open="(" close=")" separator=",">
+                #{item}
+            </foreach>
+            )
+        </if>
+        <if test="relationInstanceId != null and relationInstanceId!=''">
+            AND a.relation_instance_id = #{relationInstanceId}
+        </if>
+        <if test="modelDesc != null and modelDesc!=''">
+            AND b.model_desc = #{modelDesc}
+        </if>
+    </select>
+
+    <select id="getModelInfoParamById" resultType="cn.mw.monitor.service.model.param.MwModelInfoParam">
+        SELECT
+        model_name AS "modelName",
+        model_index AS "modelIndex",
+        CONCAT( group_nodes, model_id ) AS "nodes",
+        (CASE WHEN ( LOCATE( ',0,', group_nodes ) > 0 ) THEN 1 ELSE 0 END ) AS "isBase"
+        FROM
+            mw_cmdbmd_manage
+        where model_id =#{modleId}
+    </select>
+
+    <select id="getModelTypeById" resultType="java.lang.String">
+        SELECT
+            ( CASE WHEN a.model_view = 1 THEN 'room' WHEN a.model_view = 2 THEN 'cabinet' WHEN a.model_view = 3 THEN 'device'
+                   WHEN a.model_id = 1032 THEN 'link'  ELSE 'building' END ) AS "type"
+        FROM
+            mw_cmdbmd_manage a
+            LEFT JOIN mw_cmdbmd_instance b ON a.model_id = b.model_id
+        WHERE
+            b.instance_id = #{instanceId};
+    </select>
+
+    <select id="getSystemAndClassifyInfo" resultType="cn.mw.monitor.service.model.param.MwModelInstanceCommonParam">
+        SELECT
+            b.instance_id AS "modelInstanceId",
+            b.instance_name AS "modelInstanceName"
+        FROM
+            mw_cmdbmd_manage a
+                LEFT JOIN mw_cmdbmd_instance b ON a.model_id = b.model_id
+        WHERE
+            a.model_group_id = '510'
+          AND a.delete_flag = FALSE
+          AND b.instance_name IS NOT NULL
+    </select>
+
+    <select id="getAllCabinetInfo" resultType="cn.mw.monitor.service.model.param.MwModelInstanceCommonParam">
+        SELECT
+            a.instance_id AS "modelInstanceId",
+            a.instance_name AS "modelInstanceName",
+            a.relation_instance_id AS "relationInstanceId"
+        FROM
+            mw_cmdbmd_instance a
+            LEFT JOIN mw_cmdbmd_manage b ON a.model_id = b.model_id
+        WHERE
+            b.delete_flag = '0'
+            AND b.model_view = '2'
+    </select>
+
+    <select id="getCabinetInfoByRoomId" resultType="cn.mw.monitor.service.model.param.MwModelInstanceCommonParam">
+        SELECT
+            a.instance_id AS "modelInstanceId",
+            a.instance_name AS "modelInstanceName",
+            a.relation_instance_id AS "relationInstanceId"
+        FROM
+            mw_cmdbmd_instance a
+        LEFT JOIN mw_cmdbmd_manage b ON a.model_id = b.model_id
+        WHERE
+            b.delete_flag = '0'
+        AND b.model_view = '2'
+        AND a.relation_instance_id = #{relationInstanceId}
+    </select>
+
+    <select id="getModelRelationInfo" resultType="java.util.Map">
+        SELECT
+        a.opposite_model_id AS "oppositeModelId",
+        b.relation_group_name AS "groupName",
+        c.own_relation_name AS "relationName",
+        c.own_relation_num AS "ownRelationNum",
+        c.opposite_relation_num AS "oppositeRelationNum"
+        FROM
+        mw_cmdbmd_relations_group_mapper a
+        LEFT JOIN mw_cmdbmd_relations_group b ON a.relation_group_id = b.id
+        LEFT JOIN mw_cmdbmd_relations c ON c.own_model_id = a.own_model_id
+        AND a.opposite_model_id = c.opposite_model_id
+        left join mw_cmdbmd_manage e on a.opposite_model_id = e.model_id
+        <where>
+            a.delete_flag = FALSE
+            AND b.delete_flag = FALSE
+            AND c.delete_flag = FALSE
+            AND e.delete_flag = FALSE
+            <if test="modelId!=null">
+                and a.own_model_id = #{modelId}
+            </if>
+            <if test="lastModelId!=null">
+                and a.opposite_model_id != #{lastModelId}
+            </if>
+        </where>
+        ORDER BY b.relation_group_name
+    </select>
+
+    <update id="batchEditorInstanceName" parameterType="java.util.List">
+        <foreach collection="list" item="updateList" separator=";">
+            update mw_cmdbmd_instance set instance_name = #{updateList.instanceName}
+            where instance_id = #{updateList.instanceId}
+        </foreach>
+    </update>
+
+
+    <update id="updataInstanceName">
+        update mw_cmdbmd_instance set instance_name = #{instanceName}
+        where instance_id = #{instanceId}
+    </update>
+
+    <select id="getAllModelInfoByPids" resultType="cn.mw.monitor.model.dto.MwModelInfoDTO">
+        SELECT
+            model_index AS "modelIndex",
+            model_id AS "modelId"
+        FROM
+            mw_cmdbmd_manage
+        WHERE
+            pids LIKE CONCAT('%,',#{modelId},',%')
+            and delete_flag = FALSE
+    </select>
+
+    <select id="getInstanNameAndRelationNameById"
+            resultType="cn.mw.monitor.service.model.param.MwModelInstanceCommonParam">
+        SELECT
+        a.instance_name AS "modelInstanceName",
+        a.instance_id AS "modelInstanceId"
+        FROM
+        mw_cmdbmd_instance a
+        WHERE
+        a.instance_id IN (
+        <foreach collection="list" item="instanceId" separator=",">
+            #{instanceId}
+        </foreach>)
+    </select>
+
+    <select id="selectAllMonitorItem" resultType="java.util.Map">
+       select id,descr name,item_name itemName from mw_item_name_mapper
+    </select>
+
+    <select id="getModelNameAndGroupName" resultType="cn.mw.monitor.model.dto.MwModelInfoDTO">
+        SELECT
+            a.model_name AS "modelName",
+            b.model_group_name AS "modelGroupName"
+        FROM
+            mw_cmdbmd_manage a
+            LEFT JOIN mw_cmdbmd_group b ON a.model_group_id = b.model_group_id
+        WHERE
+            a.model_id = #{modelId}
+    </select>
+
+
+    <select id="selectEmailFrom" parameterType="java.lang.String" resultType="cn.mw.monitor.util.entity.EmailFrom">
+        select
+        a.is_ssl as isSsl,
+        a.email_server_address as hostName,
+        a.email_server_port as port,
+        a.email_send_username as username,
+        a.email_send_password as password,
+        a.personal as personal,
+        a.title as emailHeaderTitle,
+        a.logo,
+        a.url,
+        a.is_logo as isLogo,
+        a.is_delsuffix as isDelsuffix
+        from mw_alert_email_rule a
+        left join mw_alert_rule b on a.rule_id = b.rule_id
+        where b.rule_name = #{ruleName}
+        limit 1
+    </select>
+
+    <select id="selectEmailAll" parameterType="java.util.HashSet" resultType="cn.mw.monitor.service.user.model.MWUser">
+        select
+        email,
+        user_id AS "userId"
+        from mw_sys_user
+        where delete_flag = 0
+    </select>
+
+    <update id="updateCabinetRelationId" parameterType="java.util.List">
+        <foreach collection="list" item="updateList" separator=";">
+            update mw_cmdbmd_instance
+            set relation_instance_id = #{updateList.relationInstanceId,jdbcType=INTEGER}
+            where instance_id = #{updateList.instanceId,jdbcType=INTEGER}
+        </foreach>
+    </update>
+
+    <delete id="deleteBatchInstanceById">
+        delete from mw_cmdbmd_instance
+        where instance_id in(
+        <foreach collection="instanceIds" item="instanceId" separator=",">
+            #{instanceId}
+        </foreach>
+        )
+    </delete>
+
+    <delete id="deleteBatchInstanceByRelationIds" parameterType="cn.mw.monitor.model.param.DeleteModelInstanceParam">
+        delete t1 FROM mw_cmdbmd_instance t1
+        LEFT JOIN mw_cmdbmd_manage t2 ON t1.model_id = t2.model_id
+        WHERE t1.relation_instance_id in(
+        <foreach collection="DeleteModelInstanceParam.relationInstanceIds" item="relationInstanceId" separator=",">
+            #{relationInstanceId}
+        </foreach>
+        )
+        and t2.model_index IN (
+        <foreach collection="DeleteModelInstanceParam.modelIndexs" item="index" separator=",">
+            #{index}
+        </foreach>
+        )
+    </delete>
+
+    <delete id="deleteBatchInstanceByIndex">
+        DELETE t1 FROM mw_cmdbmd_instance t1
+        LEFT JOIN mw_cmdbmd_manage t2 ON t1.model_id = t2.model_id
+        WHERE
+        t2.model_index IN (
+        <foreach collection="indexs" item="index" separator=",">
+            #{index}
+        </foreach>
+        )
+        <if test="relationInstanceId != null">
+            and t1.relation_instance_id = #{relationInstanceId}
+        </if>
+    </delete>
+
+    <resultMap id="BaseResultByModelMap" type="cn.mw.monitor.service.model.param.MwCustomColByModelDTO">
+        <id column="id" jdbcType="INTEGER" property="id"/>
+        <result column="modelId" jdbcType="INTEGER" property="modelId"/>
+        <result column="prop" jdbcType="VARCHAR" property="prop"/>
+        <result column="drop_op" jdbcType="VARCHAR" property="dropOpStr"/>
+        <result column="propertiesType" jdbcType="VARCHAR" property="propertiesType"/>
+        <result column="default_value_list" jdbcType="VARCHAR" property="defaultValueListStr"/>
+        <result column="regex" jdbcType="VARCHAR" property="regex"/>
+        <result column="defaultValue" jdbcType="VARCHAR" property="defaultValue"/>
+        <result column="label" jdbcType="VARCHAR" property="label"/>
+        <result column="type" jdbcType="VARCHAR" property="type"/>
+        <result column="visible" jdbcType="BOOLEAN" property="importance"/>
+        <result column="order_number" jdbcType="INTEGER" property="orderNum"/>
+        <result column="custom_id" jdbcType="INTEGER" property="customId"/>
+        <result column="col_id" jdbcType="INTEGER" property="colId"/>
+        <result column="user_id" jdbcType="INTEGER" property="userId"/>
+        <result column="sortable" jdbcType="BOOLEAN" property="sortable"/>
+        <result column="width" jdbcType="INTEGER" property="width"/>
+        <result column="visible" jdbcType="BOOLEAN" property="visible"/>
+        <result column="order_number" jdbcType="INTEGER" property="orderNumber"/>
+        <result column="expire_remind" jdbcType="BOOLEAN" property="expireRemind"/>
+        <result column="before_expiretime" jdbcType="INTEGER" property="beforeExpireTime"/>
+        <result column="time_unit" jdbcType="VARCHAR" property="timeUnit"/>
+        <result column="relation_model_index" jdbcType="VARCHAR" property="relationModelIndex"/>
+        <result column="relation_properties_index" jdbcType="VARCHAR" property="relationPropertiesIndex"/>
+        <result column="is_relation" jdbcType="BOOLEAN" property="isRelation"/>
+        <result column="drop_arr_obj" jdbcType="VARCHAR" property="dropArrObjStr"/>
+        <result column="is_ganged" jdbcType="BOOLEAN" property="isGanged"/>
+        <result column="is_manage" jdbcType="INTEGER" property="isManage"/>
+        <result column="ganged_field_val" jdbcType="VARCHAR" property="gangedValueListStr"/>
+        <result column="ganged_field" jdbcType="VARCHAR" property="gangedField"/>
+        <result column="properties_id" jdbcType="INTEGER" property="modelPropertiesId"/>
+
+    </resultMap>
+</mapper>
